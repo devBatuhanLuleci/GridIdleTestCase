@@ -326,7 +326,7 @@ namespace GridSystemModule.Services
                 var placeableMb = placeable as MonoBehaviour;
                 if (placeableMb != null)
                 {
-                    placeableMb.transform.SetParent(tile.transform);
+                    placeableMb.transform.position = tile.transform.position;
                 }
             }
             
@@ -854,7 +854,7 @@ namespace GridSystemModule.Services
             var draggedTile = FindTileAtPosition(actualOccupantPos);
             if (draggedTile != null && draggedMb != null)
             {
-                draggedMb.transform.SetParent(draggedTile.transform);
+                draggedMb.transform.position = draggedTile.transform.position;
             }
             
             if (_dragStartWasPlaced)
@@ -862,7 +862,7 @@ namespace GridSystemModule.Services
                 var occupantTile = FindTileAtPosition(actualDraggedStartPos);
                 if (occupantTile != null && occupantMb != null)
                 {
-                    occupantMb.transform.SetParent(occupantTile.transform);
+                    occupantMb.transform.position = occupantTile.transform.position;
                 }
             }
 
@@ -1364,6 +1364,27 @@ namespace GridSystemModule.Services
                     availablePositions.Remove(usedPos);
                 }
             }
+        }
+
+        public Vector3 MultiTileGridToWorld(Vector2Int[] gridPositions)
+        {
+            if (gridPositions == null || gridPositions.Length == 0)
+                return Vector3.zero;
+
+            // Calculate the average grid position
+            float avgX = 0;
+            float avgY = 0;
+            foreach (var pos in gridPositions)
+            {
+                avgX += pos.x;
+                avgY += pos.y;
+            }
+            avgX /= gridPositions.Length;
+            avgY /= gridPositions.Length;
+
+            // Convert the average grid position to world position
+            Vector2Int averageGridPosition = new Vector2Int(Mathf.RoundToInt(avgX), Mathf.RoundToInt(avgY));
+            return GridToWorld(averageGridPosition);
         }
     }
 }
