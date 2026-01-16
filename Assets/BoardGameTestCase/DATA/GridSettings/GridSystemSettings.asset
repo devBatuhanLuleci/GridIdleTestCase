@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: GridSystemModule.Core::GridSystemModule.Core.Models.GridSystemSettings
   _width: 8
   _height: 6
-  _cellSize: {x: 1, y: 1}
-  _cellSpacing: {x: 0.01, y: 0.01}
+  _cellSize: {x: 0.5, y: 0.5}
+  _cellSpacing: {x: 0, y: 0}
   _centerGrid: 1
   _normalGrassTilePrefab: {fileID: -750627606701587212, guid: 10b7f3a198b961041b4c4e16d6823537, type: 3}
   _darkGrassTilePrefab: {fileID: 3173254629591485657, guid: 9a36dbea644e14bf1976725edd4d0ee9, type: 3}

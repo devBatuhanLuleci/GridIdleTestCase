@@ -66,13 +66,21 @@ namespace GridSystemModule.Services
 
         private void CreateTileAt(int x, int y)
         {
-
             var grassTilePrefab = GetGrassTileForPosition(x, y);
             if (grassTilePrefab == null) return;
 
             var position = new Vector2(x, y);
             
-            Vector3 worldPosition = new Vector3(x, y, 0);
+            // Calculate world position using CellSize and CellSpacing
+            var settings = GetGridSystemSettings();
+            Vector2 cellSize = settings != null ? settings.CellSize : Vector2.one;
+            Vector2 cellSpacing = settings != null ? settings.CellSpacing : Vector2.zero;
+            
+            Vector3 worldPosition = new Vector3(
+                x * (cellSize.x + cellSpacing.x),
+                y * (cellSize.y + cellSpacing.y),
+                0
+            );
             
             var spawnedTile = Object.Instantiate(
                 grassTilePrefab, 
@@ -84,9 +92,32 @@ namespace GridSystemModule.Services
             {
                 spawnedTile.transform.SetParent(_configuration.TilesParent, false);
                 
-                Vector3 localPosition = new Vector3(x, y, 0);
+                Vector3 localPosition = new Vector3(
+                    x * (cellSize.x + cellSpacing.x),
+                    y * (cellSize.y + cellSpacing.y),
+                    0
+                );
                 spawnedTile.transform.localPosition = localPosition;
-                spawnedTile.transform.localScale = Vector3.one;
+                
+                // Calculate proper scale based on sprite size
+                // Sprite's natural world size = sprite.rect.size / ppu
+                var spriteRenderer = spawnedTile.GetComponent<SpriteRenderer>();
+                if (spriteRenderer != null && spriteRenderer.sprite != null)
+                {
+                    float spriteWidth = spriteRenderer.sprite.rect.width / spriteRenderer.sprite.pixelsPerUnit;
+                    float spriteHeight = spriteRenderer.sprite.rect.height / spriteRenderer.sprite.pixelsPerUnit;
+                    
+                    // Calculate scale to fit tile into CellSize
+                    float scaleX = spriteWidth > 0 ? cellSize.x / spriteWidth : 1f;
+                    float scaleY = spriteHeight > 0 ? cellSize.y / spriteHeight : 1f;
+                    
+                    spawnedTile.transform.localScale = new Vector3(scaleX, scaleY, 1f);
+                }
+                else
+                {
+                    // Fallback: scale to CellSize if no sprite renderer
+                    spawnedTile.transform.localScale = new Vector3(cellSize.x, cellSize.y, 1f);
+                }
             }
 
             spawnedTile.name = $"Tile_{x}_{y}";
