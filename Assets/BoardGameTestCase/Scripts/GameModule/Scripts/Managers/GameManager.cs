@@ -3,14 +3,13 @@ using BoardGameTestCase.Core.Common;
 using GameModule.Core.Interfaces;
 using InventoryModule;
 using BoardGameTestCase.Core.ScriptableObjects;
-using Sirenix.OdinInspector;
 
 namespace GameModule.Managers
 {
     public class GameManager : MonoBehaviour, IInitializable
     {
         private bool _isInitialized = false;
-        public bool IsInitialized => _isInitialized;        [SerializeField] private StateManager _stateManager;        [ReadOnly, ShowInInspector]
+        public bool IsInitialized => _isInitialized;        [SerializeField] private StateManager _stateManager;
         private GameState CurrentGameStateDisplay => CurrentGameState;
         
         public GameState CurrentGameState => _gameFlowService?.CurrentGameState ?? GameState.Placing;

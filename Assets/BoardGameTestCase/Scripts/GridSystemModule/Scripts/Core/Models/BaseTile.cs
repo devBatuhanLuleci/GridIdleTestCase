@@ -3,7 +3,6 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using GridSystemModule.Core.Interfaces;
-using Sirenix.OdinInspector;
 
 namespace GridSystemModule.Core.Models
 {
@@ -19,7 +18,6 @@ namespace GridSystemModule.Core.Models
         public string TileName => tileName;
         public Vector2 Position => transform.position;
 
-        [ShowInInspector, ReadOnly]
         private List<Transform> SubscribedGridItems => GetSubscribedGridItems();
 
         private List<Transform> GetSubscribedGridItems()

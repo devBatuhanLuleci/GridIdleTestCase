@@ -7,7 +7,6 @@ using PlacementModule.Settings;
 using BoardGameTestCase.Core.Common;
 using DG.Tweening;
 using GameModule.Core.Interfaces;
-using Sirenix.OdinInspector;
 using GameState = GameModule.Core.Interfaces.GameState;
 
 namespace GridSystemModule.Services
@@ -22,7 +21,6 @@ namespace GridSystemModule.Services
         [SerializeField] private List<Vector2Int> _debugAvailableTiles = new List<Vector2Int>();
         [SerializeField] private int _debugPlacedObjectsCount = 0;
         
-        [ShowInInspector, ReadOnly]
         private Dictionary<Vector2Int, IPlaceable> _occupiedTilesWithObjects = new Dictionary<Vector2Int, IPlaceable>();
         
         private Dictionary<Vector2Int, IPlaceable> _placedObjects = new Dictionary<Vector2Int, IPlaceable>();

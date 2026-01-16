@@ -4,7 +4,7 @@ using GridSystemModule.Core.Interfaces;
 using GridSystemModule.Core.Models;
 using GridSystemModule.Services;
 using BoardGameTestCase.Core.Common;
-using Sirenix.OdinInspector;
+ 
 
 namespace GridSystemModule.Managers
 {
@@ -17,10 +17,8 @@ namespace GridSystemModule.Managers
         [SerializeField] private Transform _tilesParent;
         [SerializeField] private bool _autoGenerateOnStart = true;        [SerializeField] private bool _showGizmos = false;
 
-        [ShowInInspector, ReadOnly]
         private Dictionary<Vector2, BaseTile> _generatedTiles = new Dictionary<Vector2, BaseTile>();
 
-        [ShowInInspector, ReadOnly]
         public int TileCount => _generatedTiles?.Count ?? 0;
 
         public Transform TilesParent => _tilesParent;
@@ -198,7 +196,6 @@ namespace GridSystemModule.Managers
             _generatedTiles.Clear();
         }
 
-        [Button("Clear and Regenerate Grid", ButtonSizes.Large, ButtonStyle.Box)]
         public void ClearAndRegenerateGrid()
         {
             ClearGrid();
