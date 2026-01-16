@@ -14,6 +14,7 @@ namespace GridSystemModule.Core.Interfaces
         IPlaceable GetObjectAt(Vector2Int gridPosition);
         Vector2Int WorldToGrid(Vector3 worldPosition);
         Vector3 GridToWorld(Vector2Int gridPosition);
+        Vector3 MultiTileGridToWorld(IEnumerable<Vector2Int> gridPositions);
         void StartDragging(IPlaceable placeable);
         void UpdateDrag(Vector3 worldPosition);
         void EndDragging(Vector3 worldPosition);
