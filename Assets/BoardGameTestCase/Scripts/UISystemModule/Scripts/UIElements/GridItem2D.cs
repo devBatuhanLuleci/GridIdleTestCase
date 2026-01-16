@@ -328,36 +328,20 @@ namespace UISystemModule.UIElements
                 Vector3 worldPosition = _camera.ScreenToWorldPoint(new Vector3(inputPosition.x, inputPosition.y, _camera.nearClipPlane));
                 worldPosition.z = transform.position.z;
                 
-                if (_placementSystem != null)
-                {
-                    _placementSystem.UpdateDrag(worldPosition);
-                    
-                    // Center position on allocated tiles
-                    Vector2Int gridPos = _placementSystem.WorldToGrid(worldPosition);
-                    var occupiedPositions = new List<Vector2Int>();
-                    for (int x = 0; x < _gridSize.x; x++)
-                    {
-                        for (int y = 0; y < _gridSize.y; y++)
-                        {
-                            occupiedPositions.Add(new Vector2Int(gridPos.x + x, gridPos.y + y));
-                        }
-                    }
-                    Vector3 centeredPosition = _placementSystem.MultiTileGridToWorld(occupiedPositions);
-                    centeredPosition.z = transform.position.z;
-                    transform.position = centeredPosition;
-                }
-                else
-                {
-                    transform.position = worldPosition;
-                }
+                transform.position = worldPosition;
                 
                 // IMPORTANT: Update _originalPosition during drag so that if ReturnToOriginalPosition() 
                 // is called, it returns to the current dragged position, not the initial position.
                 // This is crucial for inventory items that should stay where they're dragged to.
-                // Update X, Y from actual transform position (centered on tiles)
-                _originalPosition.x = transform.position.x;
-                _originalPosition.y = transform.position.y;
-                _originalPosition.z = transform.position.z;
+                // Update X, Y from dragged world position, and Z from actual transform (camera-independent)
+                _originalPosition.x = worldPosition.x;
+                _originalPosition.y = worldPosition.y;
+                _originalPosition.z = transform.position.z;  // Always use actual transform Z, not camera calculation
+                
+                if (_placementSystem != null)
+                {
+                    _placementSystem.UpdateDrag(worldPosition);
+                }
             }
         }
         
