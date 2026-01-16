@@ -27,8 +27,6 @@ namespace GridSystemModule.Services
                     CreateTileAt(x, y);
                 }
             }
-
-            PositionCamera();
         }
 
         public void ClearGrid()
@@ -114,16 +112,6 @@ namespace GridSystemModule.Services
 
             var config = _configuration as GridConfiguration;
             return config?.Settings;
-        }
-
-        private void PositionCamera()
-        {
-            if (_configuration.Camera != null)
-            {
-                var centerX = (float)_configuration.Width / 2 - 0.5f;
-                var centerY = (float)_configuration.Height / 2 - 0.5f;
-                _configuration.Camera.position = new Vector3(centerX, centerY, -10);
-            }
         }
 
         private void ClearTilesParent()

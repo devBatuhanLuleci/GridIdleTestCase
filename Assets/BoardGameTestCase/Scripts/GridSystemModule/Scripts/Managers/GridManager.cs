@@ -84,8 +84,6 @@ namespace GridSystemModule.Managers
         {
             if (_gridSettings == null) return;
             
-            _camera.position = _gridSettings.GetCameraPosition();
-            
             var camera = _camera.GetComponent<Camera>();
             if (camera != null)
             {
