@@ -8,6 +8,7 @@ namespace BoardGameTestCase.Core.Common
     public class ServiceLocator : MonoBehaviour
     {
         private static ServiceLocator _instance;
+        private static bool _isQuitting = false;
         private Dictionary<Type, object> _services = new Dictionary<Type, object>();
         private Dictionary<Type, List<object>> _multiServices = new Dictionary<Type, List<object>>();
         
@@ -15,6 +16,8 @@ namespace BoardGameTestCase.Core.Common
         {
             get
             {
+                if (_isQuitting) return null;
+                
                 if (_instance == null || _instance.gameObject == null)
                 {
 #if UNITY_EDITOR
@@ -25,10 +28,6 @@ namespace BoardGameTestCase.Core.Common
 #endif
                     var go = new GameObject("ServiceLocator");
                     _instance = go.AddComponent<ServiceLocator>();
-                    if (Application.isPlaying)
-                    {
-                        DontDestroyOnLoad(go);
-                    }
                 }
                 return _instance;
             }
@@ -39,10 +38,6 @@ namespace BoardGameTestCase.Core.Common
             if (_instance == null || _instance.gameObject == null)
             {
                 _instance = this;
-                if (Application.isPlaying)
-                {
-                    DontDestroyOnLoad(gameObject);
-                }
             }
             else if (_instance != this)
             {
@@ -169,6 +164,7 @@ namespace BoardGameTestCase.Core.Common
         {
             if (_instance == this)
             {
+                _isQuitting = true;
                 Clear();
                 _instance = null;
             }
@@ -176,6 +172,7 @@ namespace BoardGameTestCase.Core.Common
         
         private void OnApplicationQuit()
         {
+            _isQuitting = true;
             if (_instance == this)
             {
                 Clear();
@@ -205,25 +202,28 @@ namespace BoardGameTestCase.Core.Common
         
         private static void OnSceneClosing(UnityEngine.SceneManagement.Scene scene, bool removingScene)
         {
-            if (!UnityEditor.EditorApplication.isPlaying && _instance != null)
+            if (!UnityEditor.EditorApplication.isPlaying)
             {
+                // Aggressively destroy ALL ServiceLocator instances when scene is closing
                 try
                 {
-                    if (_instance.gameObject == null)
+                    var allLocators = FindObjectsOfType<ServiceLocator>(true);
+                    foreach (var locator in allLocators)
                     {
-                        CleanupInstance();
-                        return;
-                    }
-                    
-                    var instanceScene = _instance.gameObject.scene;
-                    if (instanceScene.IsValid() && (instanceScene == scene || instanceScene.name == scene.name))
-                    {
-                        CleanupInstance();
+                        if (locator != null && locator.gameObject != null)
+                        {
+                            try
+                            {
+                                UnityEngine.Object.DestroyImmediate(locator.gameObject);
+                            }
+                            catch { }
+                        }
                     }
                 }
-                catch
+                catch { }
+                finally
                 {
-                    CleanupInstance();
+                    _instance = null;
                 }
             }
         }
@@ -232,64 +232,57 @@ namespace BoardGameTestCase.Core.Common
         {
             if (state == UnityEditor.PlayModeStateChange.ExitingPlayMode)
             {
-                // Force cleanup when exiting play mode
-                if (_instance != null)
-                {
-                    try
-                    {
-                        _instance.Clear();
-                        if (_instance.gameObject != null)
-                        {
-                            // Remove DontDestroyOnLoad and destroy immediately
-                            SceneManagement.SceneManager.MoveGameObjectToScene(_instance.gameObject, SceneManagement.SceneManager.GetActiveScene());
-                            UnityEngine.Object.DestroyImmediate(_instance.gameObject);
-                        }
-                    }
-                    catch { }
-                    finally
-                    {
-                        _instance = null;
-                    }
-                }
+                // Set quitting flag FIRST to prevent new instances
+                _isQuitting = true;
                 
-                // Also find and destroy any remaining ServiceLocator instances
-                var remaining = FindObjectsOfType<ServiceLocator>();
-                foreach (var locator in remaining)
+                // Force cleanup when exiting play mode - destroy ALL ServiceLocator instances
+                CleanupInstance();
+                
+                // Double-check: find and destroy any remaining ServiceLocator instances
+                try
                 {
-                    if (locator.gameObject != null)
+                    var remaining = FindObjectsOfType<ServiceLocator>(true);
+                    foreach (var locator in remaining)
                     {
-                        try
+                        if (locator != null && locator.gameObject != null)
                         {
-                            SceneManagement.SceneManager.MoveGameObjectToScene(locator.gameObject, SceneManagement.SceneManager.GetActiveScene());
                             UnityEngine.Object.DestroyImmediate(locator.gameObject);
                         }
-                        catch { }
                     }
                 }
+                catch { }
+            }
+            else if (state == UnityEditor.PlayModeStateChange.EnteredEditMode)
+            {
+                // Reset quitting flag when entering edit mode
+                _isQuitting = false;
             }
         }
         
         private static void OnSceneClosed(UnityEngine.SceneManagement.Scene scene)
         {
-            if (!UnityEditor.EditorApplication.isPlaying && _instance != null)
+            if (!UnityEditor.EditorApplication.isPlaying)
             {
+                // Extra safety: destroy any remaining ServiceLocator instances
                 try
                 {
-                    if (_instance.gameObject == null)
+                    var allLocators = FindObjectsOfType<ServiceLocator>(true);
+                    foreach (var locator in allLocators)
                     {
-                        CleanupInstance();
-                        return;
-                    }
-                    
-                    var instanceScene = _instance.gameObject.scene;
-                    if (!instanceScene.IsValid() || instanceScene == scene)
-                    {
-                        CleanupInstance();
+                        if (locator != null && locator.gameObject != null)
+                        {
+                            try
+                            {
+                                UnityEngine.Object.DestroyImmediate(locator.gameObject);
+                            }
+                            catch { }
+                        }
                     }
                 }
-                catch
+                catch { }
+                finally
                 {
-                    CleanupInstance();
+                    _instance = null;
                 }
             }
         }
@@ -327,18 +320,20 @@ namespace BoardGameTestCase.Core.Common
             }
             
             // Also find and destroy any other ServiceLocator instances that might exist
+            // Include inactive GameObjects with true parameter
             #if UNITY_EDITOR
-            if (!UnityEditor.EditorApplication.isPlaying)
+            try
             {
-                var allLocators = FindObjectsOfType<ServiceLocator>();
+                var allLocators = FindObjectsOfType<ServiceLocator>(true);
                 foreach (var locator in allLocators)
                 {
-                    if (locator.gameObject != null)
+                    if (locator != null && locator.gameObject != null && locator.gameObject != _instance?.gameObject)
                     {
                         UnityEngine.Object.DestroyImmediate(locator.gameObject);
                     }
                 }
             }
+            catch { }
             #endif
         }
 #endif
