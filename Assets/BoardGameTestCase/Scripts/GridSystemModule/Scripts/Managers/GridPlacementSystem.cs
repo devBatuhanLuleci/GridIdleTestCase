@@ -400,15 +400,30 @@ namespace GridSystemModule.Services
                     relativePos.z / parentScale.z
                 );
                 
-                int x = Mathf.RoundToInt(relativePos.x);
-                int y = Mathf.RoundToInt(relativePos.y);
+                // Get CellSize and CellSpacing from GridManager settings
+                var gridManager = ServiceLocator.Instance?.Get<GridManager>();
+                Vector2 cellSize = Vector2.one;
+                Vector2 cellSpacing = Vector2.zero;
+                
+                if (gridManager != null && gridManager.GridSettings != null)
+                {
+                    cellSize = gridManager.GridSettings.CellSize;
+                    cellSpacing = gridManager.GridSettings.CellSpacing;
+                }
+                
+                // Calculate grid position accounting for cell size and spacing
+                float cellSizeX = cellSize.x + cellSpacing.x;
+                float cellSizeY = cellSize.y + cellSpacing.y;
+                
+                int x = Mathf.RoundToInt(relativePos.x / cellSizeX);
+                int y = Mathf.RoundToInt(relativePos.y / cellSizeY);
                 return new Vector2Int(x, y);
             }
             
-            var gridManager = ServiceLocator.Instance.Get<GridManager>();
-            if (gridManager != null)
+            var gridManager2 = ServiceLocator.Instance?.Get<GridManager>();
+            if (gridManager2 != null)
             {
-                var allTiles = gridManager.GetAllTiles();
+                var allTiles = gridManager2.GetAllTiles();
                 if (allTiles != null && allTiles.Count > 0)
                 {
                     BaseTile nearestTile = null;
@@ -436,6 +451,7 @@ namespace GridSystemModule.Services
                 }
             }
             
+            // Fallback: no spacing assumption
             int wx = Mathf.RoundToInt(worldPosition.x);
             int wy = Mathf.RoundToInt(worldPosition.y);
             return new Vector2Int(wx, wy);
@@ -449,10 +465,30 @@ namespace GridSystemModule.Services
                 return tile.transform.position;
             }
             
+            // Get CellSize and CellSpacing from GridManager settings
+            var gridManager = ServiceLocator.Instance?.Get<GridManager>();
+            Vector2 cellSize = Vector2.one;
+            Vector2 cellSpacing = Vector2.zero;
+            
+            if (gridManager != null && gridManager.GridSettings != null)
+            {
+                cellSize = gridManager.GridSettings.CellSize;
+                cellSpacing = gridManager.GridSettings.CellSpacing;
+            }
+            
+            // Calculate local position accounting for cell size and spacing
+            float cellSizeX = cellSize.x + cellSpacing.x;
+            float cellSizeY = cellSize.y + cellSpacing.y;
+            
+            Vector3 localPosition = new Vector3(
+                gridPosition.x * cellSizeX,
+                gridPosition.y * cellSizeY,
+                0
+            );
+            
             Transform tilesParent = GetTilesParent();
             if (tilesParent != null)
             {
-                Vector3 localPosition = new Vector3(gridPosition.x, gridPosition.y, 0);
                 Vector3 parentPos = tilesParent.position;
                 Quaternion parentRot = tilesParent.rotation;
                 Vector3 parentScale = tilesParent.lossyScale;
@@ -466,7 +502,7 @@ namespace GridSystemModule.Services
                 return parentPos + parentRot * scaledLocalPos;
             }
             
-            return new Vector3(gridPosition.x, gridPosition.y, 0);
+            return localPosition;
         }
         
         private Transform GetTilesParent()
