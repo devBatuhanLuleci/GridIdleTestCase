@@ -18,6 +18,11 @@ namespace GridSystemModule.Services
         [SerializeField] private Color _validHighlightColor = Color.white;
         [SerializeField] private Color _invalidHighlightColor = Color.red;
         
+        // Optional: assign an existing prefab to overwrite on regeneration
+        // If left null, a new prefab will be created at the default path.
+        [SerializeField] private GameObject _tilesPrefab;
+        [SerializeField] private string _tilesPrefabPath = "Assets/BoardGameTestCase/Prefabs/GAMEPLAY/Tiles/Tiles.prefab";
+        
         public int Width => _width;
         public int Height => _height;
         public Vector2 CellSize => _cellSize;
@@ -29,6 +34,8 @@ namespace GridSystemModule.Services
         public float CameraSize => _cameraSize;
         public Color ValidHighlightColor => _validHighlightColor;
         public Color InvalidHighlightColor => _invalidHighlightColor;
+        public GameObject TilesPrefab => _tilesPrefab;
+        public string TilesPrefabPath => _tilesPrefabPath;
 
         public BaseTile GetGrassTileForPosition(int x, int y)
         {
@@ -56,5 +63,64 @@ namespace GridSystemModule.Services
             if (_height < 1) _height = 1;
             if (_cameraSize < 1) _cameraSize = 1;
         }
+
+#if UNITY_EDITOR
+        [ContextMenu("Regenerate Tiles Prefab")]
+        private void RegenerateTilesPrefab()
+        {
+            // Create a temporary parent to hold generated tiles
+            var tempRoot = new GameObject("TilesParent_Temp");
+            var tempRootTransform = tempRoot.transform;
+            tempRootTransform.position = Vector3.zero;
+            tempRootTransform.rotation = Quaternion.identity;
+            tempRootTransform.localScale = Vector3.one;
+
+            // Build configuration using current settings
+            var config = new GridConfiguration(_width, _height, _normalGrassTilePrefab, null, tempRootTransform, this);
+            var service = new GridService(config);
+            service.GenerateGrid();
+
+            // Determine target path
+            string targetPath = _tilesPrefab != null ? UnityEditor.AssetDatabase.GetAssetPath(_tilesPrefab) : _tilesPrefabPath;
+            if (string.IsNullOrEmpty(targetPath))
+            {
+                // Fallback to default path if none set
+                targetPath = "Assets/BoardGameTestCase/Prefabs/GAMEPLAY/Tiles/Tiles.prefab";
+            }
+
+            // Ensure directory exists
+            var dir = System.IO.Path.GetDirectoryName(targetPath);
+            if (!System.IO.Directory.Exists(dir))
+            {
+                System.IO.Directory.CreateDirectory(dir);
+                UnityEditor.AssetDatabase.Refresh();
+            }
+
+            // Save or overwrite prefab
+            var created = UnityEditor.PrefabUtility.SaveAsPrefabAsset(tempRoot, targetPath, out bool success);
+            if (success)
+            {
+                _tilesPrefab = created;
+                UnityEditor.EditorUtility.SetDirty(this);
+                UnityEditor.AssetDatabase.SaveAssets();
+                UnityEditor.AssetDatabase.Refresh();
+                Debug.Log($"Tiles prefab regenerated at: {targetPath} (Width={_width}, Height={_height})");
+            }
+            else
+            {
+                Debug.LogError($"Failed to regenerate tiles prefab at: {targetPath}");
+            }
+
+            // Clean up temporary object from the scene
+            if (Application.isPlaying)
+            {
+                Object.Destroy(tempRoot);
+            }
+            else
+            {
+                Object.DestroyImmediate(tempRoot);
+            }
+        }
+#endif
     }
 }
