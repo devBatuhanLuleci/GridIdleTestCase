@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using DG.Tweening;
 using GridSystemModule.Core.Interfaces;
 using BoardGameTestCase.Core.ScriptableObjects;
 using UISystemModule.Core.Interfaces;
@@ -12,6 +13,9 @@ namespace UISystemModule.UIElements
 {
     public class GridItem2D : MonoBehaviour, IPlaceable
     {
+        // Static flag to ensure only one item can be dragged at a time
+        private static GridItem2D _currentlyDraggingItem = null;
+        
         [SerializeField] private DefenceItemData _defenceItemData;
         [SerializeField] private SpriteRenderer _spriteRenderer;
         [SerializeField] private Collider2D _collider;
@@ -185,6 +189,17 @@ namespace UISystemModule.UIElements
         
         private void StartDragging()
         {
+            // IMPORTANT: Only allow one item to be dragged at a time
+            if (_currentlyDraggingItem != null && _currentlyDraggingItem != this)
+            {
+                Debug.Log($"[GridItem2D] Cannot drag {name} - another item is already being dragged: {_currentlyDraggingItem.name}");
+                return;
+            }
+            
+            // IMPORTANT: Cancel any ongoing DOTween animations on this item's transform
+            // This prevents scale stacking and other animation conflicts
+            transform.DOKill();
+            
             // Ensure GameFlowController is initialized (lazy loading)
             if (_gameFlowController == null)
             {
@@ -217,6 +232,7 @@ namespace UISystemModule.UIElements
             }
             
             _isDragging = true;
+            _currentlyDraggingItem = this; // Mark this item as currently dragging
             _placementSystem?.StartDragging(this);
             
             if (_isPlaced)
@@ -224,8 +240,7 @@ namespace UISystemModule.UIElements
                 _isPlaced = false;
             }
             
-            SetColor(_draggingColor);
-        }
+            SetColor(_draggingColor);        }
         
         private void UpdateDragPosition()
         {
@@ -254,6 +269,14 @@ namespace UISystemModule.UIElements
                 
                 transform.position = worldPosition;
                 
+                // IMPORTANT: Update _originalPosition during drag so that if ReturnToOriginalPosition() 
+                // is called, it returns to the current dragged position, not the initial position.
+                // This is crucial for inventory items that should stay where they're dragged to.
+                // Update X, Y from dragged world position, and Z from actual transform (camera-independent)
+                _originalPosition.x = worldPosition.x;
+                _originalPosition.y = worldPosition.y;
+                _originalPosition.z = transform.position.z;  // Always use actual transform Z, not camera calculation
+                
                 if (_placementSystem != null)
                 {
                     _placementSystem.UpdateDrag(worldPosition);
@@ -265,6 +288,12 @@ namespace UISystemModule.UIElements
         {
             if (!_isDragging) return;
             _isDragging = false;
+            
+            // Clear the global dragging flag
+            if (_currentlyDraggingItem == this)
+            {
+                _currentlyDraggingItem = null;
+            }
             
             if (_placementSystem != null)
             {
@@ -424,6 +453,11 @@ namespace UISystemModule.UIElements
             }
         }
         
+        public void SetPlacementSystem(IGridPlacementSystem placementSystem)
+        {
+            _placementSystem = placementSystem;
+        }
+        
         public SpriteRenderer GetSpriteRenderer() => _spriteRenderer;
         
         public void SetSpriteRenderer(SpriteRenderer spriteRenderer)
@@ -506,8 +540,6 @@ namespace UISystemModule.UIElements
                 Vector3 worldPosition = _placementSystem.GridToWorld(gridPosition);
                 transform.position = worldPosition;
             }
-            
-            _originalScale = transform.localScale;
             
             AttachCombatComponentIfNeeded();
         }

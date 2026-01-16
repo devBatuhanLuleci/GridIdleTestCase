@@ -5,6 +5,8 @@
         "BoardGameTestCase.Core",
         "GameModule.Core",
         "GridSystemModule.Core",
+        "UISystemModule.Core",
+        "UISystemModule.UIElements",
         "DebugModule"
     ],
     "includePlatforms": [],

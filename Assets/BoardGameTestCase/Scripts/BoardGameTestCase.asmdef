@@ -2,7 +2,8 @@
     "name": "BoardGameTestCase",
     "rootNamespace": "BoardGameTestCase",
     "references": [
-        "DebugModule"
+        "DebugModule",
+        "UISystemModule.UIElements"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

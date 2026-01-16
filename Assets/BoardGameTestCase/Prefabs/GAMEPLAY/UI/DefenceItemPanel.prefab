@@ -216,6 +216,7 @@ MonoBehaviour:
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -314,7 +315,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Button
+  m_text: START
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -341,7 +342,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 55.25
+  m_fontSize: 50.55
   m_fontSizeBase: 24
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -352,6 +353,7 @@ MonoBehaviour:
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -1333,9 +1335,15 @@ MonoBehaviour:
   _elementId: 
   _startActive: 1
   _contentParent: {fileID: 8863615917938163757}
+  _displayMode: 1
   _dragHandlerPrefab: {fileID: 753907213642756401, guid: b7fcbd3084ac34909bb1c4e7cdef9724, type: 3}
   _itemsContainer: {fileID: 8863615917938163757}
   _autoPlacementButton: {fileID: 748444520196534180}
+  _spriteItemPrefab: {fileID: 4716802334451248274, guid: a08f9dbe0937c4b4795e92f0bd1685d8, type: 3}
+  _spriteItemsParent: {fileID: 0}
+  _spriteStartPosition: {x: -2, y: 0, z: 0}
+  _spriteStep: {x: 2, y: 0, z: 0}
+  _maxSpritesPerItem: 0
 --- !u!1 &9191625152781220407
 GameObject:
   m_ObjectHideFlags: 0
