@@ -83,6 +83,33 @@ namespace UISystemModule.UIElements
             {
                 _spriteRenderer.sprite = _defenceItemData.Sprite;
             }
+            
+            // Setup visual scale based on grid size
+            UpdateVisualScaleFromGridSize();
+        }
+        
+        private void UpdateVisualScaleFromGridSize()
+        {
+            if (_spriteRenderer == null) return;
+            
+            // Grid cell size is assumed to be 1 unit
+            // Scale sprite based on grid dimensions
+            // For example: 2x2 item should be 2 units wide and 2 units tall
+            
+            float spriteWidth = _spriteRenderer.sprite != null ? _spriteRenderer.sprite.bounds.size.x : 1f;
+            float spriteHeight = _spriteRenderer.sprite != null ? _spriteRenderer.sprite.bounds.size.y : 1f;
+            
+            // Calculate scale to fit grid size
+            float targetWidth = _gridSize.x;
+            float targetHeight = _gridSize.y;
+            
+            float scaleX = spriteWidth > 0 ? targetWidth / spriteWidth : 1f;
+            float scaleY = spriteHeight > 0 ? targetHeight / spriteHeight : 1f;
+            
+            // Use the average scale to maintain aspect ratio
+            float avgScale = (scaleX + scaleY) / 2f;
+            
+            transform.localScale = new Vector3(avgScale, avgScale, 1f);
         }
         
         private void FindPlacementSystem()

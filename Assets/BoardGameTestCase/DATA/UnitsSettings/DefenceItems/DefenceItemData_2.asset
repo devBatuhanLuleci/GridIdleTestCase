@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f2ce6de78069047abbbd137cff36aa55, type: 3}
   m_Name: DefenceItemData_2
   m_EditorClassIdentifier: BoardGameTestCase.Core::BoardGameTestCase.Core.ScriptableObjects.DefenceItemData
-  _sprite: {fileID: -771241832, guid: 4a4c62d7d11d54319919f5442738cb48, type: 3}
+  _sprite: {fileID: 21300000, guid: 5fc088dbfab5a4da9a69116c24902cf0, type: 3}
   _displayName: Defence Item 2
   _damage: 5
   _range: 2

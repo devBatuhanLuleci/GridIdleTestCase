@@ -309,6 +309,15 @@ namespace UISystemModule.UIElements
                 var spriteRenderer = itemObject.GetComponent<SpriteRenderer>() ?? itemObject.AddComponent<SpriteRenderer>();
                 gridItem.SetSpriteRenderer(spriteRenderer);
             }
+            
+            // Setup sprite renderer properties for inventory display
+            var sr = gridItem.GetSpriteRenderer();
+            if (sr != null && itemData != null)
+            {
+                sr.sortingLayerName = itemData.GhostSortingLayerName;
+                sr.sortingOrder = itemData.GhostSortingOrder;
+                sr.color = Color.white;
+            }
 
             gridItem.SetDraggable(true);
             gridItem.IsPlaced = false;
