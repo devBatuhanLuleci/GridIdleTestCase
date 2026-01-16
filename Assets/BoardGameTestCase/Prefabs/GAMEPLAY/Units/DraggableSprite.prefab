@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &4716802334451248274
+--- !u!1 &1631053907653990640
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,63 +8,40 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 6755409816985408616}
-  - component: {fileID: 4544207661123123206}
-  - component: {fileID: 9154927729986020510}
-  - component: {fileID: 5132864454392976367}
-  - component: {fileID: 8629494321109191728}
+  - component: {fileID: 5423530501511210405}
+  - component: {fileID: 604664973530683250}
+  - component: {fileID: 1352705061068912294}
+  - component: {fileID: 2536596344396537532}
   m_Layer: 0
-  m_Name: PlaceableItem
+  m_Name: DraggableSprite
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &6755409816985408616
+--- !u!4 &5423530501511210405
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4716802334451248274}
+  m_GameObject: {fileID: 1631053907653990640}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.94, y: -0.75, z: 0}
+  m_LocalPosition: {x: 1.46, y: -1.39, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &4544207661123123206
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4716802334451248274}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ef42999d9dbb44254bc440a165d20a80, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UISystemModule.UIElements::UISystemModule.UIElements.GridItem2D
-  _defenceItemData: {fileID: 11400000, guid: 202df49075d9041ff9b6356b28d50701, type: 2}
-  _spriteRenderer: {fileID: 9154927729986020510}
-  _collider: {fileID: 5132864454392976367}
-  _combatComponent: {fileID: 8629494321109191728}
-  _normalColor: {r: 1, g: 1, b: 1, a: 1}
-  _draggingColor: {r: 1, g: 1, b: 1, a: 1}
-  _invalidColor: {r: 1, g: 0.5, b: 0.5, a: 0.7}
-  _isDraggable: 1
-  _gridSize: {x: 1, y: 1}
-  _placeableId: defence_item_1
---- !u!212 &9154927729986020510
+--- !u!212 &604664973530683250
 SpriteRenderer:
   serializedVersion: 2
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4716802334451248274}
+  m_GameObject: {fileID: 1631053907653990640}
   m_Enabled: 1
   m_CastShadows: 0
   m_ReceiveShadows: 0
@@ -102,27 +79,27 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
-  m_SortingLayerID: 1129498767
-  m_SortingLayer: 3
-  m_SortingOrder: 2
+  m_SortingLayerID: -237156721
+  m_SortingLayer: 1
+  m_SortingOrder: 76
   m_MaskInteraction: 0
   m_Sprite: {fileID: 1681113110, guid: 4a4c62d7d11d54319919f5442738cb48, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 1, y: 1}
+  m_Size: {x: 0.2, y: 0.2}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
---- !u!61 &5132864454392976367
+--- !u!61 &1352705061068912294
 BoxCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4716802334451248274}
+  m_GameObject: {fileID: 1631053907653990640}
   m_Enabled: 1
   serializedVersion: 3
   m_Density: 1
@@ -155,22 +132,27 @@ BoxCollider2D:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
     oldSize: {x: 0.648, y: 0.868}
-    newSize: {x: 1, y: 1}
+    newSize: {x: 0.2, y: 0.2}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 1, y: 1}
+  m_Size: {x: 0.648, y: 0.868}
   m_EdgeRadius: 0
---- !u!114 &8629494321109191728
+--- !u!114 &2536596344396537532
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4716802334451248274}
+  m_GameObject: {fileID: 1631053907653990640}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d4d593abc44b540098d45667a2c30e35, type: 3}
+  m_Script: {fileID: 11500000, guid: a95fee20c6ade41c69e56499d239f9cc, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: UISystemModule.Gameplay::UISystemModule.Gameplay.DefenceItemCombat
+  m_EditorClassIdentifier: GridSystemModule.Core::GridSystemModule.Core.Models.SpriteGridItemDragHandler
+  _gridSize: {x: 1, y: 1}
+  _placeableId: 
+  _normalColor: {r: 1, g: 1, b: 1, a: 1}
+  _draggingColor: {r: 1, g: 1, b: 1, a: 0.7}
+  _invalidColor: {r: 1, g: 0, b: 0, a: 1}

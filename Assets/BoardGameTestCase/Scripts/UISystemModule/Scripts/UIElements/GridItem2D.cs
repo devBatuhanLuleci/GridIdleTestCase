@@ -45,10 +45,20 @@ namespace UISystemModule.UIElements
             else if (string.IsNullOrEmpty(_placeableId)) _placeableId = gameObject.name;
             _camera = Camera.main;
             FindPlacementSystem();
-            _gameFlowController = ServiceLocator.Instance?.Get<IGameFlowController>();
+            // DON'T fetch GameFlowController here - initialization order issue
+            // It will be fetched in Start() or lazily when needed
             _originalScale = transform.localScale;
             SetupScaleFromGridParent();
             SetupVisuals();
+        }
+        
+        private void Start()
+        {
+            // Fetch GameFlowController after all Awake() calls are done
+            if (_gameFlowController == null)
+            {
+                _gameFlowController = ServiceLocator.Instance?.Get<IGameFlowController>();
+            }
         }
         
         private bool IsPlacingState()
@@ -105,15 +115,6 @@ namespace UISystemModule.UIElements
         
         private void Update()
         {
-            if (!IsPlacingState())
-            {
-                if (_isDragging)
-                {
-                    EndDragging();
-                }
-                return;
-            }
-            
             if (!_isDragging)
             {
                 if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
@@ -151,7 +152,10 @@ namespace UISystemModule.UIElements
                 Vector3 worldPosition = _camera.ScreenToWorldPoint(new Vector3(mousePosition.x, mousePosition.y, _camera.nearClipPlane));
                 worldPosition.z = 0f;
                 
-                if (_collider != null && _collider.OverlapPoint(worldPosition)) StartDragging();
+                if (_collider != null && _collider.OverlapPoint(worldPosition))
+                {
+                    StartDragging();
+                }
             }
         }
         
@@ -181,8 +185,22 @@ namespace UISystemModule.UIElements
         
         private void StartDragging()
         {
-            if (!IsPlacingState()) return;
-            if (!_isDraggable && !_isPlaced) return;
+            // Ensure GameFlowController is initialized (lazy loading)
+            if (_gameFlowController == null)
+            {
+                _gameFlowController = ServiceLocator.Instance?.Get<IGameFlowController>();
+            }
+            
+            // Check if we're in placing state
+            if (!IsPlacingState())
+            {
+                return;
+            }
+            
+            if (!_isDraggable && !_isPlaced) 
+            {
+                return;
+            }
             
             if (_placementSystem == null)
             {

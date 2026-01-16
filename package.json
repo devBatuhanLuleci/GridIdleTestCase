@@ -1,0 +1,21 @@
+{
+  "name": "grididletestcase",
+  "version": "1.0.0",
+  "description": "Bu proje, Unico Studio için geliştirilmiş bir grid tabanlı savunma oyunu test case'idir. Oyuncular grid üzerine savunma birimleri yerleştirerek düşman dalgalarına karşı mücadele ederler.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/devBatuhanLuleci/GridIdleTestCase.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/devBatuhanLuleci/GridIdleTestCase/issues"
+  },
+  "homepage": "https://github.com/devBatuhanLuleci/GridIdleTestCase#readme"
+}
