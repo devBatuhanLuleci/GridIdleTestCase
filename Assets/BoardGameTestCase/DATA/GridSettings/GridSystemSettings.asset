@@ -21,7 +21,9 @@ MonoBehaviour:
   _darkGrassTilePrefab: {fileID: 3173254629591485657, guid: 9a36dbea644e14bf1976725edd4d0ee9, type: 3}
   _cameraOffset: {x: 0, y: 0, z: -10}
   _cameraSize: 5
-  _validHighlightColor: {r: 1, g: 1, b: 1, a: 0.5882353}
+  _validHighlightColor: {r: 0, g: 1, b: 0, a: 1}
   _invalidHighlightColor: {r: 1, g: 0, b: 0, a: 1}
+  _highlightMinAlpha: 0.8
+  _highlightAnimationDuration: 0.35
   _tilesPrefab: {fileID: 2657852133369278895, guid: 40158f5c84712480d81b5203c0422b6e, type: 3}
   _tilesPrefabPath: Assets/BoardGameTestCase/Prefabs/GAMEPLAY/Tiles/Tiles.prefab

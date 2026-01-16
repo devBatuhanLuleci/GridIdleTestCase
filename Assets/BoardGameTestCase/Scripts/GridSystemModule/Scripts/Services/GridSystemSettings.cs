@@ -17,6 +17,8 @@ namespace GridSystemModule.Services
         [SerializeField] private float _cameraSize = 5f;
         [SerializeField] private Color _validHighlightColor = Color.white;
         [SerializeField] private Color _invalidHighlightColor = Color.red;
+        [SerializeField] private float _highlightMinAlpha = 0.6f;
+        [SerializeField] private float _highlightAnimationDuration = 0.5f;
         
         // Optional: assign an existing prefab to overwrite on regeneration
         // If left null, a new prefab will be created at the default path.
@@ -34,6 +36,8 @@ namespace GridSystemModule.Services
         public float CameraSize => _cameraSize;
         public Color ValidHighlightColor => _validHighlightColor;
         public Color InvalidHighlightColor => _invalidHighlightColor;
+        public float HighlightMinAlpha => _highlightMinAlpha;
+        public float HighlightAnimationDuration => _highlightAnimationDuration;
         public GameObject TilesPrefab => _tilesPrefab;
         public string TilesPrefabPath => _tilesPrefabPath;
 

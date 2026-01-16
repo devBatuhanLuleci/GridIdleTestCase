@@ -1173,7 +1173,15 @@ namespace GridSystemModule.Services
                     var tile = FindTileAtPosition(checkPos);
                     if (tile != null)
                     {
-                        tile.ShowHighlight(highlightColor);
+                        var gridManager = ServiceLocator.Instance?.Get<GridManager>();
+                        float minAlpha = 0.6f;
+                        float duration = 0.5f;
+                        if (gridManager?.GridSettings != null)
+                        {
+                            minAlpha = gridManager.GridSettings.HighlightMinAlpha;
+                            duration = gridManager.GridSettings.HighlightAnimationDuration;
+                        }
+                        tile.ShowHighlight(highlightColor, minAlpha, duration);
                         _highlightedTiles.Add(tile);
                     }
                 }

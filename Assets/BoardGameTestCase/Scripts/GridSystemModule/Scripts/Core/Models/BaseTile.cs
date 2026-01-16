@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using GridSystemModule.Core.Interfaces;
+using DG.Tweening;
 
 namespace GridSystemModule.Core.Models
 {
@@ -14,6 +15,7 @@ namespace GridSystemModule.Core.Models
         [SerializeField] protected new Collider2D collider2D;
         
         private static Sprite _runtimeHighlightSprite;
+        private Tween _highlightAnimationTween;
 
         public string TileName => tileName;
         public Vector2 Position => transform.position;
@@ -149,7 +151,11 @@ namespace GridSystemModule.Core.Models
             {
                 if (highlightRenderer == null)
                 {
-                    highlightRenderer = highlightChild.gameObject.AddComponent<SpriteRenderer>();
+                    highlightRenderer = highlightChild.gameObject.GetComponent<SpriteRenderer>();
+                    if (highlightRenderer == null)
+                    {
+                        highlightRenderer = highlightChild.gameObject.AddComponent<SpriteRenderer>();
+                    }
                 }
             }
             else if (Application.isPlaying)
@@ -159,6 +165,13 @@ namespace GridSystemModule.Core.Models
                 highlightObj.transform.localPosition = Vector3.zero;
                 highlightObj.transform.localScale = Vector3.one;
                 highlightRenderer = highlightObj.AddComponent<SpriteRenderer>();
+                
+                // Copy sprite from the main tile renderer
+                var tileRenderer = GetComponent<SpriteRenderer>();
+                if (tileRenderer != null && tileRenderer.sprite != null)
+                {
+                    highlightRenderer.sprite = tileRenderer.sprite;
+                }
             }
             
             if (highlightRenderer != null)
@@ -166,32 +179,60 @@ namespace GridSystemModule.Core.Models
                 highlightRenderer.enabled = true;
                 highlightRenderer.gameObject.SetActive(false);
                 
-                if (Application.isPlaying)
-                {
-                    if (_runtimeHighlightSprite == null)
-                    {
-                        var tex = new Texture2D(1, 1);
-                        tex.SetPixel(0, 0, Color.white);
-                        tex.Apply();
-                        _runtimeHighlightSprite = Sprite.Create(tex, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f), 1f);
-                    }
-                    highlightRenderer.sprite = _runtimeHighlightSprite;
-                }
+                // Use sortingOrder higher than main tile to show on top
+                highlightRenderer.sortingOrder = 10;
             }
         }
         
         public void ShowHighlight(Color color)
         {
+            ShowHighlight(color, minAlpha: 0.6f, animationDuration: 0.5f);
+        }
+        
+        public void ShowHighlight(Color color, float minAlpha, float animationDuration)
+        {
             if (highlightRenderer == null) SetupHighlightRenderer();
             if (highlightRenderer != null)
             {
+                // Kill existing tween if any
+                if (_highlightAnimationTween != null && _highlightAnimationTween.IsActive())
+                {
+                    _highlightAnimationTween.Kill();
+                }
+                
                 highlightRenderer.gameObject.SetActive(true);
                 highlightRenderer.color = color;
+                
+                // Create looping alpha animation
+                Color startColor = color;
+                Color endColor = color;
+                endColor.a = minAlpha;
+                
+                _highlightAnimationTween = DOTween.Sequence()
+                    .Append(DOTween.To(
+                        () => highlightRenderer.color,
+                        x => highlightRenderer.color = x,
+                        endColor,
+                        animationDuration
+                    ))
+                    .Append(DOTween.To(
+                        () => highlightRenderer.color,
+                        x => highlightRenderer.color = x,
+                        startColor,
+                        animationDuration
+                    ))
+                    .SetLoops(-1, LoopType.Restart);
             }
         }
         
         public void HideHighlight()
         {
+            // Kill animation
+            if (_highlightAnimationTween != null && _highlightAnimationTween.IsActive())
+            {
+                _highlightAnimationTween.Kill();
+            }
+            
             if (highlightRenderer != null)
             {
                 highlightRenderer.gameObject.SetActive(false);
