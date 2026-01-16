@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 828f0a0ca51324199b793ad781dfb44c, type: 3}
+  m_Name: LevelData_1
+  m_EditorClassIdentifier: BoardGameTestCase.Core::BoardGameTestCase.Core.ScriptableObjects.LevelData
+  _levelNumber: 1
+  _displayName: Level 1
+  _defenceItems:
+  - _defenceItemData: {fileID: 11400000, guid: 202df49075d9041ff9b6356b28d50701, type: 2}
+    _quantity: 3
+  - _defenceItemData: {fileID: 11400000, guid: 55c8fc29e809c43168fb76f149560655, type: 2}
+    _quantity: 2
+  - _defenceItemData: {fileID: 11400000, guid: 944e7fbb61a3f40e59e7446ce61c5f38, type: 2}
+    _quantity: 1
+  _enemies:
+  - _enemyData: {fileID: 11400000, guid: 8189ee150ab3e479588326a29ddcf3e4, type: 2}
+    _quantity: 3
+  - _enemyData: {fileID: 11400000, guid: 89a5c2e36787045cf850b60591e4e454, type: 2}
+    _quantity: 1
+  - _enemyData: {fileID: 11400000, guid: bd8fcea82cff147f1b4f7e554c784134, type: 2}
+    _quantity: 1

@@ -1,0 +1,17 @@
+{
+    "name": "GridSystemModule.Tiles",
+    "rootNamespace": "GridSystemModule.Tiles",
+    "references": [
+        "GridSystemModule.Core",
+        "DebugModule"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

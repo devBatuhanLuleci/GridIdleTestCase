@@ -1,0 +1,29 @@
+{
+    "name": "GameModule.Managers",
+    "rootNamespace": "GameModule.Managers",
+    "references": [
+        "BoardGameTestCase.Core",
+        "GameModule.Core",
+        "GameModule.Services",
+        "InventoryModule",
+        "GridSystemModule.Core",
+        "GridSystemModule.Managers",
+        "GameplayModule",
+        "CombatModule",
+        "PlacementModule",
+        "UISystemModule.Core",
+        "UISystemModule.Managers",
+        "UISystemModule.UIElements",
+        "DebugModule"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
+

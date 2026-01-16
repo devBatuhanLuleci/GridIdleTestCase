@@ -1,0 +1,18 @@
+{
+    "name": "GridSystemModule.Core",
+    "rootNamespace": "GridSystemModule.Core",
+    "references": [
+        "BoardGameTestCase.Core",
+        "Unity.InputSystem",
+        "DebugModule"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -1,0 +1,22 @@
+{
+    "name": "GameModule.Services",
+    "rootNamespace": "GameModule.Services",
+    "references": [
+        "BoardGameTestCase.Core",
+        "GameModule.Core",
+        "InventoryModule",
+        "GridSystemModule.Core",
+        "GridSystemModule.Managers",
+        "DebugModule"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
+

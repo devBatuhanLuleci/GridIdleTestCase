@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3d7f06291e04748cf95fb69dd4b3080a, type: 3}
+  m_Name: GridSystemSettings
+  m_EditorClassIdentifier: GridSystemModule.Core::GridSystemModule.Core.Models.GridSystemSettings
+  _width: 4
+  _height: 8
+  _cellSize: {x: 1, y: 1}
+  _cellSpacing: {x: 0.1, y: 0.1}
+  _centerGrid: 1
+  _normalGrassTilePrefab: {fileID: -750627606701587212, guid: 10b7f3a198b961041b4c4e16d6823537, type: 3}
+  _darkGrassTilePrefab: {fileID: 3173254629591485657, guid: 9a36dbea644e14bf1976725edd4d0ee9, type: 3}
+  _cameraOffset: {x: 0, y: 0, z: -10}
+  _cameraSize: 5
+  _validHighlightColor: {r: 1, g: 1, b: 1, a: 0.5882353}
+  _invalidHighlightColor: {r: 1, g: 0, b: 0, a: 1}

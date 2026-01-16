@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f2ce6de78069047abbbd137cff36aa55, type: 3}
+  m_Name: DefenceItemData_2
+  m_EditorClassIdentifier: BoardGameTestCase.Core::BoardGameTestCase.Core.ScriptableObjects.DefenceItemData
+  _sprite: {fileID: -771241832, guid: 4a4c62d7d11d54319919f5442738cb48, type: 3}
+  _displayName: Defence Item 2
+  _damage: 5
+  _range: 2
+  _attackInterval: 4
+  _attackDirection: 0
+  _health: 100
+  _cost: 50
+  _gridSize: {x: 1, y: 1}
+  _itemId: defence_item_2
+  _type: Basic
+  _description: 
+  _ghostSortingLayerName: DraggableItem
+  _ghostSortingOrder: 10

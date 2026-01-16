@@ -1,0 +1,20 @@
+{
+    "name": "UISystemModule.Managers",
+    "rootNamespace": "UISystemModule.Managers",
+    "references": [
+        "BoardGameTestCase.Core",
+        "GameModule.Core",
+        "UISystemModule.Core",
+        "UISystemModule.UIElements",
+        "DebugModule"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

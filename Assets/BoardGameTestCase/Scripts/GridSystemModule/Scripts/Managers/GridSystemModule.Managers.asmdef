@@ -1,0 +1,22 @@
+{
+    "name": "GridSystemModule.Managers",
+    "rootNamespace": "GridSystemModule.Managers",
+    "references": [
+        "BoardGameTestCase.Core",
+        "GridSystemModule.Core",
+        "GridSystemModule.Services",
+        "GridSystemModule.Tiles",
+        "PlacementModule",
+        "GameModule.Core",
+        "DebugModule"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1614557921177830754
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7495762340208086200}
+  - component: {fileID: 1016581290874415608}
+  m_Layer: 0
+  m_Name: PlacementSystem
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7495762340208086200
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1614557921177830754}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -2.77719, y: -3.5, z: -17.95751}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 1
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1016581290874415608
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1614557921177830754}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8d64db3d475044b7bb3e6e7c7ed701d7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UISystemModule.Services::UISystemModule.Services.GridPlacementSystem
+  _gridDimensions: {x: 4, y: 8}
+  _validPlacementMaterial: {fileID: 2100000, guid: a5c879c2c0eac458c97733506f40be0c, type: 2}
+  _invalidPlacementMaterial: {fileID: 2100000, guid: e21650f5a6f1d4e5fa62d6ba480b3979, type: 2}
+  _placementAnimationSettings: {fileID: 11400000, guid: 696b9b1553c03411c93856b006316bda, type: 2}
+  _debugOccupiedTiles: []
+  _debugAvailableTiles: []
+  _debugPlacedObjectsCount: 0

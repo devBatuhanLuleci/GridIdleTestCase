@@ -1,0 +1,19 @@
+{
+    "name": "GameplayModule",
+    "rootNamespace": "GameplayModule",
+    "references": [
+        "BoardGameTestCase.Core",
+        "GameModule.Core",
+        "GridSystemModule.Core",
+        "DebugModule"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

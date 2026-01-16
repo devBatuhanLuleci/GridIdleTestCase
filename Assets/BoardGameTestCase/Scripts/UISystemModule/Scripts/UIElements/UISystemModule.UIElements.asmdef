@@ -1,0 +1,22 @@
+{
+    "name": "UISystemModule.UIElements",
+    "rootNamespace": "UISystemModule.UIElements",
+    "references": [
+        "BoardGameTestCase.Core",
+        "GameModule.Core",
+        "UISystemModule.Core",
+        "GridSystemModule.Core",
+        "DebugModule",
+        "Unity.InputSystem",
+        "Unity.TextMeshPro"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
