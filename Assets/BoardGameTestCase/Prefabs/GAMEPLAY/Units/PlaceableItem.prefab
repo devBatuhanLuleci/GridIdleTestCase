@@ -57,6 +57,10 @@ MonoBehaviour:
   _isDraggable: 1
   _gridSize: {x: 1, y: 1}
   _placeableId: defence_item_1
+  _dragUpdateDuration: 0.03
+  _dragUpdateEase: 1
+  _manualDragDuration: 0.1
+  _manualDragEase: 9
 --- !u!212 &9154927729986020510
 SpriteRenderer:
   serializedVersion: 2

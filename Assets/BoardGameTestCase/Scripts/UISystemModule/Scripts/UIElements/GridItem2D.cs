@@ -27,6 +27,10 @@ namespace UISystemModule.UIElements
         [SerializeField] private bool _isDraggable = true;
         [SerializeField] private Vector2Int _gridSize = new Vector2Int(1, 1);
         [SerializeField] private string _placeableId;
+        [SerializeField] private float _dragUpdateDuration = 0.03f; // Duration for smooth drag updates
+        [SerializeField] private Ease _dragUpdateEase = Ease.Linear; // Easing for drag updates
+        [SerializeField] private float _manualDragDuration = 0.1f; // Duration for initial click-to-position movement
+        [SerializeField] private Ease _manualDragEase = Ease.OutCubic; // Easing for initial drag movement
         
         private Vector3 _originalPosition;
         private Transform _originalParent;
@@ -328,7 +332,9 @@ namespace UISystemModule.UIElements
                 Vector3 worldPosition = _camera.ScreenToWorldPoint(new Vector3(inputPosition.x, inputPosition.y, _camera.nearClipPlane));
                 worldPosition.z = transform.position.z;
                 
-                transform.position = worldPosition;
+                // Smooth movement with DoTween - very quick but smooth
+                transform.DOKill(false); // Kill previous tweens but don't complete them
+                transform.DOMove(worldPosition, _dragUpdateDuration).SetEase(_dragUpdateEase);
                 
                 // IMPORTANT: Update _originalPosition during drag so that if ReturnToOriginalPosition() 
                 // is called, it returns to the current dragged position, not the initial position.
@@ -634,6 +640,10 @@ namespace UISystemModule.UIElements
             {
                 _isPlaced = false;
             }
+            
+            // Smooth movement to initial click position
+            transform.DOKill(false);
+            transform.DOMove(mousePosition, _manualDragDuration).SetEase(_manualDragEase);
             
             OnDragStart();
         }
