@@ -949,15 +949,8 @@ namespace GridSystemModule.Services
 
             if (_placementAnimationSettings.enableScalePunch && t != null && t.gameObject != null)
             {
-                Vector3 original = t.localScale;
-                
-                var originalScale = placeable.GetOriginalScale();
-                if (originalScale.HasValue)
-                {
-                    original = originalScale.Value;
-                    t.localScale = original;
-                }
-                
+                Vector3 original = t.localScale; // use current scale to avoid unintended changes
+
                 t.DOPunchScale(_placementAnimationSettings.punchScale, _placementAnimationSettings.punchDuration, _placementAnimationSettings.punchVibrato, _placementAnimationSettings.punchElasticity)
                     .SetTarget(t)
                     .OnComplete(() => {

@@ -79,12 +79,34 @@ namespace UISystemModule.UIElements
             if (_defenceItemData == null) return;
             _gridSize = _defenceItemData.GridSize;
             _placeableId = _defenceItemData.ItemId;
-            if (_defenceItemData.Sprite != null && _spriteRenderer != null)
+            ApplySprite(_defenceItemData.Sprite);
+        }
+
+        private void ApplySprite(Sprite sprite)
+        {
+            if (_spriteRenderer == null)
             {
-                _spriteRenderer.sprite = _defenceItemData.Sprite;
+                _spriteRenderer = GetComponent<SpriteRenderer>();
             }
-            
-            // Setup visual scale based on grid size
+
+            if (_spriteRenderer == null)
+            {
+                return;
+            }
+
+            _spriteRenderer.sprite = sprite;
+
+            if (_spriteRenderer.sprite == null)
+            {
+                CreateColoredSprite();
+            }
+
+            _spriteRenderer.enabled = true;
+            _spriteRenderer.color = _normalColor;
+            _spriteRenderer.sortingOrder = 1;
+
+            // Ensure collider matches the new sprite and scale fits grid
+            EnsureCollider2D();
             UpdateVisualScaleFromGridSize();
         }
         
@@ -476,10 +498,7 @@ namespace UISystemModule.UIElements
         
         public void SetSprite(Sprite sprite)
         {
-            if (_spriteRenderer != null)
-            {
-                _spriteRenderer.sprite = sprite;
-            }
+            ApplySprite(sprite);
         }
         
         public void SetDefenceItemData(DefenceItemData data)
@@ -501,9 +520,9 @@ namespace UISystemModule.UIElements
         public void SetSpriteRenderer(SpriteRenderer spriteRenderer)
         {
             _spriteRenderer = spriteRenderer;
-            if (_spriteRenderer != null && _defenceItemData != null && _defenceItemData.Sprite != null)
+            if (_spriteRenderer != null)
             {
-                _spriteRenderer.sprite = _defenceItemData.Sprite;
+                ApplySprite(_defenceItemData != null ? _defenceItemData.Sprite : _spriteRenderer.sprite);
             }
         }
         
@@ -554,8 +573,6 @@ namespace UISystemModule.UIElements
                     Vector3 worldPosition = _placementSystem.GridToWorld(gridPosition);
                     transform.position = worldPosition;
                 }
-                
-                _originalScale = transform.localScale;
                 
                 AttachCombatComponentIfNeeded();
             }
@@ -636,12 +653,19 @@ namespace UISystemModule.UIElements
         
         private void EnsureCollider2D()
         {
-            if (_collider == null && _spriteRenderer != null && _spriteRenderer.sprite != null)
+            if (_spriteRenderer == null || _spriteRenderer.sprite == null) return;
+
+            if (_collider == null)
             {
-                var boxCollider = gameObject.AddComponent<BoxCollider2D>();
-                boxCollider.size = _spriteRenderer.sprite.bounds.size;
-                boxCollider.offset = _spriteRenderer.sprite.bounds.center;
-                _collider = boxCollider;
+                _collider = gameObject.AddComponent<BoxCollider2D>();
+            }
+
+            if (_collider is BoxCollider2D box)
+            {
+                var bounds = _spriteRenderer.sprite.bounds;
+                // Reset collider to sprite bounds (local space)
+                box.size = bounds.size;
+                box.offset = bounds.center;
             }
         }
         
