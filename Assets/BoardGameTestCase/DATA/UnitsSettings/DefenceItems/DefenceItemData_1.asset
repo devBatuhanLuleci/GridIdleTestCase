@@ -24,5 +24,6 @@ MonoBehaviour:
   _itemId: defence_item_1
   _type: Basic
   _description: 
+  _gridPreviewSettings: {fileID: 0}
   _ghostSortingLayerName: DraggableItem
   _ghostSortingOrder: 10

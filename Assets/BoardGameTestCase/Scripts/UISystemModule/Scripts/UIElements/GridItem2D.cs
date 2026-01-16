@@ -92,24 +92,35 @@ namespace UISystemModule.UIElements
         {
             if (_spriteRenderer == null) return;
             
-            // Grid cell size is assumed to be 1 unit
-            // Scale sprite based on grid dimensions
-            // For example: 2x2 item should be 2 units wide and 2 units tall
+            // Fetch grid cell size from placement system by sampling GridToWorld; fallback to 1x1 if unavailable
+            Vector2 cellSize = Vector2.one;
+            if (_placementSystem != null)
+            {
+                Vector3 origin = _placementSystem.GridToWorld(Vector2Int.zero);
+                Vector3 right = _placementSystem.GridToWorld(new Vector2Int(1, 0));
+                Vector3 up = _placementSystem.GridToWorld(new Vector2Int(0, 1));
+
+                float cellWidth = Mathf.Abs((right - origin).x);
+                float cellHeight = Mathf.Abs((up - origin).y);
+
+                if (cellWidth > 0.0001f) cellSize.x = cellWidth;
+                if (cellHeight > 0.0001f) cellSize.y = cellHeight;
+            }
             
             float spriteWidth = _spriteRenderer.sprite != null ? _spriteRenderer.sprite.bounds.size.x : 1f;
             float spriteHeight = _spriteRenderer.sprite != null ? _spriteRenderer.sprite.bounds.size.y : 1f;
             
-            // Calculate scale to fit grid size
-            float targetWidth = _gridSize.x;
-            float targetHeight = _gridSize.y;
+            // Calculate target footprint in world units using grid cell size
+            float targetWidth = _gridSize.x * cellSize.x;
+            float targetHeight = _gridSize.y * cellSize.y;
             
             float scaleX = spriteWidth > 0 ? targetWidth / spriteWidth : 1f;
             float scaleY = spriteHeight > 0 ? targetHeight / spriteHeight : 1f;
             
-            // Use the average scale to maintain aspect ratio
-            float avgScale = (scaleX + scaleY) / 2f;
+            // Use the smaller scale to preserve aspect ratio and fit inside footprint
+            float uniformScale = Mathf.Min(scaleX, scaleY);
             
-            transform.localScale = new Vector3(avgScale, avgScale, 1f);
+            transform.localScale = new Vector3(uniformScale, uniformScale, 1f);
         }
         
         private void FindPlacementSystem()

@@ -33,6 +33,10 @@ namespace BoardGameTestCase.Core.ScriptableObjects
         [SerializeField] private string _type = "Basic";
         [SerializeField] private string _description = "";
 
+        [Header("Preview (Optional)")]
+        [Tooltip("If assigned, the editor preview uses this grid settings (cell size, spacing, colors) to render the footprint.")]
+        [SerializeField] private Object _gridPreviewSettings;
+
         [Header("Rendering (Ghost Item)")]
         [SortingLayer]
         [SerializeField] private string _ghostSortingLayerName = "Default";
@@ -52,5 +56,7 @@ namespace BoardGameTestCase.Core.ScriptableObjects
         public string Description => _description;
         public string GhostSortingLayerName => _ghostSortingLayerName;
         public int GhostSortingOrder => _ghostSortingOrder;
+        // Editor-only access; runtime returns null
+        public Object GridPreviewSettingsObject => _gridPreviewSettings;
     }
 }
