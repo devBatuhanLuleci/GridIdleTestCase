@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace BoardGameTestCase.Core.Common
 {
@@ -48,7 +49,6 @@ namespace BoardGameTestCase.Core.Common
                 Destroy(gameObject);
             }
         }
-        
 #if UNITY_EDITOR
         private void OnDisable()
         {
@@ -68,7 +68,6 @@ namespace BoardGameTestCase.Core.Common
             }
         }
 #endif
-        
         public void Register<T>(T service) where T : class
         {
             Type serviceType = typeof(T);
@@ -234,15 +233,37 @@ namespace BoardGameTestCase.Core.Common
             if (state == UnityEditor.PlayModeStateChange.ExitingPlayMode)
             {
                 // Force cleanup when exiting play mode
-                CleanupInstance();
+                if (_instance != null)
+                {
+                    try
+                    {
+                        _instance.Clear();
+                        if (_instance.gameObject != null)
+                        {
+                            // Remove DontDestroyOnLoad and destroy immediately
+                            SceneManagement.SceneManager.MoveGameObjectToScene(_instance.gameObject, SceneManagement.SceneManager.GetActiveScene());
+                            UnityEngine.Object.DestroyImmediate(_instance.gameObject);
+                        }
+                    }
+                    catch { }
+                    finally
+                    {
+                        _instance = null;
+                    }
+                }
                 
-                // Also ensure any remaining ServiceLocator GameObjects are destroyed
+                // Also find and destroy any remaining ServiceLocator instances
                 var remaining = FindObjectsOfType<ServiceLocator>();
                 foreach (var locator in remaining)
                 {
-                    if (locator != _instance && locator.gameObject != null)
+                    if (locator.gameObject != null)
                     {
-                        UnityEngine.Object.DestroyImmediate(locator.gameObject);
+                        try
+                        {
+                            SceneManagement.SceneManager.MoveGameObjectToScene(locator.gameObject, SceneManagement.SceneManager.GetActiveScene());
+                            UnityEngine.Object.DestroyImmediate(locator.gameObject);
+                        }
+                        catch { }
                     }
                 }
             }
