@@ -181,6 +181,12 @@ namespace BoardGameTestCase.Core.Common
             {
                 Clear();
                 _instance = null;
+                
+                // Destroy the GameObject when application quits
+                if (Application.isPlaying)
+                {
+                    Destroy(gameObject);
+                }
             }
         }
         
@@ -227,7 +233,18 @@ namespace BoardGameTestCase.Core.Common
         {
             if (state == UnityEditor.PlayModeStateChange.ExitingPlayMode)
             {
+                // Force cleanup when exiting play mode
                 CleanupInstance();
+                
+                // Also ensure any remaining ServiceLocator GameObjects are destroyed
+                var remaining = FindObjectsOfType<ServiceLocator>();
+                foreach (var locator in remaining)
+                {
+                    if (locator != _instance && locator.gameObject != null)
+                    {
+                        UnityEngine.Object.DestroyImmediate(locator.gameObject);
+                    }
+                }
             }
         }
         
@@ -287,6 +304,21 @@ namespace BoardGameTestCase.Core.Common
                     _instance = null;
                 }
             }
+            
+            // Also find and destroy any other ServiceLocator instances that might exist
+            #if UNITY_EDITOR
+            if (!UnityEditor.EditorApplication.isPlaying)
+            {
+                var allLocators = FindObjectsOfType<ServiceLocator>();
+                foreach (var locator in allLocators)
+                {
+                    if (locator.gameObject != null)
+                    {
+                        UnityEngine.Object.DestroyImmediate(locator.gameObject);
+                    }
+                }
+            }
+            #endif
         }
 #endif
     }
