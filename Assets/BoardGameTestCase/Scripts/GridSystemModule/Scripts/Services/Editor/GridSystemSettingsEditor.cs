@@ -108,15 +108,16 @@ namespace GridSystemModule.Editor
                     // Draw sprite or fallback to colored rectangle
                     if (sprite != null)
                     {
+                        // Apply the exact tile color to the sprite
+                        Color prevColor = GUI.color;
+                        GUI.color = tileColor;
                         GUI.DrawTextureWithTexCoords(
                             new Rect(rectX, rectY, rectWidth, rectHeight),
                             sprite.texture,
                             GetSpriteTexCoords(sprite),
                             true
                         );
-                        
-                        // Apply tint color over the sprite
-                        EditorGUI.DrawRect(new Rect(rectX, rectY, rectWidth, rectHeight), new Color(tileColor.r - 0.5f, tileColor.g - 0.5f, tileColor.b - 0.5f, 0.2f));
+                        GUI.color = prevColor;
                     }
                     else
                     {
