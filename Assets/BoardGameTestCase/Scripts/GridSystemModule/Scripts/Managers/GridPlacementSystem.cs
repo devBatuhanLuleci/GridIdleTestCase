@@ -696,6 +696,12 @@ namespace GridSystemModule.Services
 
                 TryPlayPlacementAnimation(_currentDraggedObject, gridPos, wasAutoSnappedFromInvalid);
                 _currentDraggedObject.OnDrop(gridPos, true);
+                
+                var draggedMb = _currentDraggedObject as MonoBehaviour;
+                if (draggedMb != null && draggedMb.transform != null)
+                {
+                    draggedMb.transform.SetParent(null);
+                }
             }
             else
             {
@@ -886,6 +892,15 @@ namespace GridSystemModule.Services
             {
 
                 TryPlaySwapAnimation(occupant, occupantTargetWorld);
+            }
+
+            if (draggedMb != null && draggedMb.transform != null)
+            {
+                draggedMb.transform.SetParent(null);
+            }
+            if (occupantMb != null && occupantMb.transform != null)
+            {
+                occupantMb.transform.SetParent(null);
             }
 
             if (_currentDraggedObject != null)
