@@ -306,11 +306,13 @@ namespace GridSystemModule.Services
                 RemoveObject(placeable);
             }
             
+            var occupiedPositions = new List<Vector2Int>();
             for (int x = 0; x < placeable.GridSize.x; x++)
             {
                 for (int y = 0; y < placeable.GridSize.y; y++)
                 {
                     Vector2Int pos = new Vector2Int(gridPosition.x + x, gridPosition.y + y);
+                    occupiedPositions.Add(pos);
                     _placedObjects[pos] = placeable;
                     _occupiedTiles.Add(pos);
                     _availableTiles.Remove(pos);
@@ -320,14 +322,10 @@ namespace GridSystemModule.Services
             placeable.GridPosition = gridPosition;
             placeable.IsPlaced = true;
             
-            var tile = FindTileAtPosition(gridPosition);
-            if (tile != null)
+            var placeableMb = placeable as MonoBehaviour;
+            if (placeableMb != null)
             {
-                var placeableMb = placeable as MonoBehaviour;
-                if (placeableMb != null)
-                {
-                    placeableMb.transform.position = tile.transform.position;
-                }
+                placeableMb.transform.position = MultiTileGridToWorld(occupiedPositions);
             }
             
             if (!skipOnPlacedCallback)
@@ -820,14 +818,15 @@ namespace GridSystemModule.Services
                 return false;
             }
 
-            Vector3 draggedTargetWorld = GridToWorld(actualOccupantPos);
-            Vector3 occupantTargetWorld = _dragStartWasPlaced ? GridToWorld(actualDraggedStartPos) : occupantWorldStart;
+            var draggedTargetPositions = new List<Vector2Int>();
+            var occupantTargetPositions = _dragStartWasPlaced ? new List<Vector2Int>() : null;
             
             for (int x = 0; x < dragged.GridSize.x; x++)
             {
                 for (int y = 0; y < dragged.GridSize.y; y++)
                 {
                     Vector2Int pos = new Vector2Int(actualOccupantPos.x + x, actualOccupantPos.y + y);
+                    draggedTargetPositions.Add(pos);
                     _placedObjects[pos] = dragged;
                     _occupiedTiles.Add(pos);
                     _availableTiles.Remove(pos);
@@ -843,6 +842,7 @@ namespace GridSystemModule.Services
                     for (int y = 0; y < occupant.GridSize.y; y++)
                     {
                         Vector2Int pos = new Vector2Int(actualDraggedStartPos.x + x, actualDraggedStartPos.y + y);
+                        occupantTargetPositions?.Add(pos);
                         _placedObjects[pos] = occupant;
                         _occupiedTiles.Add(pos);
                         _availableTiles.Remove(pos);
@@ -857,19 +857,19 @@ namespace GridSystemModule.Services
                 occupant.IsPlaced = false;
             }
             
-            var draggedTile = FindTileAtPosition(actualOccupantPos);
-            if (draggedTile != null && draggedMb != null)
+            Vector3 draggedTargetWorld = MultiTileGridToWorld(draggedTargetPositions);
+            Vector3 occupantTargetWorld = _dragStartWasPlaced && occupantTargetPositions != null
+                ? MultiTileGridToWorld(occupantTargetPositions)
+                : occupantWorldStart;
+
+            if (draggedMb != null)
             {
-                draggedMb.transform.position = draggedTile.transform.position;
+                draggedMb.transform.position = draggedTargetWorld;
             }
             
-            if (_dragStartWasPlaced)
+            if (_dragStartWasPlaced && occupantMb != null)
             {
-                var occupantTile = FindTileAtPosition(actualDraggedStartPos);
-                if (occupantTile != null && occupantMb != null)
-                {
-                    occupantMb.transform.position = occupantTile.transform.position;
-                }
+                occupantMb.transform.position = occupantTargetWorld;
             }
 
             RebuildAvailabilityCache();
@@ -1381,25 +1381,31 @@ namespace GridSystemModule.Services
             }
         }
 
-        public Vector3 MultiTileGridToWorld(Vector2Int[] gridPositions)
+        private IEnumerable<Vector2Int> EnumeratePositions(Vector2Int origin, Vector2Int size)
         {
-            if (gridPositions == null || gridPositions.Length == 0)
+            for (int x = 0; x < size.x; x++)
+            {
+                for (int y = 0; y < size.y; y++)
+                {
+                    yield return new Vector2Int(origin.x + x, origin.y + y);
+                }
+            }
+        }
+
+        public Vector3 MultiTileGridToWorld(IEnumerable<Vector2Int> gridPositions)
+        {
+            if (gridPositions == null)
                 return Vector3.zero;
 
-            // Calculate the average grid position
-            float avgX = 0;
-            float avgY = 0;
+            Vector3 sum = Vector3.zero;
+            int count = 0;
             foreach (var pos in gridPositions)
             {
-                avgX += pos.x;
-                avgY += pos.y;
+                sum += GridToWorld(pos);
+                count++;
             }
-            avgX /= gridPositions.Length;
-            avgY /= gridPositions.Length;
 
-            // Convert the average grid position to world position
-            Vector2Int averageGridPosition = new Vector2Int(Mathf.RoundToInt(avgX), Mathf.RoundToInt(avgY));
-            return GridToWorld(averageGridPosition);
+            return count > 0 ? sum / count : Vector3.zero;
         }
     }
 }

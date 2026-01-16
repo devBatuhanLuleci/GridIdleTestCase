@@ -105,9 +105,9 @@ namespace UISystemModule.UIElements
             _spriteRenderer.color = _normalColor;
             _spriteRenderer.sortingOrder = 1;
 
-            // Ensure collider matches the new sprite and scale fits grid
-            EnsureCollider2D();
+            // Scale to grid footprint, then fit collider to the assigned sprite
             UpdateVisualScaleFromGridSize();
+            EnsureCollider2D();
         }
         
         private void UpdateVisualScaleFromGridSize()
@@ -663,7 +663,6 @@ namespace UISystemModule.UIElements
             if (_collider is BoxCollider2D box)
             {
                 var bounds = _spriteRenderer.sprite.bounds;
-                // Reset collider to sprite bounds (local space)
                 box.size = bounds.size;
                 box.offset = bounds.center;
             }

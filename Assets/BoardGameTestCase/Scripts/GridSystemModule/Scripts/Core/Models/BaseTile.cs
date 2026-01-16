@@ -73,7 +73,20 @@ namespace GridSystemModule.Core.Models
                 collider2D = boxCollider;
             }
             else collider2D.enabled = true;
+
+            UpdateColliderBounds();
             gameObject.SetActive(true);
+        }
+
+        private void UpdateColliderBounds()
+        {
+            if (spriteRenderer == null || spriteRenderer.sprite == null) return;
+            if (collider2D is BoxCollider2D box)
+            {
+                var bounds = spriteRenderer.sprite.bounds;
+                box.size = bounds.size;
+                box.offset = bounds.center;
+            }
         }
 
         protected virtual void Start() { }
