@@ -325,7 +325,9 @@ namespace GridSystemModule.Services
             var placeableMb = placeable as MonoBehaviour;
             if (placeableMb != null)
             {
-                placeableMb.transform.position = MultiTileGridToWorld(occupiedPositions);
+                Vector3 centerPosition = MultiTileGridToWorld(occupiedPositions);
+                Vector3 pivotOffset = CalculatePivotOffset(placeableMb);
+                placeableMb.transform.position = centerPosition + pivotOffset;
             }
             
             if (!skipOnPlacedCallback)
@@ -528,7 +530,24 @@ namespace GridSystemModule.Services
             _dragStartWasPlaced = placeable.IsPlaced;
             _dragStartGridPos = placeable.GridPosition;
             var mbForKill = placeable as MonoBehaviour;
-            _dragStartWorldPos = (mbForKill != null) ? mbForKill.transform.position : GridToWorld(placeable.GridPosition);
+            
+            // Calculate center position for multi-tile objects
+            if (mbForKill != null)
+            {
+                _dragStartWorldPos = mbForKill.transform.position;
+            }
+            else
+            {
+                var occupiedPositions = new List<Vector2Int>();
+                for (int x = 0; x < placeable.GridSize.x; x++)
+                {
+                    for (int y = 0; y < placeable.GridSize.y; y++)
+                    {
+                        occupiedPositions.Add(new Vector2Int(placeable.GridPosition.x + x, placeable.GridPosition.y + y));
+                    }
+                }
+                _dragStartWorldPos = MultiTileGridToWorld(occupiedPositions);
+            }
             
             if (_dragStartWasPlaced)
             {
@@ -752,8 +771,43 @@ namespace GridSystemModule.Services
             
             Vector2Int actualOccupantPos = occupant.GridPosition;
             Vector2Int actualDraggedStartPos = _dragStartWasPlaced ? _dragStartGridPos : actualOccupantPos;
-            Vector3 draggedWorldStart = draggedMb.transform != null ? draggedMb.transform.position : GridToWorld(actualDraggedStartPos);
-            Vector3 occupantWorldStart = occupantMb.transform != null ? occupantMb.transform.position : GridToWorld(actualOccupantPos);
+            
+            // Calculate center positions for multi-tile objects
+            Vector3 draggedWorldStart;
+            if (draggedMb.transform != null)
+            {
+                draggedWorldStart = draggedMb.transform.position;
+            }
+            else
+            {
+                var draggedOccupiedPositions = new List<Vector2Int>();
+                for (int x = 0; x < dragged.GridSize.x; x++)
+                {
+                    for (int y = 0; y < dragged.GridSize.y; y++)
+                    {
+                        draggedOccupiedPositions.Add(new Vector2Int(actualDraggedStartPos.x + x, actualDraggedStartPos.y + y));
+                    }
+                }
+                draggedWorldStart = MultiTileGridToWorld(draggedOccupiedPositions);
+            }
+            
+            Vector3 occupantWorldStart;
+            if (occupantMb.transform != null)
+            {
+                occupantWorldStart = occupantMb.transform.position;
+            }
+            else
+            {
+                var occupantOccupiedPositions = new List<Vector2Int>();
+                for (int x = 0; x < occupant.GridSize.x; x++)
+                {
+                    for (int y = 0; y < occupant.GridSize.y; y++)
+                    {
+                        occupantOccupiedPositions.Add(new Vector2Int(actualOccupantPos.x + x, actualOccupantPos.y + y));
+                    }
+                }
+                occupantWorldStart = MultiTileGridToWorld(occupantOccupiedPositions);
+            }
 
             if (draggedMb.transform != null)
             {
@@ -861,6 +915,13 @@ namespace GridSystemModule.Services
             Vector3 occupantTargetWorld = _dragStartWasPlaced && occupantTargetPositions != null
                 ? MultiTileGridToWorld(occupantTargetPositions)
                 : occupantWorldStart;
+            
+            // Apply pivot offsets
+            Vector3 draggedPivotOffset = CalculatePivotOffset(draggedMb);
+            Vector3 occupantPivotOffset = CalculatePivotOffset(occupantMb);
+            
+            draggedTargetWorld += draggedPivotOffset;
+            occupantTargetWorld += occupantPivotOffset;
 
             if (draggedMb != null)
             {
@@ -930,7 +991,21 @@ namespace GridSystemModule.Services
             if (mb == null || mb.transform == null) return; 
 
             var t = mb.transform;
-            var target = GridToWorld(gridPos);
+            
+            // Calculate center position for multi-tile objects
+            var occupiedPositions = new List<Vector2Int>();
+            for (int x = 0; x < placeable.GridSize.x; x++)
+            {
+                for (int y = 0; y < placeable.GridSize.y; y++)
+                {
+                    occupiedPositions.Add(new Vector2Int(gridPos.x + x, gridPos.y + y));
+                }
+            }
+            var target = MultiTileGridToWorld(occupiedPositions);
+            
+            // Apply pivot offset
+            Vector3 pivotOffset = CalculatePivotOffset(mb);
+            target += pivotOffset;
             
             if (t != null)
             {
@@ -1307,7 +1382,16 @@ namespace GridSystemModule.Services
                     Vector2Int? validPosition = FindRandomValidPosition(itemData.GridSize, availablePositions);
                     if (!validPosition.HasValue) break;
                     
-                    Vector3 worldPosition = GridToWorld(validPosition.Value);
+                    // Calculate center position for multi-tile objects
+                    var occupiedPositions = new List<Vector2Int>();
+                    for (int x = 0; x < itemData.GridSize.x; x++)
+                    {
+                        for (int y = 0; y < itemData.GridSize.y; y++)
+                        {
+                            occupiedPositions.Add(new Vector2Int(validPosition.Value.x + x, validPosition.Value.y + y));
+                        }
+                    }
+                    Vector3 worldPosition = MultiTileGridToWorld(occupiedPositions);
                     var placeable = gridItemFactory.CreateGridItem2D(itemData, worldPosition, false);
                     
                     if (placeable != null)
@@ -1406,6 +1490,35 @@ namespace GridSystemModule.Services
             }
 
             return count > 0 ? sum / count : Vector3.zero;
+        }
+        
+        private Vector3 CalculatePivotOffset(MonoBehaviour mb)
+        {
+            if (mb == null) return Vector3.zero;
+            
+            var spriteRenderer = mb.GetComponent<SpriteRenderer>();
+            if (spriteRenderer == null || spriteRenderer.sprite == null) return Vector3.zero;
+            
+            var sprite = spriteRenderer.sprite;
+            var bounds = sprite.bounds;
+            
+            // Calculate the offset from sprite center to pivot
+            // Pivot is in normalized coordinates (0-1), convert to local space
+            Vector2 pivotNormalized = sprite.pivot / sprite.pixelsPerUnit;
+            Vector2 spriteSize = sprite.rect.size / sprite.pixelsPerUnit;
+            
+            // Calculate offset: center is at (0.5, 0.5) in normalized space
+            Vector2 centerNormalized = spriteSize * 0.5f;
+            Vector2 offset = pivotNormalized - centerNormalized;
+            
+            // Apply transform scale to offset
+            Vector3 scaledOffset = new Vector3(
+                offset.x * mb.transform.localScale.x,
+                offset.y * mb.transform.localScale.y,
+                0
+            );
+            
+            return scaledOffset;
         }
     }
 }

@@ -20,7 +20,7 @@ MonoBehaviour:
   _attackDirection: 1
   _health: 100
   _cost: 50
-  _gridSize: {x: 3, y: 3}
+  _gridSize: {x: 2, y: 3}
   _itemId: defence_item_3
   _type: Basic
   _description: 
