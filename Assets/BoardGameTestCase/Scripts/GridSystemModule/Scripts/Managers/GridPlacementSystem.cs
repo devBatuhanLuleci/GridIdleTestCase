@@ -197,7 +197,7 @@ namespace GridSystemModule.Services
         
         public bool IsValidPlacement(Vector2Int gridPosition, Vector2Int objectSize, IPlaceable excludeObject = null)
         {
-
+            // 1. Bounds check
             if (gridPosition.x < 0 || gridPosition.y < 0 ||
                 gridPosition.x + objectSize.x > _gridDimensions.x ||
                 gridPosition.y + objectSize.y > _gridDimensions.y)
@@ -205,6 +205,7 @@ namespace GridSystemModule.Services
                 return false;
             }
             
+            // 2. Restricted area check (e.g., bottom half for player)
             if (_restrictToBottomHalf)
             {
                 int bottomHalfThreshold = _gridDimensions.y / 2;
@@ -221,6 +222,7 @@ namespace GridSystemModule.Services
                 }
             }
             
+            // 3. Occupancy check - Check every tile the object would occupy
             for (int x = 0; x < objectSize.x; x++)
             {
                 for (int y = 0; y < objectSize.y; y++)
@@ -229,9 +231,14 @@ namespace GridSystemModule.Services
                     
                     if (_placedObjects.TryGetValue(checkPos, out var existingObject))
                     {
-                        if (existingObject != excludeObject)
+                        // Ensure it's not the same object we are currently moving
+                        if (existingObject != null && existingObject != excludeObject)
                         {
-                            return false;
+                            // If the occupant is placed on grid, it blocks the new placement
+                            if (existingObject.IsPlaced)
+                            {
+                                return false;
+                            }
                         }
                     }
                 }
