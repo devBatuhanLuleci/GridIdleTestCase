@@ -380,6 +380,9 @@ namespace UISystemModule.UIElements
             if (!_isDragging) return;
             _isDragging = false;
             
+            // IMPORTANT: Kill any ongoing animations to prevent scale/position issues
+            transform.DOKill();
+            
             // Clear the global dragging flag
             if (_currentlyDraggingItem == this)
             {
