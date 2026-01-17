@@ -571,24 +571,6 @@ namespace GridSystemModule.Services
             
             if (_dragStartWasPlaced)
             {
-                // Clear placed item highlights for the item being dragged
-                Vector2Int gridSize = placeable.GridSize;
-                for (int x = 0; x < gridSize.x; x++)
-                {
-                    for (int y = 0; y < gridSize.y; y++)
-                    {
-                        Vector2Int tilePos = _dragStartGridPos + new Vector2Int(x, y);
-                        if (_placedItemHighlightedTiles.TryGetValue(tilePos, out var tile))
-                        {
-                            if (tile != null)
-                            {
-                                tile.HideHighlight();
-                            }
-                            _placedItemHighlightedTiles.Remove(tilePos);
-                        }
-                    }
-                }
-                
                 RemoveObject(placeable);
             }
             
