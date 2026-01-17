@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using GridSystemModule.Core.Models;
+using GridSystemModule.Services;
 using BoardGameTestCase.Core.Common;
 
 namespace GridSystemModule.Managers

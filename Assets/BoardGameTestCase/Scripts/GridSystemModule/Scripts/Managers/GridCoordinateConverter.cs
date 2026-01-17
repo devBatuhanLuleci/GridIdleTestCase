@@ -77,21 +77,23 @@ namespace GridSystemModule.Managers
                 if (allTiles != null && allTiles.Count > 0)
                 {
                     BaseTile nearestTile = null;
+                    Vector2 nearestGridPos = Vector2.zero;
                     float nearestDistance = float.MaxValue;
                     
-                    foreach (var tile in allTiles)
+                    foreach (var tileEntry in allTiles)
                     {
-                        float distance = Vector3.Distance(worldPosition, tile.transform.position);
+                        float distance = Vector3.Distance(worldPosition, tileEntry.Value.transform.position);
                         if (distance < nearestDistance)
                         {
                             nearestDistance = distance;
-                            nearestTile = tile;
+                            nearestTile = tileEntry.Value;
+                            nearestGridPos = tileEntry.Key;
                         }
                     }
                     
                     if (nearestTile != null)
                     {
-                        return nearestTile.GridPosition;
+                        return new Vector2Int((int)nearestGridPos.x, (int)nearestGridPos.y);
                     }
                 }
             }
@@ -105,9 +107,10 @@ namespace GridSystemModule.Managers
         public Vector3 GridToWorld(Vector2Int gridPosition)
         {
             var gridManager = _gridManager ?? ServiceLocator.Instance?.Get<GridManager>();
-            var tile = gridManager?.GetTileAt(gridPosition);
             
-            if (tile != null)
+            // Try to get tile directly from grid
+            var allTiles = gridManager?.GetAllTiles();
+            if (allTiles != null && allTiles.TryGetValue(gridPosition, out var tile))
             {
                 return tile.transform.position;
             }

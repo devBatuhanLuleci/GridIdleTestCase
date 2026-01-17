@@ -771,7 +771,7 @@ namespace GridSystemModule.Services
             ClearTileHighlight();
         }
 
-        private void RevertDraggedToStartPosition()
+        public void RevertDraggedToStartPosition()
         {
             var mb = _currentDraggedObject as MonoBehaviour;
             if (mb == null || mb.transform == null) return;
@@ -797,7 +797,7 @@ namespace GridSystemModule.Services
             }
         }
 
-        private bool TrySwapWithOccupant(IPlaceable dragged, IPlaceable occupant, Vector2Int occupantPos, Vector2Int draggedStartPos)
+        public bool TrySwapWithOccupant(IPlaceable dragged, IPlaceable occupant, Vector2Int occupantPos, Vector2Int draggedStartPos)
         {
             if (dragged == null || occupant == null) return false;
             
@@ -1013,7 +1013,7 @@ namespace GridSystemModule.Services
             return true;
         }
 
-        private void FinishDragWithoutPlacement(Vector2Int finalGridPos)
+        public void FinishDragWithoutPlacement(Vector2Int finalGridPos)
         {
             _currentDraggedObject.OnDrop(finalGridPos, false);
             _currentDraggedObject.IsDragging = false;
@@ -1022,7 +1022,7 @@ namespace GridSystemModule.Services
             ClearTileHighlight();
         }
 
-        private void TryPlayPlacementAnimation(IPlaceable placeable, Vector2Int gridPos, bool wasAutoSnappedFromInvalid)
+        public void TryPlayPlacementAnimation(IPlaceable placeable, Vector2Int gridPos, bool wasAutoSnappedFromInvalid)
         {
             if (placeable == null || _placementAnimationSettings == null) return;
             var mb = placeable as MonoBehaviour;
@@ -1209,7 +1209,7 @@ namespace GridSystemModule.Services
 
         }
         
-        private Vector2Int FindNearestValidPosition(Vector2Int targetPosition, Vector2Int objectSize, IPlaceable excludeObject)
+        public Vector2Int FindNearestValidPosition(Vector2Int targetPosition, Vector2Int objectSize, IPlaceable excludeObject)
         {
 
             int bottomHalfThreshold = _gridDimensions.y / 2;
@@ -1332,7 +1332,7 @@ namespace GridSystemModule.Services
             _highlightedTiles.Clear();
         }
         
-        private BaseTile FindTileAtPosition(Vector2Int gridPos)
+        public BaseTile FindTileAtPosition(Vector2Int gridPos)
         {
             var gridManager = ServiceLocator.Instance.Get<GridManager>();
             if (gridManager == null)

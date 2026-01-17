@@ -2,6 +2,7 @@ using UnityEngine;
 using DG.Tweening;
 using System.Collections.Generic;
 using GridSystemModule.Core.Interfaces;
+using GridSystemModule.Services;
 using BoardGameTestCase.Core.Common;
 
 namespace GridSystemModule.Managers
