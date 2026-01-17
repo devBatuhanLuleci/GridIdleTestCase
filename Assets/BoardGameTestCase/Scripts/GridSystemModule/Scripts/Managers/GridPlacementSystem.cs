@@ -1482,20 +1482,21 @@ namespace GridSystemModule.Services
             // Clear drag highlights and restore placed item highlights if needed
             foreach (var dragPos in _dragHighlightedPositions)
             {
-                // Check if this position is a placed item highlight
-                bool isPlacedItemPosition = _placedItemHighlightedTiles.ContainsKey(dragPos);
-                
-                var tile = FindTileAtPosition(dragPos);
-                if (tile != null)
+                // Check if this position is a placed item highlight and get the specific tile reference
+                if (_placedItemHighlightedTiles.TryGetValue(dragPos, out var placedTile))
                 {
-                    if (isPlacedItemPosition)
+                    if (placedTile != null)
                     {
-                        // Restore placed item highlight color
-                        tile.ShowHighlightStatic(placedItemColor);
+                         // Restore placed item highlight color directly on the stored tile
+                         placedTile.ShowHighlightStatic(placedItemColor);
                     }
-                    else
+                }
+                else
+                {
+                    // Not a placed item position, find the tile and hide highlight
+                    var tile = FindTileAtPosition(dragPos);
+                    if (tile != null)
                     {
-                        // Clear drag highlight
                         tile.HideHighlight();
                     }
                 }
