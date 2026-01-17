@@ -5,7 +5,9 @@ using System.Linq;
 using UnityEngine;
 using DG.Tweening;
 using GridSystemModule.Core.Interfaces;
+using BoardGameTestCase.Core.Common;
 using BoardGameTestCase.Core.ScriptableObjects;
+using GameModule.Core.Interfaces; // Added for ILevelDataProvider
 
 namespace UISystemModule.UIElements
 {
@@ -88,11 +90,23 @@ namespace UISystemModule.UIElements
 
         private void AddRandomItemsToInventory(int count)
         {
+            var levelProvider = ServiceLocator.Instance?.Get<ILevelDataProvider>();
+            if (levelProvider == null || levelProvider.CurrentLevel == null || levelProvider.CurrentLevel.DefenceItems.Count == 0)
+            {
+                Debug.LogWarning("Cannot add random items: No Level Data or Defence Items found.");
+                return;
+            }
+
+            var availableItems = levelProvider.CurrentLevel.DefenceItems;
+
             Debug.Log("SLOTSTEP: " + _slotStep + ", parent: " + (_inventoryParent != null ? _inventoryParent.name : "null"));
             for (int i = 0; i < count; i++)
             {
+               // Pick random item
+               var randomEntry = availableItems[UnityEngine.Random.Range(0, availableItems.Count)];
+               
                // Pass -1 to automatically find the next empty slot
-               CreateAndRegisterItem(null, -1);
+               CreateAndRegisterItem(randomEntry.DefenceItemData, -1);
             }
         }
 
@@ -113,6 +127,7 @@ namespace UISystemModule.UIElements
             // 2. Instantiate Item
             var itemObject = Instantiate(_gridItem2DPrefab, _inventoryParent);
             itemObject.transform.localPosition = slotPos;
+            itemObject.transform.localScale = Vector3.one; // Ensure scale is correct
             
             // 3. Get or Add GridItem2D
             if (!itemObject.TryGetComponent<GridItem2D>(out var gridItem))
