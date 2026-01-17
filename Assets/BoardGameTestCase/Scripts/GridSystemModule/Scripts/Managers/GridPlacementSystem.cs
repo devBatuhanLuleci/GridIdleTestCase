@@ -21,8 +21,8 @@ namespace GridSystemModule.Services
         [SerializeField] private List<Vector2Int> _debugAvailableTiles = new List<Vector2Int>();
         [SerializeField] private int _debugPlacedObjectsCount = 0;
         [SerializeField] private bool   _restrictToBottomHalf = false; // Temporarily toggle bottom-half-only placement
+        [SerializeField] private bool _enableSwap = false; // Temporarily disable swap functionality
         
-        private Dictionary<Vector2Int, IPlaceable> _occupiedTilesWithObjects = new Dictionary<Vector2Int, IPlaceable>();
         
         private Dictionary<Vector2Int, IPlaceable> _placedObjects = new Dictionary<Vector2Int, IPlaceable>();
         private HashSet<Vector2Int> _occupiedTiles = new HashSet<Vector2Int>();
@@ -697,18 +697,22 @@ namespace GridSystemModule.Services
             {
                 occupantGridPos = occupant.GridPosition;
                 
-                if (!_dragStartWasPlaced)
+                // Swap feature is temporarily disabled
+                if (_enableSwap)
                 {
+                    if (!_dragStartWasPlaced)
+                    {
 
-                    RevertDraggedToStartPosition();
-                    FinishDragWithoutPlacement(gridPos);
-                    return;
-                }
-                
-                bool swapped = TrySwapWithOccupant(_currentDraggedObject, occupant, occupantGridPos.Value, _dragStartGridPos);
-                if (swapped)
-                {
-                    return;
+                        RevertDraggedToStartPosition();
+                        FinishDragWithoutPlacement(gridPos);
+                        return;
+                    }
+                    
+                    bool swapped = TrySwapWithOccupant(_currentDraggedObject, occupant, occupantGridPos.Value, _dragStartGridPos);
+                    if (swapped)
+                    {
+                        return;
+                    }
                 }
 
                 RevertDraggedToStartPosition();
