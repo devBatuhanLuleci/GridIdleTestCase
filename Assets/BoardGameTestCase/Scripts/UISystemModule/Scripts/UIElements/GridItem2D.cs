@@ -639,12 +639,14 @@ namespace UISystemModule.UIElements
                 
                 if (_placementSystem != null)
                 {
-                    Vector3 worldPosition = _placementSystem.GridToWorld(gridPosition);
+                    Vector2Int targetGridPos = gridPosition;
+                    Vector3 worldPosition = _placementSystem.GridToWorld(targetGridPos);
+                    
                     // Smooth placement animation
                     transform.DOMove(worldPosition, _placementMoveDuration).SetEase(_placementMoveEase);
                     // Scale back to original (compensate for bump if still active)
                     transform.DOScale(_originalScale, _placementScaleDuration).SetEase(_placementScaleEase);
-                    // Punch effect after a slight delay
+                    // Punch effect for tactile "snapping" feel
                     transform.DOPunchPosition(Vector3.down * _placementPunchStrength, _placementPunchDuration, 10, 1)
                              .SetDelay(_placementPunchDelay);
                 }
