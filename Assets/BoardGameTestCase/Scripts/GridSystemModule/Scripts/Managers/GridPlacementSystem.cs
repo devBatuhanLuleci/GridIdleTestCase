@@ -38,6 +38,7 @@ namespace GridSystemModule.Services
         private Vector3 _dragStartWorldPos;
         private HashSet<BaseTile> _highlightedTiles = new HashSet<BaseTile>();
         private Dictionary<Vector2Int, BaseTile> _placedItemHighlightedTiles = new Dictionary<Vector2Int, BaseTile>();
+        private HashSet<BaseTile> _placedItemHighlightedTilesSet = new HashSet<BaseTile>(); // For fast lookup
         private IGameFlowController _gameFlowController;
         
         private bool IsPlacingState()
@@ -376,6 +377,7 @@ namespace GridSystemModule.Services
                     if (tile != null)
                     {
                         tile.HideHighlight();
+                        _placedItemHighlightedTilesSet.Remove(tile); // Remove from fast lookup
                     }
                     _placedItemHighlightedTiles.Remove(pos);
                 }
@@ -1272,6 +1274,7 @@ namespace GridSystemModule.Services
                 }
             }
             _placedItemHighlightedTiles.Clear();
+            _placedItemHighlightedTilesSet.Clear();
             ClearTileHighlight();
             
             foreach (var go in uniqueObjectsToDestroy)
@@ -1436,6 +1439,7 @@ namespace GridSystemModule.Services
                     {
                         tile.ShowHighlight(highlightColor, minAlpha, duration);
                         _placedItemHighlightedTiles[checkPos] = tile;
+                        _placedItemHighlightedTilesSet.Add(tile); // Fast lookup
                     }
                 }
             }
@@ -1471,8 +1475,8 @@ namespace GridSystemModule.Services
             {
                 if (tile != null)
                 {
-                    // Check if this tile should have a placed item highlight
-                    bool isPlacedItemTile = _placedItemHighlightedTiles.ContainsValue(tile);
+                    // Check if this tile is a placed item highlight (fast O(1) lookup)
+                    bool isPlacedItemTile = _placedItemHighlightedTilesSet.Contains(tile);
                     if (isPlacedItemTile)
                     {
                         // Restore placed item highlight color
