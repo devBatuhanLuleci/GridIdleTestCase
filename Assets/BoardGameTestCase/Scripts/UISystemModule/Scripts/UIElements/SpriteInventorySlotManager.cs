@@ -31,29 +31,25 @@ namespace UISystemModule.UIElements
 
         private IGridPlacementSystem _gridPlacementSystem;
         // Event dinleme için yardımcı interface (GridPlacementSystem'da public event ile uygulanmalı)
-        public interface IGridPlacementSystemEventSource
-        {
-            event Action<IPlaceable> OnItemPlaced;
-        }
+
 
         private void OnEnable()
         {
             if (_gridPlacementSystemObject != null)
             {
                 _gridPlacementSystem = _gridPlacementSystemObject as IGridPlacementSystem;
-                var eventSource = _gridPlacementSystemObject as IGridPlacementSystemEventSource;
-                if (eventSource != null)
-                    eventSource.OnItemPlaced += HandleGridItemPlaced;
+                if (_gridPlacementSystem != null)
+                {
+                    _gridPlacementSystem.OnItemPlaced += HandleGridItemPlaced;
+                }
             }
         }
 
         private void OnDisable()
         {
-            if (_gridPlacementSystemObject != null)
+            if (_gridPlacementSystem != null)
             {
-                var eventSource = _gridPlacementSystemObject as IGridPlacementSystemEventSource;
-                if (eventSource != null)
-                    eventSource.OnItemPlaced -= HandleGridItemPlaced;
+                _gridPlacementSystem.OnItemPlaced -= HandleGridItemPlaced;
             }
         }
 
