@@ -789,6 +789,8 @@ namespace GridSystemModule.Services
             
             if (mb != null && mb.transform != null && mb.gameObject != null)
             {
+                var startPos = mb.transform.position;
+                Debug.Log($"[GridPlacementSystem] DOMove Revert: {mb.name} from {startPos} to {_dragStartWorldPos} duration {duration} ease {ease} overshoot {overshoot}");
                 mb.transform.DOMove(_dragStartWorldPos, duration)
                     .SetEase(ease, overshoot)
                     .SetTarget(mb.transform)
@@ -1067,6 +1069,8 @@ namespace GridSystemModule.Services
 
                 if (t != null && t.gameObject != null)
                 {
+                    var startPos = t.position;
+                    Debug.Log($"[GridPlacementSystem] DOMove Placement: {t.name} from {startPos} to {target} duration {duration} ease {ease} overshoot {overshoot} autoSnap={wasAutoSnappedFromInvalid}");
                     // Start from object's last position (current transform)
                     t.DOMove(target, duration)
                         .SetEase(ease, overshoot)
@@ -1117,6 +1121,8 @@ namespace GridSystemModule.Services
 
             if (t != null && t.gameObject != null)
             {
+                var startPos = t.position;
+                Debug.Log($"[GridPlacementSystem] DOMove Swap: {t.name} from {startPos} to {targetWorldPos} duration {_placementAnimationSettings.swapDuration} ease {_placementAnimationSettings.swapEase} overshoot {_placementAnimationSettings.swapOvershoot}");
                 t.DOMove(targetWorldPos, _placementAnimationSettings.swapDuration)
                     .SetEase(_placementAnimationSettings.swapEase, _placementAnimationSettings.swapOvershoot)
                     .SetTarget(t)
