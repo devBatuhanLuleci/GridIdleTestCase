@@ -320,7 +320,25 @@ namespace GridSystemModule.Services
                 return false;
             }
             
-            if (!IsValidPlacement(gridPosition, placeable.GridSize, placeable)) return false;
+            if (!IsValidPlacement(gridPosition, placeable.GridSize, placeable)) 
+            {
+                Debug.LogWarning($"[GridPlacementSystem] Placement rejected for {(placeable.Transform != null ? placeable.Transform.name : "Unknown")} at {gridPosition}. Pos is occupied or out of bounds.");
+                return false;
+            }
+            
+            // Double-check logic: ensure we are not overwriting a DIFFERENT active item
+            for (int x = 0; x < placeable.GridSize.x; x++)
+            {
+                for (int y = 0; y < placeable.GridSize.y; y++)
+                {
+                    Vector2Int pos = new Vector2Int(gridPosition.x + x, gridPosition.y + y);
+                    if (_placedObjects.TryGetValue(pos, out var existing) && existing != placeable && existing != null && existing.IsPlaced)
+                    {
+                        Debug.LogError($"[GridPlacementSystem] CRITICAL OVERLAP ATTEMPT: {(placeable.Transform != null ? placeable.Transform.name : "Unknown")} tried to overwrite {(existing.Transform != null ? existing.Transform.name : "Unknown")} at {pos}. Placement ABORTED.");
+                        return false;
+                    }
+                }
+            }
             
             if (placeable.IsPlaced)
             {

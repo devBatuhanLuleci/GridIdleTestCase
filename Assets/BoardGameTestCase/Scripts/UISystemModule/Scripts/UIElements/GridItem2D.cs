@@ -379,22 +379,18 @@ namespace UISystemModule.UIElements
                 Vector3 worldPosition = _camera.ScreenToWorldPoint(new Vector3(inputPosition.x, inputPosition.y, _camera.nearClipPlane));
                 worldPosition.z = transform.position.z;
                 
-                // Smooth movement with DoTween - very quick but smooth
-                transform.DOKill(false); // Kill previous tweens but don't complete them
+                // Correctly handle the visual position during drag
+                transform.DOKill(false);
                 transform.DOMove(worldPosition, _dragUpdateDuration).SetEase(_dragUpdateEase);
                 
-                // IMPORTANT: Update _originalPosition during drag so that if ReturnToOriginalPosition() 
-                // is called, it returns to the current dragged position, not the initial position.
-                // This is crucial for inventory items that should stay where they're dragged to.
-                // Update X, Y from dragged world position, and Z from actual transform (camera-independent)
-                _originalPosition.x = worldPosition.x;
-                _originalPosition.y = worldPosition.y;
-                _originalPosition.z = transform.position.z;  // Always use actual transform Z, not camera calculation
+                // Do NOT update _originalPosition here. It must stay at the value set in StartDragging()
+                // so that we can revert to it if placement is invalid.
                 
                 if (_placementSystem != null)
                 {
                     _placementSystem.UpdateDrag(worldPosition);
                 }
+
             }
         }
         
@@ -640,7 +636,6 @@ namespace UISystemModule.UIElements
         {
             ReturnToOriginalPosition();
         }
-        
         public void OnDrop(Vector2Int gridPosition, bool isValid)
         {
             if (isValid)
@@ -660,6 +655,9 @@ namespace UISystemModule.UIElements
                 {
                     Vector3 targetWorldPosition = GetCorrectPlacedWorldPosition(gridPosition);
                     
+                    // Kill any ongoing drag tweens to ensure the placement animation wins
+                    transform.DOKill();
+                    
                     // Smooth placement animation to the centered world position
                     transform.DOMove(targetWorldPosition, _placementMoveDuration).SetEase(_placementMoveEase);
                     // Scale back to original
@@ -676,7 +674,25 @@ namespace UISystemModule.UIElements
             }
             else
             {
-                ReturnToOriginalPosition();
+                // If it's invalid, the GridPlacementSystem already calls RevertDraggedToStartPosition()
+                // which moves it back to _dragStartWorldPos.
+                // We only need to call ReturnToOriginalPosition() if we are NOT on a grid or grid failed logic.
+                // But for safety and consistency, let's let the GridPlacementSystem handle the world revert,
+                // and we'll handle the UI/State revert here.
+                
+                if (_placementSystem == null || !IsPlacingState())
+                {
+                    ReturnToOriginalPosition();
+                }
+                else
+                {
+                    // Ensure color and state are reset even if GridPlacementSystem handles movement
+                    SetColor(_normalColor);
+                    if (_spriteRenderer != null && !string.IsNullOrEmpty(_originalSortingLayerName))
+                    {
+                        _spriteRenderer.sortingLayerName = _originalSortingLayerName;
+                    }
+                }
             }
         }
         
