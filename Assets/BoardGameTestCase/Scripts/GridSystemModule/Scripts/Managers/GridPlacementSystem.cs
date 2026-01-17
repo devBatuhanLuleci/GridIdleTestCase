@@ -36,7 +36,7 @@ namespace GridSystemModule.Services
         private bool _dragStartWasPlaced;
         private Vector2Int _dragStartGridPos;
         private Vector3 _dragStartWorldPos;
-        private List<BaseTile> _highlightedTiles = new List<BaseTile>();
+        private HashSet<BaseTile> _highlightedTiles = new HashSet<BaseTile>();
         private Dictionary<Vector2Int, BaseTile> _placedItemHighlightedTiles = new Dictionary<Vector2Int, BaseTile>();
         private IGameFlowController _gameFlowController;
         
@@ -1424,11 +1424,17 @@ namespace GridSystemModule.Services
         
         private void ClearTileHighlight()
         {
+            // Hide all drag highlights except those that are placed items
             foreach (var tile in _highlightedTiles)
             {
-                if (tile != null && !_placedItemHighlightedTiles.ContainsValue(tile))
+                if (tile != null)
                 {
-                    tile.HideHighlight();
+                    // Only hide if this tile is not a placed item highlight
+                    var isPlacedItemTile = _placedItemHighlightedTiles.ContainsValue(tile);
+                    if (!isPlacedItemTile)
+                    {
+                        tile.HideHighlight();
+                    }
                 }
             }
             _highlightedTiles.Clear();
