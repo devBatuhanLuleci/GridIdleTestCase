@@ -61,6 +61,18 @@ MonoBehaviour:
   _dragUpdateEase: 1
   _manualDragDuration: 0.1
   _manualDragEase: 9
+  _selectionPunchStrength: 0.3
+  _selectionPunchDuration: 0.3
+  _selectionPunchVibrato: 10
+  _placementMoveDuration: 0.25
+  _placementMoveEase: 27
+  _placementScaleDuration: 0.25
+  _placementScaleEase: 27
+  _placementPunchStrength: 0.15
+  _placementPunchDuration: 0.3
+  _placementPunchDelay: 0.1
+  _returnDuration: 0.3
+  _returnEase: 9
 --- !u!212 &9154927729986020510
 SpriteRenderer:
   serializedVersion: 2
