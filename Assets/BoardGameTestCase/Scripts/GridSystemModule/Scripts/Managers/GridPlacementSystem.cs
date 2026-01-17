@@ -1465,6 +1465,8 @@ namespace GridSystemModule.Services
             return isValid ? Color.white : Color.red;
         }
         
+        private void ClearTileHighlight()
+        {
             var gridManager = ServiceLocator.Instance?.Get<GridManager>();
             Color placedItemColor = Color.white;
             float minAlpha = 0.6f;
