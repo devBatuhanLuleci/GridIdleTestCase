@@ -569,6 +569,24 @@ namespace GridSystemModule.Services
             
             if (_dragStartWasPlaced)
             {
+                // Clear placed item highlights for the item being dragged
+                Vector2Int gridSize = placeable.GridSize;
+                for (int x = 0; x < gridSize.x; x++)
+                {
+                    for (int y = 0; y < gridSize.y; y++)
+                    {
+                        Vector2Int tilePos = _dragStartGridPos + new Vector2Int(x, y);
+                        if (_placedItemHighlightedTiles.TryGetValue(tilePos, out var tile))
+                        {
+                            if (tile != null)
+                            {
+                                tile.HideHighlight();
+                            }
+                            _placedItemHighlightedTiles.Remove(tilePos);
+                        }
+                    }
+                }
+                
                 RemoveObject(placeable);
             }
             
@@ -783,8 +801,12 @@ namespace GridSystemModule.Services
             {
                 RevertDraggedToStartPosition();
                 _currentDraggedObject.OnDrop(gridPos, false);
-                // Restore placed item highlights after failed placement
-                RestorePlacedItemHighlights();
+                
+                // If the item was placed before drag, restore it back to its original position
+                if (_dragStartWasPlaced)
+                {
+                    PlaceObject(_currentDraggedObject, _dragStartGridPos, skipOnPlacedCallback: true);
+                }
             }
             
             _currentDraggedObject.IsDragging = false;
@@ -1026,13 +1048,20 @@ namespace GridSystemModule.Services
 
         public void FinishDragWithoutPlacement(Vector2Int finalGridPos)
         {
+            if (_currentDraggedObject == null) return;
+            
             _currentDraggedObject.OnDrop(finalGridPos, false);
+            
+            // If the item was placed before drag, restore it back to its original position
+            if (_dragStartWasPlaced)
+            {
+                PlaceObject(_currentDraggedObject, _dragStartGridPos, skipOnPlacedCallback: true);
+            }
+            
             _currentDraggedObject.IsDragging = false;
             _currentDraggedObject = null;
             _lastEvaluatedGridPosition = new Vector2Int(int.MinValue, int.MinValue);
             ClearTileHighlight();
-            // Restore placed item highlights after drag without placement
-            RestorePlacedItemHighlights();
         }
 
         public void TryPlayPlacementAnimation(IPlaceable placeable, Vector2Int gridPos, bool wasAutoSnappedFromInvalid)
@@ -1365,12 +1394,6 @@ namespace GridSystemModule.Services
                 {
                     Vector2Int checkPos = new Vector2Int(gridPos.x + x, gridPos.y + y);
                     
-                    // Don't override placed item highlights with drag highlights
-                    if (_placedItemHighlightedTiles.ContainsKey(checkPos))
-                    {
-                        continue;
-                    }
-                    
                     var tile = FindTileAtPosition(checkPos);
                     if (tile != null)
                     {
@@ -1431,15 +1454,33 @@ namespace GridSystemModule.Services
         
         private void ClearTileHighlight()
         {
-            // Hide all drag highlights except those that are placed items
+            var gridManager = ServiceLocator.Instance?.Get<GridManager>();
+            Color placedItemColor = Color.white;
+            float minAlpha = 0.6f;
+            float duration = 0.5f;
+            
+            if (gridManager != null && gridManager.GridSettings != null)
+            {
+                placedItemColor = gridManager.GridSettings.PlacedItemHighlightColor;
+                minAlpha = gridManager.GridSettings.HighlightMinAlpha;
+                duration = gridManager.GridSettings.HighlightAnimationDuration;
+            }
+            
+            // Clear drag highlights and restore placed item highlights if needed
             foreach (var tile in _highlightedTiles)
             {
                 if (tile != null)
                 {
-                    // Only hide if this tile is not a placed item highlight
-                    var isPlacedItemTile = _placedItemHighlightedTiles.ContainsValue(tile);
-                    if (!isPlacedItemTile)
+                    // Check if this tile should have a placed item highlight
+                    bool isPlacedItemTile = _placedItemHighlightedTiles.ContainsValue(tile);
+                    if (isPlacedItemTile)
                     {
+                        // Restore placed item highlight color
+                        tile.ShowHighlight(placedItemColor, minAlpha, duration);
+                    }
+                    else
+                    {
+                        // Clear drag highlight
                         tile.HideHighlight();
                     }
                 }
