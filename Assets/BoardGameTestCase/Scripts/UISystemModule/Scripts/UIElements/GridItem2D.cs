@@ -46,9 +46,10 @@ namespace UISystemModule.UIElements
         [SerializeField] private Ease _placementMoveEase = Ease.OutBack; // Easing for placement movement
         [SerializeField] private float _placementScaleDuration = 0.25f; // Duration for placement scale
         [SerializeField] private Ease _placementScaleEase = Ease.OutBack; // Easing for placement scale
-        [SerializeField] private float _placementPunchStrength = 0.15f; // Punch effect strength
+        [SerializeField] private float _placementPunchPositionStrength = 0.1f; // Position punch strength (world units)
+        [SerializeField] private float _placementPunchScaleStrength = 0.2f; // Scale punch strength (multiplier)
         [SerializeField] private float _placementPunchDuration = 0.3f; // Punch effect duration
-        [SerializeField] private float _placementPunchDelay = 0.1f; // Delay before punch effect
+        [SerializeField] private float _placementPunchDelay = 0.15f; // Delay before punch effect
         
         [Header("Return Animation Settings")]
         [SerializeField] private float _returnDuration = 0.3f; // Duration for return to inventory animation
@@ -661,10 +662,13 @@ namespace UISystemModule.UIElements
                     
                     // Smooth placement animation to the centered world position
                     transform.DOMove(targetWorldPosition, _placementMoveDuration).SetEase(_placementMoveEase);
-                    // Scale back to original (compensate for bump if still active)
+                    // Scale back to original
                     transform.DOScale(_originalScale, _placementScaleDuration).SetEase(_placementScaleEase);
-                    // Punch effect for tactile "snapping" feel
-                    transform.DOPunchPosition(Vector3.down * _placementPunchStrength, _placementPunchDuration, 10, 1)
+                    
+                    // Dual Punch effect (Position + Scale) for maximum "snap" feel
+                    transform.DOPunchPosition(Vector3.down * _placementPunchPositionStrength, _placementPunchDuration, 10, 1)
+                             .SetDelay(_placementPunchDelay);
+                    transform.DOPunchScale(Vector3.one * _placementPunchScaleStrength, _placementPunchDuration, 10, 1)
                              .SetDelay(_placementPunchDelay);
                 }
                 
