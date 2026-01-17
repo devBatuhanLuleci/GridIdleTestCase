@@ -1482,23 +1482,38 @@ namespace GridSystemModule.Services
             // Clear drag highlights and restore placed item highlights if needed
             foreach (var dragPos in _dragHighlightedPositions)
             {
-                // Check if this position is a placed item highlight and get the specific tile reference
-                if (_placedItemHighlightedTiles.TryGetValue(dragPos, out var placedTile))
+                bool restored = false;
+                
+                // Robust check: Is there actually a placed object at this position?
+                var occupant = GetObjectAt(dragPos);
+                if (occupant != null && occupant.IsPlaced)
                 {
-                    if (placedTile != null)
-                    {
-                         // Restore placed item highlight color directly on the stored tile
-                         placedTile.ShowHighlightStatic(placedItemColor);
-                    }
-                }
-                else
-                {
-                    // Not a placed item position, find the tile and hide highlight
+                    // Yes, there is a placed object. We MUST ensure the tile is highlighted.
+                    // Even if _placedItemHighlightedTiles cache missed it.
                     var tile = FindTileAtPosition(dragPos);
                     if (tile != null)
                     {
-                        tile.HideHighlight();
+                        tile.ShowHighlightStatic(placedItemColor);
+                        restored = true;
                     }
+                }
+                
+                if (!restored)
+                {
+                    // Fallback to cache check just in case (e.g. multi-tile edge cases)
+                     if (_placedItemHighlightedTiles.TryGetValue(dragPos, out var placedTile) && placedTile != null)
+                     {
+                         placedTile.ShowHighlightStatic(placedItemColor);
+                     }
+                     else
+                     {
+                         // Truly empty or invalid, hide highlight
+                         var tile = FindTileAtPosition(dragPos);
+                         if (tile != null)
+                         {
+                             tile.HideHighlight();
+                         }
+                     }
                 }
             }
             
