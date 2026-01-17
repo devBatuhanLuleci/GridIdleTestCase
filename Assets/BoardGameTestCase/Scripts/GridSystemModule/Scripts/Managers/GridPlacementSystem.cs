@@ -578,7 +578,26 @@ namespace GridSystemModule.Services
             }
             if (!_gridReady || _currentDraggedObject == null) return;
             
-            Vector2Int gridPos = WorldToGrid(worldPosition);
+            // Convert world position from object center to grid anchor
+            Vector3 adjustedWorldPos = worldPosition;
+            Vector2Int objectSize = _currentDraggedObject.GridSize;
+            
+            var gridManager = ServiceLocator.Instance?.Get<GridManager>();
+            if (gridManager != null && gridManager.GridSettings != null)
+            {
+                Vector2 cellSize = gridManager.GridSettings.CellSize;
+                Vector2 cellSpacing = gridManager.GridSettings.CellSpacing;
+                float cellSizeX = cellSize.x + cellSpacing.x;
+                float cellSizeY = cellSize.y + cellSpacing.y;
+                
+                // Offset: (size - 1) / 2 cells from center to bottom-left
+                float offsetX = (objectSize.x - 1) * 0.5f * cellSizeX;
+                float offsetY = (objectSize.y - 1) * 0.5f * cellSizeY;
+                
+                adjustedWorldPos = worldPosition - new Vector3(offsetX, offsetY, 0f);
+            }
+            
+            Vector2Int gridPos = WorldToGrid(adjustedWorldPos);
             if (gridPos == _lastEvaluatedGridPosition)
             {
                 return;
@@ -630,7 +649,26 @@ namespace GridSystemModule.Services
         {
             if (!_gridReady) return;
             if (_currentDraggedObject == null) return;
-            Vector2Int gridPos = WorldToGrid(worldPosition);
+            
+            // Same adjustment as UpdateDrag - both X and Y offsets
+            Vector3 adjustedWorldPos = worldPosition;
+            Vector2Int objectSize = _currentDraggedObject.GridSize;
+            
+            var gridManager = ServiceLocator.Instance?.Get<GridManager>();
+            if (gridManager != null && gridManager.GridSettings != null)
+            {
+                Vector2 cellSize = gridManager.GridSettings.CellSize;
+                Vector2 cellSpacing = gridManager.GridSettings.CellSpacing;
+                float cellSizeX = cellSize.x + cellSpacing.x;
+                float cellSizeY = cellSize.y + cellSpacing.y;
+                
+                float offsetX = (objectSize.x - 1) * 0.5f * cellSizeX;
+                float offsetY = (objectSize.y - 1) * 0.5f * cellSizeY;
+                
+                adjustedWorldPos = worldPosition - new Vector3(offsetX, offsetY, 0f);
+            }
+            
+            Vector2Int gridPos = WorldToGrid(adjustedWorldPos);
             
             bool wasAutoSnappedFromInvalid = false;
             
