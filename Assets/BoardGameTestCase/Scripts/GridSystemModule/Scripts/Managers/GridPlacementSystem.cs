@@ -139,10 +139,11 @@ namespace GridSystemModule.Services
             
             foreach (var obj in _placedObjects.Values)
             {
-                var t = obj.Transform;
-                if (t != null)
+                // Avoid accessing IPlaceable.Transform on potentially destroyed objects
+                var comp = obj as Component;
+                if (comp != null)
                 {
-                    t.DOKill(true);
+                    comp.transform.DOKill(true);
                 }
             }
             
@@ -1130,14 +1131,15 @@ namespace GridSystemModule.Services
         
         public void ClearAll()
         {
-            var uniqueObjectsToDestroy = new HashSet<Transform>();
+            var uniqueObjectsToDestroy = new HashSet<GameObject>();
             
             foreach (var obj in _occupiedTilesWithObjects.Values)
             {
-                var tObj = obj.Transform;
-                if (tObj != null)
+                // Use Component cast to safely handle destroyed references
+                var comp = obj as Component;
+                if (comp != null && comp.gameObject != null)
                 {
-                    uniqueObjectsToDestroy.Add(tObj);
+                    uniqueObjectsToDestroy.Add(comp.gameObject);
                 }
             }
             
@@ -1162,16 +1164,17 @@ namespace GridSystemModule.Services
             _availableTiles.Clear();
             RebuildAvailabilityCache();
             
-            foreach (var tObj in uniqueObjectsToDestroy)
+            foreach (var go in uniqueObjectsToDestroy)
             {
-                if (tObj != null)
+                if (go != null)
                 {
-                    tObj.DOKill(true);
-                    tObj.SetParent(null);
-                    if (tObj.gameObject != null)
+                    var tf = go.transform;
+                    if (tf != null)
                     {
-                        Object.DestroyImmediate(tObj.gameObject);
+                        tf.DOKill(true);
+                        tf.SetParent(null);
                     }
+                    Object.DestroyImmediate(go);
                 }
             }
             
