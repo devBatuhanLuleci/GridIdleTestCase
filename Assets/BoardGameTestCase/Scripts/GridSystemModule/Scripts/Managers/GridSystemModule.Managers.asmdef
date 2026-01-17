@@ -9,7 +9,8 @@
         "PlacementModule",
         "GameModule.Core",
         "DebugModule",
-        "Unity.InputSystem"
+        "Unity.InputSystem",
+        "UISystemModule.UIElements"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

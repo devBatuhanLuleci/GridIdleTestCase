@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using DG.Tweening;
+using GridSystemModule.Core.Interfaces;
 
 namespace UISystemModule.UIElements
 {
@@ -10,22 +11,67 @@ namespace UISystemModule.UIElements
     /// Manages horizontal slot-based layout and reordering of sprite inventory items.
     /// Allows drag-drop swapping similar to board game tiles (like Okey).
     /// </summary>
+
     public class SpriteInventorySlotManager : MonoBehaviour
     {
         [Header("Layout Settings")]
         [SerializeField] private Vector3 _slotStep = new Vector3(2f, 0f, 0f);
-        
+
         [Header("Animation")]
         [SerializeField] private float _repositionDuration = 0.3f;
         [SerializeField] private Ease _repositionEase = Ease.OutCubic;
-        
+
+
+        [Header("Grid Placement Integration")]
+        [SerializeField] private MonoBehaviour _gridPlacementSystemObject; // Inspector'dan atanacak
+        [SerializeField] private GameObject _gridItem2DPrefab;
+        [SerializeField] private Transform _inventoryParent;
+
+        private IGridPlacementSystem _gridPlacementSystem;
+        // Event dinleme için yardımcı interface (GridPlacementSystem'da public event ile uygulanmalı)
+        public interface IGridPlacementSystemEventSource
+        {
+            event Action<IPlaceable> OnItemPlaced;
+        }
+        private void OnEnable()
+        {
+            if (_gridPlacementSystemObject != null)
+            {
+                _gridPlacementSystem = _gridPlacementSystemObject as IGridPlacementSystem;
+                var eventSource = _gridPlacementSystemObject as IGridPlacementSystemEventSource;
+                if (eventSource != null)
+                    eventSource.OnItemPlaced += HandleGridItemPlaced;
+            }
+        }
+
+        private void OnDisable()
+        {
+            if (_gridPlacementSystemObject != null)
+            {
+                var eventSource = _gridPlacementSystemObject as IGridPlacementSystemEventSource;
+                if (eventSource != null)
+                    eventSource.OnItemPlaced -= HandleGridItemPlaced;
+            }
+        }
+
+        private int _placedItemCount = 0;
+
+        private void HandleGridItemPlaced(IPlaceable placeable)
+        {
+            _placedItemCount++;
+            if (_placedItemCount % 3 == 0)
+            {
+                AddRandomItemsToInventory(3);
+            }
+        }
+
         private List<SlotData> _slots = new List<SlotData>();
         private GridItem2D _currentlyDraggingItem = null;
         private int _originalSlotIndex = -1;
         private bool _swapHandled = false;
-        
+
         public event Action<GridItem2D, int, int> OnItemSwapped; // item, oldIndex, newIndex
-        
+
         public bool IsItemInSlot(GridItem2D item) => GetSlotIndex(item) != -1;
         
         private class SlotData
@@ -33,17 +79,39 @@ namespace UISystemModule.UIElements
             public int Index;
             public GridItem2D Item;
             public Vector3 Position;
-            
             public SlotData(int index, Vector3 position)
             {
                 Index = index;
                 Position = position;
             }
         }
-        
-        private void Update()
+
+        private void AddRandomItemsToInventory(int count)
         {
-            // Update method left empty - reordering handled in OnItemDragEnded
+            for (int i = 0; i < count; i++)
+            {
+                if (_gridItem2DPrefab != null && _inventoryParent != null)
+                {
+                    var go = GameObject.Instantiate(_gridItem2DPrefab, _inventoryParent);
+                    go.transform.localPosition = Vector3.zero;
+                    // İsteğe bağlı: randomize sprite veya data
+                    var gridItem = go.GetComponent<GridItem2D>();
+                    if (gridItem != null)
+                    {
+                        RegisterItem(gridItem, GetFirstEmptySlotIndex());
+                    }
+                }
+            }
+        }
+
+        private int GetFirstEmptySlotIndex()
+        {
+            for (int i = 0; i < _slots.Count; i++)
+            {
+                if (_slots[i].Item == null)
+                    return i;
+            }
+            return _slots.Count;
         }
         
         /// <summary>

@@ -10,11 +10,13 @@ using BoardGameTestCase.Core.Common;
 using DG.Tweening;
 using GameModule.Core.Interfaces;
 using GameState = GameModule.Core.Interfaces.GameState;
+using UISystemModule.UIElements;
 
 namespace GridSystemModule.Services
 {
-    public class GridPlacementSystem : MonoBehaviour, IGridPlacementSystem
+    public class GridPlacementSystem : MonoBehaviour, IGridPlacementSystem, SpriteInventorySlotManager.IGridPlacementSystemEventSource
     {
+        public event System.Action<IPlaceable> OnItemPlaced;
         [SerializeField] private Vector2Int _gridDimensions = new Vector2Int(4, 8);
         [SerializeField] private Material _validPlacementMaterial;
         [SerializeField] private Material _invalidPlacementMaterial;
@@ -349,6 +351,8 @@ namespace GridSystemModule.Services
             {
                 placeable.OnPlaced(gridPosition);
             }
+            
+            OnItemPlaced?.Invoke(placeable);
             
             RebuildAvailabilityCache();
             UpdateDebugInspectorLists();
