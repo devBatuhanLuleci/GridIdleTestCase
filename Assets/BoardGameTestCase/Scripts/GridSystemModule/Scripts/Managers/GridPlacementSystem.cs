@@ -669,8 +669,8 @@ namespace GridSystemModule.Services
             }
             
             Vector2Int gridPos = WorldToGrid(adjustedWorldPos);
-            
             bool wasAutoSnappedFromInvalid = false;
+            
             
             IPlaceable occupant = null;
             Vector2Int? occupantGridPos = null;
@@ -748,7 +748,6 @@ namespace GridSystemModule.Services
             
             if (placed)
             {
-
                 TryPlayPlacementAnimation(_currentDraggedObject, gridPos, wasAutoSnappedFromInvalid);
                 _currentDraggedObject.OnDrop(gridPos, true);
                 
@@ -1068,6 +1067,7 @@ namespace GridSystemModule.Services
 
                 if (t != null && t.gameObject != null)
                 {
+                    // Start from object's last position (current transform)
                     t.DOMove(target, duration)
                         .SetEase(ease, overshoot)
                         .SetTarget(t)

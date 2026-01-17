@@ -195,7 +195,6 @@ namespace GridSystemModule.Managers
 
             Vector2Int gridPos = _coordinateConverter.WorldToGrid(adjustedWorldPos);
 
-            bool wasAutoSnappedFromInvalid = false;
 
             IPlaceable occupant = null;
             Vector2Int? occupantGridPos = null;
@@ -247,7 +246,6 @@ namespace GridSystemModule.Managers
                     {
                         gridPos = nearestValidPos;
                         isValid = true;
-                        wasAutoSnappedFromInvalid = true;
                     }
                     else
                     {
@@ -266,7 +264,6 @@ namespace GridSystemModule.Managers
 
             if (placed)
             {
-                _gridPlacementSystem.TryPlayPlacementAnimation(_currentDraggedObject, gridPos, wasAutoSnappedFromInvalid);
                 _currentDraggedObject.OnDrop(gridPos, true);
 
                 var draggedMb = _currentDraggedObject as MonoBehaviour;
