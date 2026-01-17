@@ -258,6 +258,7 @@ namespace GridSystemModule.Core.Models
             if (_highlightAnimationTween != null && _highlightAnimationTween.IsActive())
             {
                 _highlightAnimationTween.Kill();
+                _highlightAnimationTween = null;
             }
             
             if (highlightRenderer != null)
