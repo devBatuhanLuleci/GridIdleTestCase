@@ -23,6 +23,7 @@ namespace GridSystemModule.Services
         [SerializeField] private bool   _restrictToBottomHalf = false; // Temporarily toggle bottom-half-only placement
         [SerializeField] private bool _enableSwap = false; // Temporarily disable swap functionality
         
+        private Dictionary<Vector2Int, IPlaceable> _occupiedTilesWithObjects = new Dictionary<Vector2Int, IPlaceable>();
         
         private Dictionary<Vector2Int, IPlaceable> _placedObjects = new Dictionary<Vector2Int, IPlaceable>();
         private HashSet<Vector2Int> _occupiedTiles = new HashSet<Vector2Int>();
