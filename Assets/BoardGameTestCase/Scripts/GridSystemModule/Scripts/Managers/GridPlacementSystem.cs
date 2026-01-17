@@ -647,19 +647,27 @@ namespace GridSystemModule.Services
             
             if (occupant != null)
             {
-                if (!_dragStartWasPlaced)
+                // Swap is disabled: any overlap with another object is invalid
+                if (!_enableSwap)
                 {
                     isValid = false;
                 }
                 else
                 {
-                    Vector2Int occupantPos = occupant.GridPosition;
-                    Vector2Int draggedStartPos = _dragStartWasPlaced ? _dragStartGridPos : occupantPos;
-                    
-                    bool canDraggedToOccupant = IsValidPlacement(occupantPos, _currentDraggedObject.GridSize, occupant);
-                    bool canOccupantToDragged = _dragStartWasPlaced ? IsValidPlacement(draggedStartPos, occupant.GridSize, _currentDraggedObject) : true;
-                    
-                    isValid = canDraggedToOccupant && canOccupantToDragged;
+                    if (!_dragStartWasPlaced)
+                    {
+                        isValid = false;
+                    }
+                    else
+                    {
+                        Vector2Int occupantPos = occupant.GridPosition;
+                        Vector2Int draggedStartPos = _dragStartWasPlaced ? _dragStartGridPos : occupantPos;
+                        
+                        bool canDraggedToOccupant = IsValidPlacement(occupantPos, _currentDraggedObject.GridSize, occupant);
+                        bool canOccupantToDragged = _dragStartWasPlaced ? IsValidPlacement(draggedStartPos, occupant.GridSize, _currentDraggedObject) : true;
+                        
+                        isValid = canDraggedToOccupant && canOccupantToDragged;
+                    }
                 }
             }
             
