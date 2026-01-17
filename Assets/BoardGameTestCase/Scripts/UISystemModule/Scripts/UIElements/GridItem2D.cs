@@ -166,6 +166,10 @@ namespace UISystemModule.UIElements
             float uniformScale = Mathf.Min(scaleX, scaleY);
             
             transform.localScale = new Vector3(uniformScale, uniformScale, 1f);
+            
+            // IMPORTANT: Update _originalScale after calculating the correct scale
+            // This ensures animations return to the correct size
+            _originalScale = transform.localScale;
         }
         
         private void FindPlacementSystem()
@@ -381,10 +385,8 @@ namespace UISystemModule.UIElements
             _isDragging = false;
             
             // IMPORTANT: Kill any ongoing animations to prevent scale/position issues
+            // The placement system (OnDrop/ReturnToOriginalPosition) will handle scale animation
             transform.DOKill();
-            
-            // Reset scale to original immediately to prevent stuck enlarged state
-            transform.localScale = _originalScale;
             
             // Clear the global dragging flag
             if (_currentlyDraggingItem == this)
