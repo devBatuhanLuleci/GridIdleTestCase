@@ -1,0 +1,20 @@
+{
+    "name": "UISystemModule.UIElements.Editor",
+    "rootNamespace": "UISystemModule.UIElements.Editor",
+    "references": [
+        "UISystemModule.UIElements",
+        "GridSystemModule.Core",
+        "BoardGameTestCase.Core"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

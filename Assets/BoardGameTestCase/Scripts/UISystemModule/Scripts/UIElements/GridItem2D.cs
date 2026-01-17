@@ -621,6 +621,24 @@ namespace UISystemModule.UIElements
         public void OnDrag(Vector3 worldPosition)
         {
         }
+
+        [ContextMenu("Test Drag Start")]
+        public void TestDragStart()
+        {
+            OnDragStart();
+        }
+
+        [ContextMenu("Test Drop")]
+        public void TestDrop()
+        {
+            OnDrop(_gridPosition, true);
+        }
+
+        [ContextMenu("Test Return")]
+        public void TestReturn()
+        {
+            ReturnToOriginalPosition();
+        }
         
         public void OnDrop(Vector2Int gridPosition, bool isValid)
         {
