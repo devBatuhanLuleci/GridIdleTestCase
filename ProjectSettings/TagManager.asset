@@ -13,8 +13,8 @@ TagManager:
   - 
   - Water
   - UI
-  - 
-  - 
+  - DraggableItem
+  - DraggedItem
   - 
   - 
   - 
@@ -54,6 +54,9 @@ TagManager:
     locked: 0
   - name: EnemyItem
     uniqueID: 1338195993
+    locked: 0
+  - name: DraggedItem
+    uniqueID: 2731106115
     locked: 0
   m_RenderingLayers:
   - Default

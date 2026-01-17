@@ -33,8 +33,6 @@ namespace UISystemModule.UIElements
         [Header("Sprite Mode")]
         [SerializeField] private GameObject _spriteItemPrefab;
         [SerializeField] private Transform _spriteItemsParent;
-        [SerializeField] private Vector3 _spriteStartPosition = new Vector3(-2f, 0f, 0f);
-        [SerializeField] private Vector3 _spriteStep = new Vector3(2f, 0f, 0f);
         [SerializeField] private int _maxSpritesPerItem = 0; // 0 means no cap
         [SerializeField] private SpriteInventorySlotManager _slotManager;
         
@@ -62,7 +60,7 @@ namespace UISystemModule.UIElements
                 }
             }
             
-            _slotManager.SetLayoutSettings(_spriteStartPosition, _spriteStep);
+            // Layout handled solely by SlotManager using its slot step
         }
         
         protected override void OnInitialize()
@@ -144,7 +142,7 @@ namespace UISystemModule.UIElements
             
             if (_displayMode == DisplayMode.WorldSprites)
             {
-                RefreshSpriteItems();
+                RefreshSpriteItems(forceFullReset: true);
                 return;
             }
             RefreshCanvasItems();
@@ -169,9 +167,20 @@ namespace UISystemModule.UIElements
             RemoveStaleCanvasItems(currentLevel);
         }
 
-        private void RefreshSpriteItems()
+        private void RefreshSpriteItems(bool forceFullReset = false)
         {
             var currentLevel = _levelDataProvider.CurrentLevel;
+            
+            // If full reset, unregister all items but keep slot structure
+            // This avoids re-creating all slots which causes offset issues
+            if (forceFullReset)
+            {
+                foreach (var item in _allSpriteItems)
+                {
+                    _slotManager?.UnregisterItem(item);
+                }
+            }
+            
             int spawnCursor = 0;
             for (int itemIndex = 0; itemIndex < currentLevel.DefenceItems.Count; itemIndex++)
             {
@@ -181,6 +190,8 @@ namespace UISystemModule.UIElements
                 spawnCursor = SyncSpriteItems(entry.DefenceItemData, currentQuantity, spawnCursor);
             }
             RemoveStaleSpriteItems(currentLevel);
+            // Finalize positioning after all items are synced
+            _slotManager?.RefreshAllPositions(false);
         }
 
         private void CreateItemUI(DefenceItemData itemData, int initialQuantity)
@@ -270,8 +281,6 @@ namespace UISystemModule.UIElements
                 if (tr != null)
                 {
                     tr.SetParent(_spriteItemsParent, true);
-                    tr.position = CalculateSpritePosition(startIndex + i);
-                    
                     var gridItem = handler.GetComponent<GridItem2D>();
                     if (gridItem != null && _slotManager != null)
                     {
@@ -282,6 +291,8 @@ namespace UISystemModule.UIElements
             }
             return startIndex + handlers.Count;
         }
+
+        /// <summary>
 
         private SpriteGridItemDragHandler CreateSpriteItem(DefenceItemData itemData)
         {
@@ -338,10 +349,7 @@ namespace UISystemModule.UIElements
             return handler;
         }
 
-        private Vector3 CalculateSpritePosition(int linearIndex)
-        {
-            return _spriteStartPosition + _spriteStep * linearIndex;
-        }
+        // Positioning is handled by SpriteInventorySlotManager; no local calculation needed
 
         private void RemoveStaleCanvasItems(LevelData currentLevel)
         {
@@ -393,7 +401,16 @@ namespace UISystemModule.UIElements
                 {
                     foreach (var handler in handlers)
                     {
-                        if (handler != null) Destroy(handler.gameObject);
+                        if (handler != null)
+                        {
+                            var gridItem = handler.GetComponent<GridItem2D>();
+                            if (gridItem != null)
+                            {
+                                _slotManager?.UnregisterItem(gridItem);
+                                _allSpriteItems.Remove(gridItem);
+                            }
+                            Destroy(handler.gameObject);
+                        }
                     }
                 }
                 _spriteItemHandlers.Remove(key);
@@ -435,7 +452,7 @@ namespace UISystemModule.UIElements
         {
             if (_displayMode == DisplayMode.WorldSprites)
             {
-                RefreshSpriteItems();
+                RefreshUI();
                 return;
             }
 
@@ -465,12 +482,7 @@ namespace UISystemModule.UIElements
         public void SetSpriteItemPrefab(GameObject prefab) => _spriteItemPrefab = prefab;
         public void SetSpriteItemsParent(Transform parent) => _spriteItemsParent = parent;
         public void UseSpriteDisplay(bool useSpriteMode) => _displayMode = useSpriteMode ? DisplayMode.WorldSprites : DisplayMode.CanvasUI;
-        public void SetSpriteLayout(Vector3 startPosition, Vector3 step, int maxPerItem)
-        {
-            _spriteStartPosition = startPosition;
-            _spriteStep = step;
-            _maxSpritesPerItem = maxPerItem;
-        }
+        // Layout configuration is managed via SlotManager's slot step only; remove sprite start/step
         
         private void OnAutoPlacementButtonClicked(UISystemModule.Core.Interfaces.IUIButton button)
         {
@@ -486,7 +498,6 @@ namespace UISystemModule.UIElements
             }
             else
             {
-                Debug.LogWarning("DefenceItemPanel: PlacementSystem not found for auto-placement.");
             }
         }
         
@@ -533,11 +544,9 @@ namespace UISystemModule.UIElements
                     if (_placementSystem != null)
                     {
                         _gridItem.SetPlacementSystem(_placementSystem);
-                        Debug.Log($"[InventoryDragNotifier] Drag START - PlacementSystem enabled for {_gridItem.name}");
                     }
                     
                     _slotManager.NotifyDragStart(_gridItem);
-                    Debug.Log($"[InventoryDragNotifier] Drag START for {_gridItem.name}");
                 }
             }
             // IMPORTANT: Check drag END BEFORE GridItem2D.EndDragging() changes IsDragging state
@@ -549,8 +558,6 @@ namespace UISystemModule.UIElements
             else if (!isDragging && _wasDraggingLastFrame && isInSlot)
             {
                 // Drag ended - notify IMMEDIATELY before any other systems process the drag end
-                Debug.Log($"[InventoryDragNotifier] Drag END for {_gridItem.name}");
-                
                 // IMPORTANT: Call NotifyDragEnd BEFORE disabling PlacementSystem
                 // This allows PlacementSystem.EndDragging() to complete placement if needed
                 // If item was placed (IsPlaced=true), PlacementSystem handled it

@@ -12,6 +12,7 @@ namespace GameModule.Core.Interfaces
         bool IsItemAvailable(DefenceItemData itemData);
         void RefreshInventoryFromLevel();
         void ConsumeItem(DefenceItemData itemData);
+        void ReturnItem(DefenceItemData itemData);
     }
 }
 

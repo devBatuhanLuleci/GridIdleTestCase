@@ -20,6 +20,7 @@ namespace GridSystemModule.Core.Interfaces
         void UpdateDrag(Vector3 worldPosition);
         void EndDragging(Vector3 worldPosition);
         void ClearAll();
+        void ResetPlacementsToInventory();
         void AutoPlaceAllItemsFromInventory();
     }
 }

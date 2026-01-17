@@ -13,7 +13,6 @@ namespace UISystemModule.UIElements
     public class SpriteInventorySlotManager : MonoBehaviour
     {
         [Header("Layout Settings")]
-        [SerializeField] private Vector3 _slotStartPosition = new Vector3(-2f, 0f, 0f);
         [SerializeField] private Vector3 _slotStep = new Vector3(2f, 0f, 0f);
         
         [Header("Animation")]
@@ -111,20 +110,25 @@ namespace UISystemModule.UIElements
             {
                 var slot = _slots[i];
                 if (slot.Item == null) continue;
-                
-                Vector3 targetPos = slot.Position;
-                Vector3 currentPos = slot.Item.transform.position;
-                
-                Debug.Log($"[RefreshPositions] {slot.Item.name}: current={currentPos}, target={targetPos}");
-                
+
+                var t = slot.Item.transform;
+                Vector3 currentLocal = t.localPosition;
+                float targetX = slot.Position.x;
+
                 if (animate && Application.isPlaying)
                 {
-                    slot.Item.transform.DOMove(targetPos, _repositionDuration)
+                    // Ensure Y stays exactly 0 before animating X
+                    if (Mathf.Abs(currentLocal.y) > Mathf.Epsilon)
+                    {
+                        t.localPosition = new Vector3(currentLocal.x, 0f, currentLocal.z);
+                    }
+                    t.DOLocalMoveX(targetX, _repositionDuration)
                         .SetEase(_repositionEase);
                 }
                 else
                 {
-                    slot.Item.transform.position = targetPos;
+                    // Snap to X target and clamp Y to 0
+                    t.localPosition = new Vector3(targetX, 0f, currentLocal.z);
                 }
             }
         }
@@ -165,16 +169,15 @@ namespace UISystemModule.UIElements
             RefreshAllPositions(true);
         }
         
-        public void SetLayoutSettings(Vector3 startPosition, Vector3 step)
+        public void SetSlotStep(Vector3 step)
         {
-            _slotStartPosition = startPosition;
             _slotStep = step;
             RebuildLayout();
         }
         
         private Vector3 CalculateSlotPosition(int slotIndex)
         {
-            return _slotStartPosition + _slotStep * slotIndex;
+            return _slotStep * slotIndex;
         }
         
         private void SubscribeToDragEvents(GridItem2D item)
@@ -199,7 +202,6 @@ namespace UISystemModule.UIElements
             // so ReturnToOriginalPosition() will return to the last dragged position, not initial position
             // This allows proper reordering while preventing unwanted position resets
             
-            Debug.Log($"[SlotManager] Drag started for item at slot {_originalSlotIndex}");
         }
         
         private void OnItemDragEnded(GridItem2D item)
@@ -212,24 +214,20 @@ namespace UISystemModule.UIElements
             int currentSlotIndex = GetSlotIndex(item);
             if (currentSlotIndex == -1)
             {
-                Debug.Log("[SlotManager] Item not in slot system, ignoring");
                 _currentlyDraggingItem = null;
                 return;
             }
             
-            Debug.Log($"[SlotManager] Drag ended, current position: {item.transform.position}, IsPlaced: {item.IsPlaced}");
             
             // Check if item was placed on grid by PlacementSystem
             // If IsPlaced=true, PlacementSystem handled it and we skip reordering
             // If IsPlaced=false, item stays in inventory and we reorder
             if (!item.IsPlaced)
             {
-                Debug.Log($"[SlotManager] Item not placed on grid, reordering inventory");
                 ReorderItemsByXPosition();
             }
             else
             {
-                Debug.Log($"[SlotManager] Item placed on grid, unregistering from inventory");
                 // IMPORTANT: Remove from slot system since it's now on grid
                 UnregisterItem(item);
             }
@@ -259,27 +257,23 @@ namespace UISystemModule.UIElements
             {
                 if (_slots[i].Item != null && !_slots[i].Item.IsPlaced)
                 {
-                    itemsWithPositions.Add((_slots[i].Item, _slots[i].Item.transform.position, i));
+                        itemsWithPositions.Add((_slots[i].Item, _slots[i].Item.transform.localPosition, i));
                 }
             }
             
             // Sort by X position (left to right)
             itemsWithPositions.Sort((a, b) => a.position.x.CompareTo(b.position.x));
             
-            Debug.Log($"[SlotManager] BEFORE SORT - Inventory items (not placed):");
             for (int i = 0; i < _slots.Count; i++)
             {
                 if (_slots[i].Item != null && !_slots[i].Item.IsPlaced)
                 {
-                    Debug.Log($"  Slot{i}: {_slots[i].Item.name} (id={_slots[i].Item.GetInstanceID()}) @ x={_slots[i].Item.transform.position.x:F2}");
                 }
             }
             
-            Debug.Log($"[SlotManager] AFTER SORT - Sorted by X:");
             for (int i = 0; i < itemsWithPositions.Count; i++)
             {
                 var (item, pos, oldIdx) = itemsWithPositions[i];
-                Debug.Log($"  NewSlot{i}: {item.name} (id={item.GetInstanceID()}) @ x={pos.x:F2}, was at slot{oldIdx}");
             }
             
             // STEP 1: Clear all inventory items from their current slots
@@ -299,18 +293,15 @@ namespace UISystemModule.UIElements
                 
                 if (i >= _slots.Count)
                 {
-                    Debug.LogWarning("[SlotManager] Not enough slots for inventory items!");
                     break;
                 }
                 
                 if (i != oldSlotIndex)
                 {
-                    Debug.Log($"[SlotManager] Moving {item.name} from slot {oldSlotIndex} to slot {i}, target position: {_slots[i].Position}");
                     OnItemSwapped?.Invoke(item, oldSlotIndex, i);
                 }
                 else
                 {
-                    Debug.Log($"[SlotManager] {item.name} staying at slot {i}");
                 }
                 
                 _slots[i].Item = item;            }

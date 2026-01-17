@@ -14,6 +14,10 @@ namespace UISystemModule.UIElements
 {
     public class GridItem2D : MonoBehaviour, IPlaceable
     {
+        // Sorting Layer names
+        private const string DRAGGABLE_SORTING_LAYER = "DraggableItem";
+        private const string DRAGGED_SORTING_LAYER = "DraggedItem";
+        
         // Static flag to ensure only one item can be dragged at a time
         private static GridItem2D _currentlyDraggingItem = null;
         
@@ -42,6 +46,7 @@ namespace UISystemModule.UIElements
         private Camera _camera;
         private bool _wasTouchingLastFrame = false;
         private IGameFlowController _gameFlowController;
+        private string _originalSortingLayerName;
         public string PlaceableId => _placeableId;
         public Vector2Int GridSize => _gridSize;
         public bool IsDragging { get => _isDragging; set => _isDragging = value; }
@@ -58,6 +63,18 @@ namespace UISystemModule.UIElements
             // DON'T fetch GameFlowController here - initialization order issue
             // It will be fetched in Start() or lazily when needed
             _originalScale = transform.localScale;
+            
+            // Set default sorting layer to DraggableItem
+            if (_spriteRenderer == null)
+            {
+                _spriteRenderer = GetComponent<SpriteRenderer>();
+            }
+            if (_spriteRenderer != null)
+            {
+                _spriteRenderer.sortingLayerName = DRAGGABLE_SORTING_LAYER;
+                _originalSortingLayerName = _spriteRenderer.sortingLayerName;
+            }
+            
             SetupScaleFromGridParent();
             SetupVisuals();
         }
@@ -258,7 +275,6 @@ namespace UISystemModule.UIElements
             // IMPORTANT: Only allow one item to be dragged at a time
             if (_currentlyDraggingItem != null && _currentlyDraggingItem != this)
             {
-                Debug.Log($"[GridItem2D] Cannot drag {name} - another item is already being dragged: {_currentlyDraggingItem.name}");
                 return;
             }
             
@@ -304,6 +320,13 @@ namespace UISystemModule.UIElements
             if (_isPlaced)
             {
                 _isPlaced = false;
+            }
+            
+            // Save original sorting layer and set to DraggedItem
+            if (_spriteRenderer != null)
+            {
+                _originalSortingLayerName = _spriteRenderer.sortingLayerName;
+                _spriteRenderer.sortingLayerName = DRAGGED_SORTING_LAYER;
             }
             
             SetColor(_draggingColor);        }
@@ -361,6 +384,12 @@ namespace UISystemModule.UIElements
             if (_currentlyDraggingItem == this)
             {
                 _currentlyDraggingItem = null;
+            }
+            
+            // Restore sorting layer to DraggableItem
+            if (_spriteRenderer != null)
+            {
+                _spriteRenderer.sortingLayerName = DRAGGABLE_SORTING_LAYER;
             }
             
             if (_placementSystem != null)

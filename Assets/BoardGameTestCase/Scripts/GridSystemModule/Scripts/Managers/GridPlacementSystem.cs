@@ -20,7 +20,7 @@ namespace GridSystemModule.Services
         [SerializeField] private List<Vector2Int> _debugOccupiedTiles = new List<Vector2Int>();
         [SerializeField] private List<Vector2Int> _debugAvailableTiles = new List<Vector2Int>();
         [SerializeField] private int _debugPlacedObjectsCount = 0;
-        [SerializeField] private bool _restrictToBottomHalf = false; // Temporarily toggle bottom-half-only placement
+        [SerializeField] private bool   _restrictToBottomHalf = false; // Temporarily toggle bottom-half-only placement
         
         private Dictionary<Vector2Int, IPlaceable> _occupiedTilesWithObjects = new Dictionary<Vector2Int, IPlaceable>();
         
@@ -1129,6 +1129,53 @@ namespace GridSystemModule.Services
             }
         }
         
+        public void ResetPlacementsToInventory()
+        {
+            if (!IsPlacingState() || _placedObjects.Count == 0)
+            {
+                return;
+            }
+
+            var inventoryManager = ServiceLocator.Instance?.TryGet<IInventoryManager>();
+            var itemDataProvider = ServiceLocator.Instance?.TryGet<IItemDataProvider>();
+            var uniquePlaceables = new HashSet<IPlaceable>(_placedObjects.Values);
+            var objectsToDestroy = new HashSet<GameObject>();
+
+            foreach (var placeable in uniquePlaceables)
+            {
+                if (placeable == null)
+                {
+                    continue;
+                }
+
+                TryReturnToInventory(placeable, inventoryManager, itemDataProvider);
+                RemoveObject(placeable);
+
+                var comp = placeable as Component;
+                if (comp != null && comp.gameObject != null)
+                {
+                    objectsToDestroy.Add(comp.gameObject);
+                }
+            }
+
+            foreach (var go in objectsToDestroy)
+            {
+                if (go == null)
+                {
+                    continue;
+                }
+
+                var tf = go.transform;
+                if (tf != null)
+                {
+                    tf.DOKill(true);
+                }
+                Object.DestroyImmediate(go);
+            }
+
+            UpdateDebugInspectorLists();
+        }
+
         public void ClearAll()
         {
             var uniqueObjectsToDestroy = new HashSet<GameObject>();
@@ -1180,6 +1227,20 @@ namespace GridSystemModule.Services
             
             _currentDraggedObject = null;
             UpdateDebugInspectorLists();
+        }
+
+        private void TryReturnToInventory(IPlaceable placeable, IInventoryManager inventoryManager, IItemDataProvider itemDataProvider)
+        {
+            if (inventoryManager == null || itemDataProvider == null || placeable == null)
+            {
+                return;
+            }
+
+            var defenceItem = itemDataProvider.GetItemDataById(placeable.PlaceableId);
+            if (defenceItem != null)
+            {
+                inventoryManager.ReturnItem(defenceItem);
+            }
         }
         
         

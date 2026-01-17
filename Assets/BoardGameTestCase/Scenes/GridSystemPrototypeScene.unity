@@ -771,16 +771,16 @@ MonoBehaviour:
   m_MoveRepeatRate: 0.1
   m_XRTrackingOrigin: {fileID: 0}
   m_ActionsAsset: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
-  m_PointAction: {fileID: -1654692200621890270, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
-  m_MoveAction: {fileID: -8784545083839296357, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
-  m_SubmitAction: {fileID: 392368643174621059, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
-  m_CancelAction: {fileID: 7727032971491509709, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
-  m_LeftClickAction: {fileID: 3001919216989983466, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
-  m_MiddleClickAction: {fileID: -2185481485913320682, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
-  m_RightClickAction: {fileID: -4090225696740746782, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
-  m_ScrollWheelAction: {fileID: 6240969308177333660, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
-  m_TrackedDevicePositionAction: {fileID: 6564999863303420839, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
-  m_TrackedDeviceOrientationAction: {fileID: 7970375526676320489, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_PointAction: {fileID: -1654692200621890270, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+  m_MoveAction: {fileID: -8784545083839296357, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+  m_SubmitAction: {fileID: 392368643174621059, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+  m_CancelAction: {fileID: 7727032971491509709, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+  m_LeftClickAction: {fileID: 3001919216989983466, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+  m_MiddleClickAction: {fileID: -2185481485913320682, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+  m_RightClickAction: {fileID: -4090225696740746782, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+  m_ScrollWheelAction: {fileID: 6240969308177333660, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+  m_TrackedDevicePositionAction: {fileID: 6564999863303420839, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+  m_TrackedDeviceOrientationAction: {fileID: 7970375526676320489, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   m_DeselectOnBackgroundClick: 1
   m_PointerBehavior: 0
   m_CursorLockBehavior: 0
@@ -801,6 +801,54 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8d64db3d475044b7bb3e6e7c7ed701d7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UISystemModule.Services::UISystemModule.Services.GridPlacementSystem
+--- !u!1 &1573879823
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1573879825}
+  - component: {fileID: 1573879824}
+  m_Layer: 0
+  m_Name: GridPlacementInputSystem
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1573879824
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1573879823}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da36b11680933481faaf66995f30ddd4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: GridSystemModule.Managers::GridSystemModule.Managers.GridPlacementResetInput
+  _inputActions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+  _actionMapName: Player
+  _resetActionName: ResetPlacement
+  _onlyAllowDuringPlacingState: 1
+--- !u!4 &1573879825
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1573879823}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 2.04563, y: -0.54125, z: -8.01132}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 1
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &1585542590 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2533661548509910851, guid: 31380b76c4b0e46fb9b9097c6b0f1140, type: 3}
@@ -1715,7 +1763,7 @@ Transform:
   m_GameObject: {fileID: 7886624043107192190}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: -1.82, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children:
@@ -1901,8 +1949,6 @@ MonoBehaviour:
   _autoPlacementButton: {fileID: 0}
   _spriteItemPrefab: {fileID: 4716802334451248274, guid: a08f9dbe0937c4b4795e92f0bd1685d8, type: 3}
   _spriteItemsParent: {fileID: 8863615917324718030}
-  _spriteStartPosition: {x: 1.22, y: -1.85, z: 0}
-  _spriteStep: {x: 1, y: 0, z: 0}
   _maxSpritesPerItem: 0
   _slotManager: {fileID: 7886624043107192191}
 --- !u!1001 &5395184274685454013
@@ -2137,8 +2183,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5d63deaf4e71a4f7e88b30b4679e7409, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UISystemModule.UIElements::UISystemModule.UIElements.SpriteInventorySlotManager
-  _slotStartPosition: {x: 0, y: 0, z: 0}
-  _slotStep: {x: 2, y: 0, z: 0}
+  _slotStep: {x: 1, y: 0, z: 0}
   _repositionDuration: 0.3
   _repositionEase: 9
 --- !u!1001 &7968595604269128641
@@ -2481,6 +2526,7 @@ SceneRoots:
   m_Roots:
   - {fileID: 2092746238}
   - {fileID: 1485128817}
+  - {fileID: 1573879825}
   - {fileID: 804604505}
   - {fileID: 519420032}
   - {fileID: 94264661}
