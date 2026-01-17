@@ -63,8 +63,6 @@ MonoBehaviour:
   _dragHandlerPrefab: {fileID: 753907213642756401, guid: b7fcbd3084ac34909bb1c4e7cdef9724, type: 3}
   _itemsContainer: {fileID: 0}
   _autoPlacementButton: {fileID: 0}
-  _spriteItemPrefab: {fileID: 4716802334451248274, guid: a08f9dbe0937c4b4795e92f0bd1685d8, type: 3}
-  _spriteItemsParent: {fileID: 1859471575574621400}
   _maxSpritesPerItem: 0
   _slotManager: {fileID: 3779672747098041724}
 --- !u!114 &3779672747098041724

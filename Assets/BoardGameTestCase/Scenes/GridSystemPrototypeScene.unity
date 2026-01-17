@@ -1393,10 +1393,6 @@ PrefabInstance:
       value: SlotItemPanel
       objectReference: {fileID: 0}
     - target: {fileID: 3779672747098041724, guid: 3fe28fdc6d6744d4192244dbb66973c8, type: 3}
-      propertyPath: _slotStep.x
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 3779672747098041724, guid: 3fe28fdc6d6744d4192244dbb66973c8, type: 3}
       propertyPath: _gridPlacementSystemObject
       value: 
       objectReference: {fileID: 1511763869}
@@ -1406,7 +1402,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6295931034436120896, guid: 3fe28fdc6d6744d4192244dbb66973c8, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -1.96
+      value: -1.31
       objectReference: {fileID: 0}
     - target: {fileID: 6295931034436120896, guid: 3fe28fdc6d6744d4192244dbb66973c8, type: 3}
       propertyPath: m_LocalPosition.z
