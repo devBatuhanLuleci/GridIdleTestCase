@@ -894,11 +894,11 @@ namespace GridSystemModule.Services
 
             if (!canDraggedToOccupant || !canOccupantToDragged)
             {
-                if (draggedMb != null && draggedMb.gameObject != null && _dragStartWasPlaced)
+                if (draggedT != null && draggedT.gameObject != null && _dragStartWasPlaced)
                 {
                     PlaceObject(dragged, actualDraggedStartPos);
                 }
-                if (occupantMb != null && occupantMb.gameObject != null)
+                if (occupantT != null && occupantT.gameObject != null)
                 {
                     PlaceObject(occupant, actualOccupantPos);
                 }
