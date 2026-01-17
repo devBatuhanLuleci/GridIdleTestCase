@@ -36,10 +36,10 @@ namespace UISystemModule.UIElements
         [SerializeField] private float _manualDragDuration = 0.1f; // Duration for initial click-to-position movement
         [SerializeField] private Ease _manualDragEase = Ease.OutCubic; // Easing for initial drag movement
         
-        [Header("Bump Effect Settings")]
-        [SerializeField] private float _bumpScaleMultiplier = 1.2f; // Scale multiplier for bump effect on selection
-        [SerializeField] private float _bumpDuration = 0.2f; // Duration of bump animation
-        [SerializeField] private Ease _bumpEase = Ease.OutBack; // Easing for bump effect
+        [Header("Selection Punch Effect Settings")]
+        [SerializeField] private float _selectionPunchStrength = 0.3f; // Punch strength for selection effect (scale bounce)
+        [SerializeField] private float _selectionPunchDuration = 0.3f; // Duration of selection punch animation
+        [SerializeField] private int _selectionPunchVibrato = 10; // Vibrato (elasticity) of punch effect
         
         [Header("Placement Animation Settings")]
         [SerializeField] private float _placementMoveDuration = 0.25f; // Duration for placement movement
@@ -614,10 +614,8 @@ namespace UISystemModule.UIElements
         {
             SetColor(_draggingColor);
             
-            // Bump/Scale Up effect on selection - use current localScale as base
-            Vector3 currentScale = transform.localScale;
-            Vector3 targetScale = currentScale * _bumpScaleMultiplier;
-            transform.DOScale(targetScale, _bumpDuration).SetEase(_bumpEase);
+            // Punch effect on selection - like snapping into a slot
+            transform.DOPunchScale(Vector3.one * _selectionPunchStrength, _selectionPunchDuration, _selectionPunchVibrato, 1);
         }
         
         public void OnDrag(Vector3 worldPosition)
