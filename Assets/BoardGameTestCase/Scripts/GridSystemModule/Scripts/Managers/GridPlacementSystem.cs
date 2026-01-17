@@ -60,6 +60,13 @@ namespace GridSystemModule.Services
         
         public Vector2Int GridDimensions => _gridDimensions;
         public IPlaceable CurrentDraggedObject => _currentDraggedObject;
+
+        public bool IsWithinGridBounds(Vector2Int gridPosition, Vector2Int objectSize)
+        {
+            return gridPosition.x >= 0 && gridPosition.y >= 0 &&
+                   gridPosition.x + objectSize.x <= _gridDimensions.x &&
+                   gridPosition.y + objectSize.y <= _gridDimensions.y;
+        }
         
         [ContextMenu("Test Coordinate Conversion")]
         public void TestCoordinateConversion()
@@ -762,7 +769,8 @@ namespace GridSystemModule.Services
             {
                 occupantGridPos = occupant.GridPosition;
 
-                // Play fail animation on the occupant to indicate why the dragged item is blocked
+                // Play fail animation on both items if they are on grid to indicate the collision
+                _currentDraggedObject.PlayFailAnimation();
                 occupant.PlayFailAnimation();
                 
                 // Swap feature is temporarily disabled
@@ -804,6 +812,10 @@ namespace GridSystemModule.Services
                     }
                     else
                     {
+                        if (IsWithinGridBounds(gridPos, _currentDraggedObject.GridSize))
+                        {
+                            _currentDraggedObject.PlayFailAnimation();
+                        }
 
                         RevertDraggedToStartPosition();
                         FinishDragWithoutPlacement(gridPos);
@@ -812,6 +824,10 @@ namespace GridSystemModule.Services
                 }
                 else
                 {
+                    if (IsWithinGridBounds(gridPos, _currentDraggedObject.GridSize))
+                    {
+                        _currentDraggedObject.PlayFailAnimation();
+                    }
 
                     RevertDraggedToStartPosition();
                     FinishDragWithoutPlacement(gridPos);
@@ -834,6 +850,11 @@ namespace GridSystemModule.Services
             }
             else
             {
+                if (IsWithinGridBounds(gridPos, _currentDraggedObject.GridSize))
+                {
+                    _currentDraggedObject.PlayFailAnimation();
+                }
+
                 RevertDraggedToStartPosition();
                 _currentDraggedObject.OnDrop(gridPos, false);
                 

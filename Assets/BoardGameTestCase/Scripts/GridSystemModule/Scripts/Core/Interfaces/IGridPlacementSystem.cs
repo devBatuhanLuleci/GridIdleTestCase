@@ -23,5 +23,6 @@ namespace GridSystemModule.Core.Interfaces
         void ResetPlacementsToInventory();
         void AutoPlaceAllItemsFromInventory();
         event System.Action<IPlaceable> OnItemPlaced;
+        bool IsWithinGridBounds(Vector2Int gridPosition, Vector2Int objectSize);
     }
 }

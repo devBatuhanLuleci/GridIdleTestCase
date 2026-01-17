@@ -692,9 +692,6 @@ namespace UISystemModule.UIElements
                 // But for safety and consistency, let's let the GridPlacementSystem handle the world revert,
                 // and we'll handle the UI/State revert here.
                 
-                // Trigger fail animation before/during movement back
-                PlayFailAnimation();
-                
                 if (_placementSystem == null || !IsPlacingState())
                 {
                     ReturnToOriginalPosition();
