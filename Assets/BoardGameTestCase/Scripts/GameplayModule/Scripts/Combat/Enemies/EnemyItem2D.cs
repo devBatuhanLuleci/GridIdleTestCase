@@ -234,6 +234,21 @@ namespace GameplayModule
         {
             _movementController = movementController;
         }
+
+        public void PlayFailAnimation()
+        {
+            // Position shake (horizontal)
+            transform.DOPunchPosition(Vector3.right * 0.1f, 0.4f, 20, 0.5f);
+            
+            // Color flash (Kırmızı)
+            if (_spriteRenderer != null)
+            {
+                _spriteRenderer.DOKill();
+                Sequence colorSeq = DOTween.Sequence();
+                colorSeq.Append(DOTween.To(() => _spriteRenderer.color, x => _spriteRenderer.color = x, Color.red, 0.15f));
+                colorSeq.Append(DOTween.To(() => _spriteRenderer.color, x => _spriteRenderer.color = x, Color.white, 0.25f));
+            }
+        }
     }
 }
 
