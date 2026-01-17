@@ -591,9 +591,10 @@ namespace UISystemModule.UIElements
         {
             SetColor(_draggingColor);
             
-            // Bump/Scale Up effect on selection
-            transform.DOScale(new Vector3(_originalScale.x * 1.2f, _originalScale.y * 1.2f, _originalScale.z), 0.2f)
-                     .SetEase(Ease.OutBack);
+            // Bump/Scale Up effect on selection - use current localScale as base
+            Vector3 currentScale = transform.localScale;
+            Vector3 targetScale = currentScale * 1.2f;
+            transform.DOScale(targetScale, 0.2f).SetEase(Ease.OutBack);
         }
         
         public void OnDrag(Vector3 worldPosition)
@@ -620,8 +621,10 @@ namespace UISystemModule.UIElements
                     Vector3 worldPosition = _placementSystem.GridToWorld(gridPosition);
                     // Smooth placement animation
                     transform.DOMove(worldPosition, 0.25f).SetEase(Ease.OutBack);
+                    // Scale back to original (compensate for 1.2x bump if still active)
                     transform.DOScale(_originalScale, 0.25f).SetEase(Ease.OutBack);
-                    transform.DOPunchPosition(Vector3.down * 0.15f, 0.3f, 10, 1);
+                    // Punch effect after a slight delay
+                    transform.DOPunchPosition(Vector3.down * 0.15f, 0.3f, 10, 1).SetDelay(0.1f);
                 }
                 
                 AttachCombatComponentIfNeeded();
