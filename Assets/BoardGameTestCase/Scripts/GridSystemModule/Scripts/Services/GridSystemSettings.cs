@@ -17,6 +17,7 @@ namespace GridSystemModule.Services
         [SerializeField] private float _cameraSize = 5f;
         [SerializeField] private Color _validHighlightColor = Color.white;
         [SerializeField] private Color _invalidHighlightColor = Color.red;
+        [SerializeField] private Color _placedItemHighlightColor = new Color(0f, 1f, 0f, 0.5f); // Green for placed items
         [SerializeField] private float _highlightMinAlpha = 0.6f;
         [SerializeField] private float _highlightAnimationDuration = 0.5f;
         
@@ -36,6 +37,7 @@ namespace GridSystemModule.Services
         public float CameraSize => _cameraSize;
         public Color ValidHighlightColor => _validHighlightColor;
         public Color InvalidHighlightColor => _invalidHighlightColor;
+        public Color PlacedItemHighlightColor => _placedItemHighlightColor;
         public float HighlightMinAlpha => _highlightMinAlpha;
         public float HighlightAnimationDuration => _highlightAnimationDuration;
         public GameObject TilesPrefab => _tilesPrefab;

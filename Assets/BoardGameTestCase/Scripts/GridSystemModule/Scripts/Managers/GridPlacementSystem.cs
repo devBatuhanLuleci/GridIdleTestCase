@@ -334,6 +334,9 @@ namespace GridSystemModule.Services
                 t.position = centerPosition + pivotOffset;
             }
             
+            // Highlight the tiles where this item is placed
+            HighlightPlacedItemTiles(gridPosition, placeable.GridSize);
+            
             if (!skipOnPlacedCallback)
             {
                 placeable.OnPlaced(gridPosition);
@@ -1346,6 +1349,36 @@ namespace GridSystemModule.Services
                             minAlpha = gridManager.GridSettings.HighlightMinAlpha;
                             duration = gridManager.GridSettings.HighlightAnimationDuration;
                         }
+                        tile.ShowHighlight(highlightColor, minAlpha, duration);
+                        _highlightedTiles.Add(tile);
+                    }
+                }
+            }
+        }
+        
+        private void HighlightPlacedItemTiles(Vector2Int gridPos, Vector2Int itemSize)
+        {
+            ClearTileHighlight();
+            var gridManager = ServiceLocator.Instance.Get<GridManager>();
+            Color highlightColor = Color.white;
+            float minAlpha = 0.6f;
+            float duration = 0.5f;
+            
+            if (gridManager != null && gridManager.GridSettings != null)
+            {
+                highlightColor = gridManager.GridSettings.PlacedItemHighlightColor;
+                minAlpha = gridManager.GridSettings.HighlightMinAlpha;
+                duration = gridManager.GridSettings.HighlightAnimationDuration;
+            }
+            
+            for (int x = 0; x < itemSize.x; x++)
+            {
+                for (int y = 0; y < itemSize.y; y++)
+                {
+                    Vector2Int checkPos = new Vector2Int(gridPos.x + x, gridPos.y + y);
+                    var tile = FindTileAtPosition(checkPos);
+                    if (tile != null)
+                    {
                         tile.ShowHighlight(highlightColor, minAlpha, duration);
                         _highlightedTiles.Add(tile);
                     }
