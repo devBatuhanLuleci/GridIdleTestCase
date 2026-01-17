@@ -237,6 +237,20 @@ namespace GridSystemModule.Core.Models
                     .SetLoops(-1, LoopType.Restart);
             }
         }
+
+        public void ShowHighlightStatic(Color color)
+        {
+            if (highlightRenderer == null) SetupHighlightRenderer();
+            if (highlightRenderer != null)
+            {
+                if (_highlightAnimationTween != null && _highlightAnimationTween.IsActive())
+                {
+                    _highlightAnimationTween.Kill();
+                }
+                highlightRenderer.gameObject.SetActive(true);
+                highlightRenderer.color = color;
+            }
+        }
         
         public void HideHighlight()
         {

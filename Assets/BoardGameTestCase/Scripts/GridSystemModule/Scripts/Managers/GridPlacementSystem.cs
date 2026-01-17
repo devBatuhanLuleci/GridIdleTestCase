@@ -1440,7 +1440,7 @@ namespace GridSystemModule.Services
                     var tile = FindTileAtPosition(checkPos);
                     if (tile != null)
                     {
-                        tile.ShowHighlight(highlightColor, minAlpha, duration);
+                        tile.ShowHighlightStatic(highlightColor);
                         _placedItemHighlightedTiles[checkPos] = tile;
                         _placedItemHighlightedTilesSet.Add(tile); // Fast lookup
                     }
@@ -1485,7 +1485,7 @@ namespace GridSystemModule.Services
                     if (isPlacedItemPosition)
                     {
                         // Restore placed item highlight color
-                        tile.ShowHighlight(placedItemColor, minAlpha, duration);
+                        tile.ShowHighlightStatic(placedItemColor);
                     }
                     else
                     {
@@ -1554,7 +1554,7 @@ namespace GridSystemModule.Services
             {
                 if (kvp.Value != null)
                 {
-                    kvp.Value.ShowHighlight(highlightColor, minAlpha, duration);
+                    kvp.Value.ShowHighlightStatic(highlightColor);
                 }
             }
         }
