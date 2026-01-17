@@ -1,9 +1,11 @@
 using UnityEngine;
 using DG.Tweening;
 using System.Collections.Generic;
-using GridSystemModule.Services;
+using GridSystemModule.Core.Interfaces;
+using PlacementModule.Settings;
+using BoardGameTestCase.Core.Common;
 
-namespace GridSystemModule
+namespace GridSystemModule.Managers
 {
     /// <summary>
     /// Responsible for playing placement and swap animations on placed objects.
@@ -17,7 +19,7 @@ namespace GridSystemModule
         public AnimationPlayer(PlacementAnimationSettings placementAnimationSettings, GridCoordinateConverter coordinateConverter = null)
         {
             _placementAnimationSettings = placementAnimationSettings;
-            _coordinateConverter = coordinateConverter ?? ServiceLocator.Instance.GetService<GridCoordinateConverter>();
+            _coordinateConverter = coordinateConverter ?? ServiceLocator.Instance?.Get<GridCoordinateConverter>();
         }
 
         /// <summary>

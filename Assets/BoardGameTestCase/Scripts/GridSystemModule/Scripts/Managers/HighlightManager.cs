@@ -1,7 +1,9 @@
 using UnityEngine;
 using System.Collections.Generic;
+using GridSystemModule.Core.Models;
+using BoardGameTestCase.Core.Common;
 
-namespace GridSystemModule
+namespace GridSystemModule.Managers
 {
     /// <summary>
     /// Responsible for managing tile highlight visualization during drag operations.
@@ -14,7 +16,7 @@ namespace GridSystemModule
 
         public HighlightManager(GridManager gridManager = null)
         {
-            _gridManager = gridManager ?? ServiceLocator.Instance.GetService<GridManager>();
+            _gridManager = gridManager ?? ServiceLocator.Instance?.Get<GridManager>();
         }
 
         /// <summary>

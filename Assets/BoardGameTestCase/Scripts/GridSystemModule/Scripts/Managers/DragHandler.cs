@@ -1,9 +1,10 @@
 using UnityEngine;
 using DG.Tweening;
 using System.Collections.Generic;
-using GridSystemModule.Services;
+using GridSystemModule.Core.Interfaces;
+using BoardGameTestCase.Core.Common;
 
-namespace GridSystemModule
+namespace GridSystemModule.Managers
 {
     /// <summary>
     /// Responsible for managing drag operations and state during object dragging.
@@ -37,7 +38,7 @@ namespace GridSystemModule
             _placementValidator = placementValidator;
             _coordinateConverter = coordinateConverter;
             _highlightManager = highlightManager;
-            _gridManager = gridManager ?? ServiceLocator.Instance.GetService<GridManager>();
+            _gridManager = gridManager ?? ServiceLocator.Instance?.Get<GridManager>();
         }
 
         /// <summary>

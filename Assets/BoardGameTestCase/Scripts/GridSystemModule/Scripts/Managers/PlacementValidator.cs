@@ -1,7 +1,9 @@
 using UnityEngine;
 using System.Collections.Generic;
+using GridSystemModule.Core.Interfaces;
+using BoardGameTestCase.Core.Common;
 
-namespace GridSystemModule
+namespace GridSystemModule.Managers
 {
     /// <summary>
     /// Responsible for validating grid placements and checking tile occupancy.
@@ -23,7 +25,7 @@ namespace GridSystemModule
             _placedObjects = placedObjects;
             _occupiedTiles = occupiedTiles;
             _gridDimensions = gridDimensions;
-            _gridManager = gridManager ?? ServiceLocator.Instance.GetService<GridManager>();
+            _gridManager = gridManager ?? ServiceLocator.Instance?.Get<GridManager>();
         }
 
         /// <summary>
