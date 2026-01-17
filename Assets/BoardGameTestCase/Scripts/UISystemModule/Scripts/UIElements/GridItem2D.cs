@@ -527,8 +527,8 @@ namespace UISystemModule.UIElements
             
             transform.SetParent(_originalParent, true);
             
-            // Animate return
-            transform.DOLocalMove(Vector3.zero, _returnDuration).SetEase(_returnEase);
+            // Animate return to EXACT original WORLD position
+            transform.DOMove(_originalPosition, _returnDuration).SetEase(_returnEase);
             transform.DOScale(_originalScale, _returnDuration).SetEase(_returnEase);
             
             SetColor(_normalColor);
@@ -639,11 +639,10 @@ namespace UISystemModule.UIElements
                 
                 if (_placementSystem != null)
                 {
-                    Vector2Int targetGridPos = gridPosition;
-                    Vector3 worldPosition = _placementSystem.GridToWorld(targetGridPos);
+                    Vector3 targetWorldPosition = GetCorrectPlacedWorldPosition(gridPosition);
                     
-                    // Smooth placement animation
-                    transform.DOMove(worldPosition, _placementMoveDuration).SetEase(_placementMoveEase);
+                    // Smooth placement animation to the centered world position
+                    transform.DOMove(targetWorldPosition, _placementMoveDuration).SetEase(_placementMoveEase);
                     // Scale back to original (compensate for bump if still active)
                     transform.DOScale(_originalScale, _placementScaleDuration).SetEase(_placementScaleEase);
                     // Punch effect for tactile "snapping" feel
@@ -669,8 +668,8 @@ namespace UISystemModule.UIElements
             
             if (_placementSystem != null)
             {
-                Vector3 worldPosition = _placementSystem.GridToWorld(gridPosition);
-                transform.position = worldPosition;
+                Vector3 targetWorldPosition = GetCorrectPlacedWorldPosition(gridPosition);
+                transform.position = targetWorldPosition;
                 // Ensure scale is correct for placed items
                 transform.localScale = _originalScale;
             }
@@ -792,6 +791,21 @@ namespace UISystemModule.UIElements
         public Vector3? GetOriginalScale()
         {
             return _originalScale;
+        }
+
+        private Vector3 GetCorrectPlacedWorldPosition(Vector2Int gridPosition)
+        {
+            if (_placementSystem == null) return transform.position;
+            
+            var positions = new List<Vector2Int>();
+            for (int x = 0; x < _gridSize.x; x++)
+            {
+                for (int y = 0; y < _gridSize.y; y++)
+                {
+                    positions.Add(new Vector2Int(gridPosition.x + x, gridPosition.y + y));
+                }
+            }
+            return _placementSystem.MultiTileGridToWorld(positions);
         }
     }
 }
