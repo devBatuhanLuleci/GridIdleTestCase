@@ -37,6 +37,7 @@ namespace GridSystemModule.Services
         private Vector2Int _dragStartGridPos;
         private Vector3 _dragStartWorldPos;
         private List<BaseTile> _highlightedTiles = new List<BaseTile>();
+        private Dictionary<Vector2Int, BaseTile> _placedItemHighlightedTiles = new Dictionary<Vector2Int, BaseTile>();
         private IGameFlowController _gameFlowController;
         
         private bool IsPlacingState()
@@ -367,6 +368,16 @@ namespace GridSystemModule.Services
                 if (pos.x >= 0 && pos.y >= 0 && pos.x < _gridDimensions.x && pos.y < _gridDimensions.y)
                 {
                     _availableTiles.Add(pos);
+                }
+                
+                // Clear the placed item highlight for this position
+                if (_placedItemHighlightedTiles.TryGetValue(pos, out var tile))
+                {
+                    if (tile != null)
+                    {
+                        tile.HideHighlight();
+                    }
+                    _placedItemHighlightedTiles.Remove(pos);
                 }
             }
             
@@ -1219,6 +1230,17 @@ namespace GridSystemModule.Services
             _availableTiles.Clear();
             RebuildAvailabilityCache();
             
+            // Clear all placed item highlights
+            foreach (var tile in _placedItemHighlightedTiles.Values)
+            {
+                if (tile != null)
+                {
+                    tile.HideHighlight();
+                }
+            }
+            _placedItemHighlightedTiles.Clear();
+            ClearTileHighlight();
+            
             foreach (var go in uniqueObjectsToDestroy)
             {
                 if (go != null)
@@ -1358,7 +1380,6 @@ namespace GridSystemModule.Services
         
         private void HighlightPlacedItemTiles(Vector2Int gridPos, Vector2Int itemSize)
         {
-            ClearTileHighlight();
             var gridManager = ServiceLocator.Instance.Get<GridManager>();
             Color highlightColor = Color.white;
             float minAlpha = 0.6f;
@@ -1380,7 +1401,7 @@ namespace GridSystemModule.Services
                     if (tile != null)
                     {
                         tile.ShowHighlight(highlightColor, minAlpha, duration);
-                        _highlightedTiles.Add(tile);
+                        _placedItemHighlightedTiles[checkPos] = tile;
                     }
                 }
             }
@@ -1401,7 +1422,7 @@ namespace GridSystemModule.Services
         {
             foreach (var tile in _highlightedTiles)
             {
-                if (tile != null)
+                if (tile != null && !_placedItemHighlightedTiles.ContainsValue(tile))
                 {
                     tile.HideHighlight();
                 }
