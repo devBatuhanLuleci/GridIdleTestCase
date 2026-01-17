@@ -40,6 +40,9 @@ namespace GridSystemModule.Services
         private HashSet<Vector2Int> _dragHighlightedPositions = new HashSet<Vector2Int>(); // Track drag highlights by position
         private Dictionary<Vector2Int, BaseTile> _placedItemHighlightedTiles = new Dictionary<Vector2Int, BaseTile>();
         private HashSet<BaseTile> _placedItemHighlightedTilesSet = new HashSet<BaseTile>(); // For fast lookup
+        private IPlaceable _hoveredOccupant;
+        private Tween _hoveredOccupantTween;
+        private Quaternion _hoveredOccupantOriginalRotation;
         private IGameFlowController _gameFlowController;
         
         private bool IsPlacingState()
@@ -669,6 +672,11 @@ namespace GridSystemModule.Services
                         isValid = canDraggedToOccupant && canOccupantToDragged;
                     }
                 }
+                StartOccupantHoverAnimation(occupant);
+            }
+            else
+            {
+                ResetOccupantHoverAnimation();
             }
             
             HighlightTileAt(gridPos, isValid);
@@ -802,6 +810,7 @@ namespace GridSystemModule.Services
                 }
             }
             
+            ResetOccupantHoverAnimation();
             _currentDraggedObject.IsDragging = false;
             _currentDraggedObject = null;
             _lastEvaluatedGridPosition = new Vector2Int(int.MinValue, int.MinValue);
@@ -1051,6 +1060,7 @@ namespace GridSystemModule.Services
                 PlaceObject(_currentDraggedObject, _dragStartGridPos, skipOnPlacedCallback: true);
             }
             
+            ResetOccupantHoverAnimation();
             _currentDraggedObject.IsDragging = false;
             _currentDraggedObject = null;
             _lastEvaluatedGridPosition = new Vector2Int(int.MinValue, int.MinValue);
@@ -1487,6 +1497,43 @@ namespace GridSystemModule.Services
             
             _highlightedTiles.Clear();
             _dragHighlightedPositions.Clear();
+        }
+
+        private void StartOccupantHoverAnimation(IPlaceable occupant)
+        {
+            if (occupant == null || occupant == _currentDraggedObject) return;
+            if (occupant == _hoveredOccupant && _hoveredOccupantTween != null && _hoveredOccupantTween.IsActive()) return;
+            ResetOccupantHoverAnimation();
+            _hoveredOccupant = occupant;
+            var t = occupant.Transform;
+            if (t == null || t.gameObject == null)
+            {
+                _hoveredOccupant = null;
+                return;
+            }
+            _hoveredOccupantOriginalRotation = t.localRotation;
+            _hoveredOccupantTween = t.DORotate(new Vector3(0f, 0f, 10f), 0.35f, RotateMode.LocalAxisAdd)
+                .SetEase(Ease.InOutSine)
+                .SetLoops(-1, LoopType.Yoyo)
+                .SetTarget(t);
+        }
+
+        private void ResetOccupantHoverAnimation()
+        {
+            if (_hoveredOccupantTween != null)
+            {
+                _hoveredOccupantTween.Kill();
+                _hoveredOccupantTween = null;
+            }
+            if (_hoveredOccupant != null)
+            {
+                var t = _hoveredOccupant.Transform;
+                if (t != null && t.gameObject != null)
+                {
+                    t.localRotation = _hoveredOccupantOriginalRotation;
+                }
+            }
+            _hoveredOccupant = null;
         }
         
         private void RestorePlacedItemHighlights()
