@@ -58,10 +58,16 @@ namespace UISystemModule.UIElements
         // Grid'e item yerleştirildiğinde çağrılır (event handler)
         private void HandleGridItemPlaced(IPlaceable placeable)
         {
-            _placedItemCount++;
-            if (_placedItemCount % 3 == 0)
+            var gridItem = placeable as GridItem2D;
+            // Only count items that are currently tracked in the inventory slots.
+            // Items already on the grid (moved/swapped) are not in slots.
+            if (gridItem != null && IsItemInSlot(gridItem))
             {
-                AddRandomItemsToInventory(3);
+                _placedItemCount++;
+                if (_placedItemCount % 3 == 0)
+                {
+                    AddRandomItemsToInventory(3);
+                }
             }
         }
 
