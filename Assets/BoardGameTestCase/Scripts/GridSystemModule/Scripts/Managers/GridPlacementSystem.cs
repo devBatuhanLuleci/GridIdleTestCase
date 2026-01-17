@@ -20,6 +20,7 @@ namespace GridSystemModule.Services
         [SerializeField] private List<Vector2Int> _debugOccupiedTiles = new List<Vector2Int>();
         [SerializeField] private List<Vector2Int> _debugAvailableTiles = new List<Vector2Int>();
         [SerializeField] private int _debugPlacedObjectsCount = 0;
+        [SerializeField] private bool _restrictToBottomHalf = false; // Temporarily toggle bottom-half-only placement
         
         private Dictionary<Vector2Int, IPlaceable> _occupiedTilesWithObjects = new Dictionary<Vector2Int, IPlaceable>();
         
@@ -192,16 +193,18 @@ namespace GridSystemModule.Services
                 return false;
             }
             
-            int bottomHalfThreshold = _gridDimensions.y / 2;
-            for (int x = 0; x < objectSize.x; x++)
+            if (_restrictToBottomHalf)
             {
-                for (int y = 0; y < objectSize.y; y++)
+                int bottomHalfThreshold = _gridDimensions.y / 2;
+                for (int x = 0; x < objectSize.x; x++)
                 {
-                    Vector2Int checkPos = new Vector2Int(gridPosition.x + x, gridPosition.y + y);
-                    
-                    if (checkPos.y >= bottomHalfThreshold)
+                    for (int y = 0; y < objectSize.y; y++)
                     {
-                        return false;
+                        Vector2Int checkPos = new Vector2Int(gridPosition.x + x, gridPosition.y + y);
+                        if (checkPos.y >= bottomHalfThreshold)
+                        {
+                            return false;
+                        }
                     }
                 }
             }
@@ -235,11 +238,10 @@ namespace GridSystemModule.Services
             _availableTiles.Clear();
             _occupiedTiles.Clear();
             
-            int bottomHalfThreshold = _gridDimensions.y / 2;
-            
+            int usableHeight = _restrictToBottomHalf ? _gridDimensions.y / 2 : _gridDimensions.y;
             for (int x = 0; x < _gridDimensions.x; x++)
             {
-                for (int y = 0; y < bottomHalfThreshold; y++)
+                for (int y = 0; y < usableHeight; y++)
                 {
                     _availableTiles.Add(new Vector2Int(x, y));
                 }
@@ -1186,10 +1188,9 @@ namespace GridSystemModule.Services
         public Vector2Int FindNearestValidPosition(Vector2Int targetPosition, Vector2Int objectSize, IPlaceable excludeObject)
         {
 
-            int bottomHalfThreshold = _gridDimensions.y / 2;
-            
+            int thresholdY = _restrictToBottomHalf ? _gridDimensions.y / 2 : _gridDimensions.y;
             int maxX = Mathf.Max(0, _gridDimensions.x - objectSize.x);
-            int maxY = Mathf.Max(0, bottomHalfThreshold - objectSize.y);
+            int maxY = Mathf.Max(0, thresholdY - objectSize.y);
             if (maxX < 0 || maxY < 0)
             {
                 return targetPosition;
@@ -1431,11 +1432,10 @@ namespace GridSystemModule.Services
         {
             List<Vector2Int> positions = new List<Vector2Int>();
             
-            int bottomHalfThreshold = _gridDimensions.y / 2;
-            
+            int usableHeight = _restrictToBottomHalf ? _gridDimensions.y / 2 : _gridDimensions.y;
             for (int x = 0; x < _gridDimensions.x; x++)
             {
-                for (int y = 0; y < bottomHalfThreshold; y++)
+                for (int y = 0; y < usableHeight; y++)
                 {
                     positions.Add(new Vector2Int(x, y));
                 }
