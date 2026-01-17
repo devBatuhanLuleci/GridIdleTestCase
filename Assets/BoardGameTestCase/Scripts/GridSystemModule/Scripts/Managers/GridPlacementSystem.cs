@@ -783,6 +783,8 @@ namespace GridSystemModule.Services
             {
                 RevertDraggedToStartPosition();
                 _currentDraggedObject.OnDrop(gridPos, false);
+                // Restore placed item highlights after failed placement
+                RestorePlacedItemHighlights();
             }
             
             _currentDraggedObject.IsDragging = false;
@@ -1029,6 +1031,8 @@ namespace GridSystemModule.Services
             _currentDraggedObject = null;
             _lastEvaluatedGridPosition = new Vector2Int(int.MinValue, int.MinValue);
             ClearTileHighlight();
+            // Restore placed item highlights after drag without placement
+            RestorePlacedItemHighlights();
         }
 
         public void TryPlayPlacementAnimation(IPlaceable placeable, Vector2Int gridPos, bool wasAutoSnappedFromInvalid)
@@ -1428,6 +1432,29 @@ namespace GridSystemModule.Services
                 }
             }
             _highlightedTiles.Clear();
+        }
+        
+        private void RestorePlacedItemHighlights()
+        {
+            var gridManager = ServiceLocator.Instance.Get<GridManager>();
+            Color highlightColor = Color.white;
+            float minAlpha = 0.6f;
+            float duration = 0.5f;
+            
+            if (gridManager != null && gridManager.GridSettings != null)
+            {
+                highlightColor = gridManager.GridSettings.PlacedItemHighlightColor;
+                minAlpha = gridManager.GridSettings.HighlightMinAlpha;
+                duration = gridManager.GridSettings.HighlightAnimationDuration;
+            }
+            
+            foreach (var kvp in _placedItemHighlightedTiles)
+            {
+                if (kvp.Value != null)
+                {
+                    kvp.Value.ShowHighlight(highlightColor, minAlpha, duration);
+                }
+            }
         }
         
         public BaseTile FindTileAtPosition(Vector2Int gridPos)
