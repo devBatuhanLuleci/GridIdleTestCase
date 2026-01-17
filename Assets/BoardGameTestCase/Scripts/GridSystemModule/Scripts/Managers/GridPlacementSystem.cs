@@ -37,6 +37,7 @@ namespace GridSystemModule.Services
         private Vector2Int _dragStartGridPos;
         private Vector3 _dragStartWorldPos;
         private HashSet<BaseTile> _highlightedTiles = new HashSet<BaseTile>();
+        private HashSet<Vector2Int> _dragHighlightedPositions = new HashSet<Vector2Int>(); // Track drag highlights by position
         private Dictionary<Vector2Int, BaseTile> _placedItemHighlightedTiles = new Dictionary<Vector2Int, BaseTile>();
         private HashSet<BaseTile> _placedItemHighlightedTilesSet = new HashSet<BaseTile>(); // For fast lookup
         private IGameFlowController _gameFlowController;
@@ -1257,6 +1258,7 @@ namespace GridSystemModule.Services
             }
             _placedItemHighlightedTiles.Clear();
             _placedItemHighlightedTilesSet.Clear();
+            _dragHighlightedPositions.Clear();
             ClearTileHighlight();
             
             foreach (var go in uniqueObjectsToDestroy)
@@ -1392,6 +1394,7 @@ namespace GridSystemModule.Services
                         }
                         tile.ShowHighlight(highlightColor, minAlpha, duration);
                         _highlightedTiles.Add(tile);
+                        _dragHighlightedPositions.Add(checkPos); // Track by position
                     }
                 }
             }
@@ -1453,13 +1456,15 @@ namespace GridSystemModule.Services
             }
             
             // Clear drag highlights and restore placed item highlights if needed
-            foreach (var tile in _highlightedTiles)
+            foreach (var dragPos in _dragHighlightedPositions)
             {
+                // Check if this position is a placed item highlight
+                bool isPlacedItemPosition = _placedItemHighlightedTiles.ContainsKey(dragPos);
+                
+                var tile = FindTileAtPosition(dragPos);
                 if (tile != null)
                 {
-                    // Check if this tile is a placed item highlight (fast O(1) lookup)
-                    bool isPlacedItemTile = _placedItemHighlightedTilesSet.Contains(tile);
-                    if (isPlacedItemTile)
+                    if (isPlacedItemPosition)
                     {
                         // Restore placed item highlight color
                         tile.ShowHighlight(placedItemColor, minAlpha, duration);
@@ -1471,7 +1476,9 @@ namespace GridSystemModule.Services
                     }
                 }
             }
+            
             _highlightedTiles.Clear();
+            _dragHighlightedPositions.Clear();
         }
         
         private void RestorePlacedItemHighlights()
