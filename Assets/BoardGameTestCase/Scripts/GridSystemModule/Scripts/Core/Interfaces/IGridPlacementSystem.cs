@@ -22,5 +22,6 @@ namespace GridSystemModule.Core.Interfaces
         void ClearAll();
         void ResetPlacementsToInventory();
         void AutoPlaceAllItemsFromInventory();
+        event System.Action<IPlaceable> OnItemPlaced;
     }
 }

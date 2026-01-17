@@ -31,8 +31,6 @@ namespace UISystemModule.UIElements
         [SerializeField] private BaseUIButton _autoPlacementButton;
 
         [Header("Sprite Mode")]
-        [SerializeField] private GameObject _spriteItemPrefab;
-        [SerializeField] private Transform _spriteItemsParent;
         [SerializeField] private int _maxSpritesPerItem = 0; // 0 means no cap
         [SerializeField] private SpriteInventorySlotManager _slotManager;
         
@@ -49,7 +47,7 @@ namespace UISystemModule.UIElements
         {
             base.Awake();
             if (_itemsContainer == null) _itemsContainer = _contentParent;
-            if (_spriteItemsParent == null) _spriteItemsParent = transform;
+
             
             if (_slotManager == null)
             {
@@ -269,85 +267,33 @@ namespace UISystemModule.UIElements
 
             for (int i = handlers.Count; i < targetQuantity; i++)
             {
-                var handler = CreateSpriteItem(itemData);
-                if (handler != null) handlers.Add(handler);
-            }
-
-            for (int i = 0; i < handlers.Count; i++)
-            {
-                var handler = handlers[i];
-                if (handler == null) continue;
-                var tr = handler.transform;
-                if (tr != null)
+                // Refactored: Use SlotManager to create item
+                if (_slotManager != null)
                 {
-                    tr.SetParent(_spriteItemsParent, true);
-                    var gridItem = handler.GetComponent<GridItem2D>();
-                    if (gridItem != null && _slotManager != null)
+                    int slotIndex = startIndex + i;
+                    var gridItem = _slotManager.CreateAndRegisterItem(itemData, slotIndex);
+                    
+                    if (gridItem != null)
                     {
-                        int slotIndex = startIndex + i;
-                        _slotManager.RegisterItem(gridItem, slotIndex);
+                        var handler = gridItem.GetComponent<SpriteGridItemDragHandler>();
+                        if (handler != null)
+                        {
+                            handlers.Add(handler);
+                        }
+                        _allSpriteItems.Add(gridItem);
                     }
                 }
             }
+            // Handlers are now registered in CreateAndRegisterItem, no need for loop here
+            // But we might want to ensure they are at correct indices if this was a refresh only?
+            // Actually CreateAndRegisterItem handles slot registration.
+            
             return startIndex + handlers.Count;
         }
 
         /// <summary>
 
-        private SpriteGridItemDragHandler CreateSpriteItem(DefenceItemData itemData)
-        {
-            GameObject itemObject;
-            if (_spriteItemPrefab != null)
-            {
-                itemObject = Instantiate(_spriteItemPrefab, _spriteItemsParent);
-            }
-            else
-            {
-                itemObject = new GameObject($"SpriteItem_{itemData.DisplayName}");
-                itemObject.transform.SetParent(_spriteItemsParent, true);
-                var spriteRenderer = itemObject.AddComponent<SpriteRenderer>();
-                spriteRenderer.sprite = itemData.Sprite;
-            }
 
-            var handler = itemObject.GetComponent<SpriteGridItemDragHandler>() ?? itemObject.AddComponent<SpriteGridItemDragHandler>();
-            handler.SetDefenceItemData(itemData);
-
-            var gridItem = itemObject.GetComponent<GridItem2D>() ?? itemObject.AddComponent<GridItem2D>();
-            gridItem.SetDefenceItemData(itemData);
-
-            if (gridItem.GetSpriteRenderer() == null)
-            {
-                var spriteRenderer = itemObject.GetComponent<SpriteRenderer>() ?? itemObject.AddComponent<SpriteRenderer>();
-                gridItem.SetSpriteRenderer(spriteRenderer);
-            }
-            
-            // Setup sprite renderer properties for inventory display
-            var sr = gridItem.GetSpriteRenderer();
-            if (sr != null && itemData != null)
-            {
-                sr.sortingLayerName = itemData.GhostSortingLayerName;
-                sr.sortingOrder = itemData.GhostSortingOrder;
-                sr.color = Color.white;
-            }
-
-            gridItem.SetDraggable(true);
-            gridItem.IsPlaced = false;
-            
-            // IMPORTANT: Sprite inventory items should NOT be managed by PlacementSystem
-            // They are managed by SpriteInventorySlotManager instead
-            // GridItem2D auto-fetches PlacementSystem in Awake, so we explicitly disable it
-            gridItem.SetPlacementSystem(null);
-            
-            // IMPORTANT: Set inventory items to "Ignore Raycast" layer
-            // This prevents EventSystem from raycasting them, so tile drag handlers won't be triggered
-            // But collider stays enabled for click detection within GridItem2D
-            itemObject.layer = LayerMask.NameToLayer("Ignore Raycast");
-            
-            _allSpriteItems.Add(gridItem);
-            SetupInventoryDragNotifications(gridItem);
-            
-            return handler;
-        }
 
         // Positioning is handled by SpriteInventorySlotManager; no local calculation needed
 
@@ -479,8 +425,7 @@ namespace UISystemModule.UIElements
         
         public void SetDragHandlerPrefab(GameObject prefab) => _dragHandlerPrefab = prefab;
         public void SetItemsContainer(Transform container) => _itemsContainer = container;
-        public void SetSpriteItemPrefab(GameObject prefab) => _spriteItemPrefab = prefab;
-        public void SetSpriteItemsParent(Transform parent) => _spriteItemsParent = parent;
+
         public void UseSpriteDisplay(bool useSpriteMode) => _displayMode = useSpriteMode ? DisplayMode.WorldSprites : DisplayMode.CanvasUI;
         // Layout configuration is managed via SlotManager's slot step only; remove sprite start/step
         
@@ -501,14 +446,7 @@ namespace UISystemModule.UIElements
             }
         }
         
-        private void SetupInventoryDragNotifications(GridItem2D gridItem)
-        {
-            if (gridItem == null || _slotManager == null) return;
-            
-            // Initialize notifier with PlacementSystem so it can enable/disable placement during drag
-            var notifier = gridItem.gameObject.AddComponent<InventoryDragNotifier>();
-            notifier.Initialize(gridItem, _slotManager, _placementSystem);
-        }
+
     }
     
     /// <summary>

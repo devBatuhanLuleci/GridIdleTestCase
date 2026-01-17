@@ -14,7 +14,7 @@ using UISystemModule.UIElements;
 
 namespace GridSystemModule.Services
 {
-    public class GridPlacementSystem : MonoBehaviour, IGridPlacementSystem, SpriteInventorySlotManager.IGridPlacementSystemEventSource
+    public class GridPlacementSystem : MonoBehaviour, IGridPlacementSystem
     {
         public event System.Action<IPlaceable> OnItemPlaced;
         [SerializeField] private Vector2Int _gridDimensions = new Vector2Int(4, 8);

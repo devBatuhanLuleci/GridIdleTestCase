@@ -2186,6 +2186,9 @@ MonoBehaviour:
   _slotStep: {x: 1, y: 0, z: 0}
   _repositionDuration: 0.3
   _repositionEase: 9
+  _gridPlacementSystemObject: {fileID: 1511763869}
+  _gridItem2DPrefab: {fileID: 4716802334451248274, guid: a08f9dbe0937c4b4795e92f0bd1685d8, type: 3}
+  _inventoryParent: {fileID: 8863615917324718030}
 --- !u!1001 &7968595604269128641
 PrefabInstance:
   m_ObjectHideFlags: 0
