@@ -1364,6 +1364,13 @@ namespace GridSystemModule.Services
                 for (int y = 0; y < _currentDraggedObject.GridSize.y; y++)
                 {
                     Vector2Int checkPos = new Vector2Int(gridPos.x + x, gridPos.y + y);
+                    
+                    // Don't override placed item highlights with drag highlights
+                    if (_placedItemHighlightedTiles.ContainsKey(checkPos))
+                    {
+                        continue;
+                    }
+                    
                     var tile = FindTileAtPosition(checkPos);
                     if (tile != null)
                     {
