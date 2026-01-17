@@ -34,6 +34,7 @@ namespace GameplayModule
         public EnemyData EnemyData => _enemyData;
         public int CurrentHealth => _currentHealth;
         public bool IsAlive => _currentHealth > 0;
+        public Transform Transform => transform;
         
         public event Action<EnemyItem2D> OnDeath;
         public event Action<EnemyItem2D, int> OnHealthChanged;

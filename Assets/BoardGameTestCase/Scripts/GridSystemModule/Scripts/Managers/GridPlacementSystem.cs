@@ -117,10 +117,10 @@ namespace GridSystemModule.Services
             
             if (_currentDraggedObject != null)
             {
-                var mb = _currentDraggedObject as MonoBehaviour;
-                if (mb != null && mb.transform != null)
+                var t = _currentDraggedObject.Transform;
+                if (t != null)
                 {
-                    mb.transform.DOKill(true);
+                    t.DOKill(true);
                 }
                 _currentDraggedObject = null;
             }
@@ -138,10 +138,10 @@ namespace GridSystemModule.Services
             
             foreach (var obj in _placedObjects.Values)
             {
-                var mb = obj as MonoBehaviour;
-                if (mb != null && mb.transform != null)
+                var t = obj.Transform;
+                if (t != null)
                 {
-                    mb.transform.DOKill(true);
+                    t.DOKill(true);
                 }
             }
             
@@ -322,12 +322,12 @@ namespace GridSystemModule.Services
             placeable.GridPosition = gridPosition;
             placeable.IsPlaced = true;
             
-            var placeableMb = placeable as MonoBehaviour;
-            if (placeableMb != null)
+            var t = placeable.Transform;
+            if (t != null)
             {
                 Vector3 centerPosition = MultiTileGridToWorld(occupiedPositions);
-                Vector3 pivotOffset = CalculatePivotOffset(placeableMb);
-                placeableMb.transform.position = centerPosition + pivotOffset;
+                Vector3 pivotOffset = CalculatePivotOffset(t);
+                t.position = centerPosition + pivotOffset;
             }
             
             if (!skipOnPlacedCallback)
@@ -366,10 +366,10 @@ namespace GridSystemModule.Services
             placeable.IsPlaced = false;
             placeable.OnRemoved();
             
-            var placeableMb = placeable as MonoBehaviour;
-            if (placeableMb != null)
+            var tRemove = placeable.Transform;
+            if (tRemove != null)
             {
-                placeableMb.transform.SetParent(null);
+                tRemove.SetParent(null);
             }
             
             RebuildAvailabilityCache();
@@ -529,12 +529,12 @@ namespace GridSystemModule.Services
             
             _dragStartWasPlaced = placeable.IsPlaced;
             _dragStartGridPos = placeable.GridPosition;
-            var mbForKill = placeable as MonoBehaviour;
+            var tForKill = placeable.Transform;
             
             // Calculate center position for multi-tile objects
-            if (mbForKill != null)
+            if (tForKill != null)
             {
-                _dragStartWorldPos = mbForKill.transform.position;
+                _dragStartWorldPos = tForKill.position;
             }
             else
             {
@@ -558,9 +558,9 @@ namespace GridSystemModule.Services
             placeable.IsDragging = true;
             placeable.OnDragStart();
             
-            if (mbForKill != null && mbForKill.transform != null)
+            if (tForKill != null)
             {
-                mbForKill.transform.DOKill(true);
+                tForKill.DOKill(true);
             }
             
             _lastEvaluatedGridPosition = new Vector2Int(int.MinValue, int.MinValue);
@@ -751,10 +751,10 @@ namespace GridSystemModule.Services
                 TryPlayPlacementAnimation(_currentDraggedObject, gridPos, wasAutoSnappedFromInvalid);
                 _currentDraggedObject.OnDrop(gridPos, true);
                 
-                var draggedMb = _currentDraggedObject as MonoBehaviour;
-                if (draggedMb != null && draggedMb.transform != null)
+                var draggedT = _currentDraggedObject.Transform;
+                if (draggedT != null)
                 {
-                    draggedMb.transform.SetParent(null);
+                    draggedT.SetParent(null);
                 }
             }
             else
@@ -772,10 +772,10 @@ namespace GridSystemModule.Services
 
         public void RevertDraggedToStartPosition()
         {
-            var mb = _currentDraggedObject as MonoBehaviour;
-            if (mb == null || mb.transform == null) return;
+            var t = _currentDraggedObject.Transform;
+            if (t == null) return;
             
-            mb.transform.DOKill(true);
+            t.DOKill(true);
 
             float duration = _placementAnimationSettings != null && _placementAnimationSettings.useSeparateInvalidSnap
                 ? _placementAnimationSettings.invalidSnapDuration
@@ -787,13 +787,13 @@ namespace GridSystemModule.Services
                 ? _placementAnimationSettings.invalidSnapOvershoot
                 : (_placementAnimationSettings != null ? _placementAnimationSettings.positionOvershoot : 1f);
             
-            if (mb != null && mb.transform != null && mb.gameObject != null)
+            if (t != null && t.gameObject != null)
             {
-                var startPos = mb.transform.position;
-                Debug.Log($"[GridPlacementSystem] DOMove Revert: {mb.name} from {startPos} to {_dragStartWorldPos} duration {duration} ease {ease} overshoot {overshoot}");
-                mb.transform.DOMove(_dragStartWorldPos, duration)
+                var startPos = t.position;
+                Debug.Log($"[GridPlacementSystem] DOMove Revert: {t.name} from {startPos} to {_dragStartWorldPos} duration {duration} ease {ease} overshoot {overshoot}");
+                t.DOMove(_dragStartWorldPos, duration)
                     .SetEase(ease, overshoot)
-                    .SetTarget(mb.transform)
+                    .SetTarget(t)
                     .OnKill(() => { });
             }
         }
@@ -802,20 +802,20 @@ namespace GridSystemModule.Services
         {
             if (dragged == null || occupant == null) return false;
             
-            var draggedMb = dragged as MonoBehaviour;
-            var occupantMb = occupant as MonoBehaviour;
+            var draggedT = dragged.Transform;
+            var occupantT = occupant.Transform;
             
-            if (draggedMb == null || occupantMb == null) return false;
-            if (draggedMb.gameObject == null || occupantMb.gameObject == null) return false;
+            if (draggedT == null || occupantT == null) return false;
+            if (draggedT.gameObject == null || occupantT.gameObject == null) return false;
             
             Vector2Int actualOccupantPos = occupant.GridPosition;
             Vector2Int actualDraggedStartPos = _dragStartWasPlaced ? _dragStartGridPos : actualOccupantPos;
             
             // Calculate center positions for multi-tile objects
             Vector3 draggedWorldStart;
-            if (draggedMb.transform != null)
+            if (draggedT != null)
             {
-                draggedWorldStart = draggedMb.transform.position;
+                draggedWorldStart = draggedT.position;
             }
             else
             {
@@ -831,9 +831,9 @@ namespace GridSystemModule.Services
             }
             
             Vector3 occupantWorldStart;
-            if (occupantMb.transform != null)
+            if (occupantT != null)
             {
-                occupantWorldStart = occupantMb.transform.position;
+                occupantWorldStart = occupantT.position;
             }
             else
             {
@@ -848,14 +848,8 @@ namespace GridSystemModule.Services
                 occupantWorldStart = MultiTileGridToWorld(occupantOccupiedPositions);
             }
 
-            if (draggedMb.transform != null)
-            {
-                draggedMb.transform.DOKill(true);
-            }
-            if (occupantMb.transform != null)
-            {
-                occupantMb.transform.DOKill(true);
-            }
+            draggedT?.DOKill(true);
+            occupantT?.DOKill(true);
 
             var draggedPositionsToRemove = new List<Vector2Int>();
             var occupantPositionsToRemove = new List<Vector2Int>();
@@ -892,7 +886,7 @@ namespace GridSystemModule.Services
                 }
             }
             
-            if (draggedMb.gameObject == null || occupantMb.gameObject == null) return false;
+            if (draggedT.gameObject == null || occupantT.gameObject == null) return false;
 
             bool canDraggedToOccupant = IsValidPlacement(actualOccupantPos, dragged.GridSize, dragged);
 
@@ -956,52 +950,44 @@ namespace GridSystemModule.Services
                 : occupantWorldStart;
             
             // Apply pivot offsets
-            Vector3 draggedPivotOffset = CalculatePivotOffset(draggedMb);
-            Vector3 occupantPivotOffset = CalculatePivotOffset(occupantMb);
+            Vector3 draggedPivotOffset = CalculatePivotOffset(draggedT);
+            Vector3 occupantPivotOffset = CalculatePivotOffset(occupantT);
             
             draggedTargetWorld += draggedPivotOffset;
             occupantTargetWorld += occupantPivotOffset;
 
-            if (draggedMb != null)
+            if (draggedT != null)
             {
-                draggedMb.transform.position = draggedTargetWorld;
+                draggedT.position = draggedTargetWorld;
             }
             
-            if (_dragStartWasPlaced && occupantMb != null)
+            if (_dragStartWasPlaced && occupantT != null)
             {
-                occupantMb.transform.position = occupantTargetWorld;
+                occupantT.position = occupantTargetWorld;
             }
 
             RebuildAvailabilityCache();
 
-            if (draggedMb != null && draggedMb.transform != null)
+            if (draggedT != null)
             {
-                draggedMb.transform.position = draggedWorldStart;
+                draggedT.position = draggedWorldStart;
             }
-            if (occupantMb != null && occupantMb.transform != null && _dragStartWasPlaced)
+            if (occupantT != null && _dragStartWasPlaced)
             {
-
-                occupantMb.transform.position = occupantWorldStart;
+                occupantT.position = occupantWorldStart;
             }
 
-            if (draggedMb != null && draggedMb.gameObject != null && draggedMb.transform != null)
+            if (draggedT != null)
             {
                 TryPlaySwapAnimation(dragged, draggedTargetWorld);
             }
-            if (occupantMb != null && occupantMb.gameObject != null && occupantMb.transform != null && _dragStartWasPlaced)
+            if (occupantT != null && _dragStartWasPlaced)
             {
-
                 TryPlaySwapAnimation(occupant, occupantTargetWorld);
             }
 
-            if (draggedMb != null && draggedMb.transform != null)
-            {
-                draggedMb.transform.SetParent(null);
-            }
-            if (occupantMb != null && occupantMb.transform != null)
-            {
-                occupantMb.transform.SetParent(null);
-            }
+            draggedT?.SetParent(null);
+            occupantT?.SetParent(null);
 
             if (_currentDraggedObject != null)
             {
@@ -1026,10 +1012,8 @@ namespace GridSystemModule.Services
         public void TryPlayPlacementAnimation(IPlaceable placeable, Vector2Int gridPos, bool wasAutoSnappedFromInvalid)
         {
             if (placeable == null || _placementAnimationSettings == null) return;
-            var mb = placeable as MonoBehaviour;
-            if (mb == null || mb.transform == null) return; 
-
-            var t = mb.transform;
+            var t = placeable.Transform;
+            if (t == null) return; 
             
             // Calculate center position for multi-tile objects
             var occupiedPositions = new List<Vector2Int>();
@@ -1043,17 +1027,10 @@ namespace GridSystemModule.Services
             var target = MultiTileGridToWorld(occupiedPositions);
             
             // Apply pivot offset
-            Vector3 pivotOffset = CalculatePivotOffset(mb);
+            Vector3 pivotOffset = CalculatePivotOffset(t);
             target += pivotOffset;
             
-            if (t != null)
-            {
-                t.DOKill(true);
-            }
-            else
-            {
-                return;
-            }
+            t.DOKill(true);
 
             if (_placementAnimationSettings.enablePositionTween)
             {
@@ -1105,19 +1082,10 @@ namespace GridSystemModule.Services
             if (placeable == null || _placementAnimationSettings == null) return;
             if (!_placementAnimationSettings.enableSwapAnimation) return;
             
-            var mb = placeable as MonoBehaviour;
-            if (mb == null || mb.transform == null) return;
+            var t = placeable.Transform;
+            if (t == null) return;
 
-            var t = mb.transform;
-
-            if (t != null)
-            {
-                t.DOKill(true);
-            }
-            else
-            {
-                return;
-            }
+            t.DOKill(true);
 
             if (t != null && t.gameObject != null)
             {
@@ -1160,14 +1128,14 @@ namespace GridSystemModule.Services
         
         public void ClearAll()
         {
-            var uniqueObjectsToDestroy = new HashSet<MonoBehaviour>();
+            var uniqueObjectsToDestroy = new HashSet<Transform>();
             
             foreach (var obj in _occupiedTilesWithObjects.Values)
             {
-                var mb = obj as MonoBehaviour;
-                if (mb != null)
+                var tObj = obj.Transform;
+                if (tObj != null)
                 {
-                    uniqueObjectsToDestroy.Add(mb);
+                    uniqueObjectsToDestroy.Add(tObj);
                 }
             }
             
@@ -1192,15 +1160,15 @@ namespace GridSystemModule.Services
             _availableTiles.Clear();
             RebuildAvailabilityCache();
             
-            foreach (var mb in uniqueObjectsToDestroy)
+            foreach (var tObj in uniqueObjectsToDestroy)
             {
-                if (mb != null && mb.transform != null)
+                if (tObj != null)
                 {
-                    mb.transform.DOKill(true);
-                    mb.transform.SetParent(null);
-                    if (mb.gameObject != null)
+                    tObj.DOKill(true);
+                    tObj.SetParent(null);
+                    if (tObj.gameObject != null)
                     {
-                        Object.DestroyImmediate(mb.gameObject);
+                        Object.DestroyImmediate(tObj.gameObject);
                     }
                 }
             }
@@ -1448,8 +1416,8 @@ namespace GridSystemModule.Services
                         }
                         else
                         {
-                            var mb = placeable as MonoBehaviour;
-                            if (mb != null) Destroy(mb.gameObject);
+                            var tCreated = placeable?.Transform;
+                            if (tCreated != null) Destroy(tCreated.gameObject);
                         }
                     }
                 }
@@ -1536,15 +1504,14 @@ namespace GridSystemModule.Services
             return count > 0 ? sum / count : Vector3.zero;
         }
         
-        private Vector3 CalculatePivotOffset(MonoBehaviour mb)
+        private Vector3 CalculatePivotOffset(Transform t)
         {
-            if (mb == null) return Vector3.zero;
+            if (t == null) return Vector3.zero;
             
-            var spriteRenderer = mb.GetComponent<SpriteRenderer>();
+            var spriteRenderer = t.GetComponent<SpriteRenderer>();
             if (spriteRenderer == null || spriteRenderer.sprite == null) return Vector3.zero;
             
             var sprite = spriteRenderer.sprite;
-            var bounds = sprite.bounds;
             
             // Calculate the offset from sprite center to pivot
             // Pivot is in normalized coordinates (0-1), convert to local space
@@ -1557,8 +1524,8 @@ namespace GridSystemModule.Services
             
             // Apply transform scale to offset
             Vector3 scaledOffset = new Vector3(
-                offset.x * mb.transform.localScale.x,
-                offset.y * mb.transform.localScale.y,
+                offset.x * t.localScale.x,
+                offset.y * t.localScale.y,
                 0
             );
             

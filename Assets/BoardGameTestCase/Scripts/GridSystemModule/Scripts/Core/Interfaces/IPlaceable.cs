@@ -9,6 +9,8 @@ namespace GridSystemModule.Core.Interfaces
         bool IsDragging { get; set; }
         bool IsPlaced { get; set; }
         Vector2Int GridPosition { get; set; }
+        // Provide direct access to the underlying Transform to avoid repeated casts
+        Transform Transform { get; }
         void OnDragStart();
         void OnDrag(Vector3 worldPosition);
         void OnDrop(Vector2Int gridPosition, bool isValid);

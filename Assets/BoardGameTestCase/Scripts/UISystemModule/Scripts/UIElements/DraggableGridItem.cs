@@ -31,6 +31,7 @@ namespace UISystemModule.UIElements
         public bool IsDragging { get => _isDragging; set => _isDragging = value; }
         public bool IsPlaced { get => _isPlaced; set => _isPlaced = value; }
         public Vector2Int GridPosition { get => _gridPosition; set => _gridPosition = value; }
+        public Transform Transform => transform;
         
         protected override void Awake()
         {
