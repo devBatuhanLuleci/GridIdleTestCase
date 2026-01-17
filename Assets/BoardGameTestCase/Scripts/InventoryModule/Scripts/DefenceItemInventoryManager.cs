@@ -80,7 +80,6 @@ namespace InventoryModule
             else _availableQuantities[itemData] = _availableQuantities[itemData] + 1;
             OnQuantityChanged?.Invoke(itemData, _availableQuantities[itemData]);
         }
-        
         public Dictionary<DefenceItemData, int> GetAllAvailableItems() => new Dictionary<DefenceItemData, int>(_availableQuantities);
     }
 }

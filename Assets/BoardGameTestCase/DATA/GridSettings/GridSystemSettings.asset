@@ -23,6 +23,7 @@ MonoBehaviour:
   _cameraSize: 5
   _validHighlightColor: {r: 0, g: 1, b: 0, a: 1}
   _invalidHighlightColor: {r: 1, g: 0, b: 0, a: 1}
+  _placedItemHighlightColor: {r: 0.9764151, g: 1, b: 0.9764151, a: 1}
   _highlightMinAlpha: 0.8
   _highlightAnimationDuration: 0.35
   _tilesPrefab: {fileID: 2657852133369278895, guid: 40158f5c84712480d81b5203c0422b6e, type: 3}
