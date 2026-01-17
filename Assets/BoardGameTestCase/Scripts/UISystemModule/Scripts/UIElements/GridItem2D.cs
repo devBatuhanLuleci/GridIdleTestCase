@@ -36,6 +36,24 @@ namespace UISystemModule.UIElements
         [SerializeField] private float _manualDragDuration = 0.1f; // Duration for initial click-to-position movement
         [SerializeField] private Ease _manualDragEase = Ease.OutCubic; // Easing for initial drag movement
         
+        [Header("Bump Effect Settings")]
+        [SerializeField] private float _bumpScaleMultiplier = 1.2f; // Scale multiplier for bump effect on selection
+        [SerializeField] private float _bumpDuration = 0.2f; // Duration of bump animation
+        [SerializeField] private Ease _bumpEase = Ease.OutBack; // Easing for bump effect
+        
+        [Header("Placement Animation Settings")]
+        [SerializeField] private float _placementMoveDuration = 0.25f; // Duration for placement movement
+        [SerializeField] private Ease _placementMoveEase = Ease.OutBack; // Easing for placement movement
+        [SerializeField] private float _placementScaleDuration = 0.25f; // Duration for placement scale
+        [SerializeField] private Ease _placementScaleEase = Ease.OutBack; // Easing for placement scale
+        [SerializeField] private float _placementPunchStrength = 0.15f; // Punch effect strength
+        [SerializeField] private float _placementPunchDuration = 0.3f; // Punch effect duration
+        [SerializeField] private float _placementPunchDelay = 0.1f; // Delay before punch effect
+        
+        [Header("Return Animation Settings")]
+        [SerializeField] private float _returnDuration = 0.3f; // Duration for return to inventory animation
+        [SerializeField] private Ease _returnEase = Ease.OutCubic; // Easing for return animation
+        
         private Vector3 _originalPosition;
         private Transform _originalParent;
         private Vector3 _originalScale;
@@ -510,8 +528,8 @@ namespace UISystemModule.UIElements
             transform.SetParent(_originalParent, true);
             
             // Animate return
-            transform.DOLocalMove(Vector3.zero, 0.3f).SetEase(Ease.OutCubic);
-            transform.DOScale(_originalScale, 0.3f).SetEase(Ease.OutCubic);
+            transform.DOLocalMove(Vector3.zero, _returnDuration).SetEase(_returnEase);
+            transform.DOScale(_originalScale, _returnDuration).SetEase(_returnEase);
             
             SetColor(_normalColor);
         }
@@ -598,8 +616,8 @@ namespace UISystemModule.UIElements
             
             // Bump/Scale Up effect on selection - use current localScale as base
             Vector3 currentScale = transform.localScale;
-            Vector3 targetScale = currentScale * 1.2f;
-            transform.DOScale(targetScale, 0.2f).SetEase(Ease.OutBack);
+            Vector3 targetScale = currentScale * _bumpScaleMultiplier;
+            transform.DOScale(targetScale, _bumpDuration).SetEase(_bumpEase);
         }
         
         public void OnDrag(Vector3 worldPosition)
@@ -625,11 +643,12 @@ namespace UISystemModule.UIElements
                 {
                     Vector3 worldPosition = _placementSystem.GridToWorld(gridPosition);
                     // Smooth placement animation
-                    transform.DOMove(worldPosition, 0.25f).SetEase(Ease.OutBack);
-                    // Scale back to original (compensate for 1.2x bump if still active)
-                    transform.DOScale(_originalScale, 0.25f).SetEase(Ease.OutBack);
+                    transform.DOMove(worldPosition, _placementMoveDuration).SetEase(_placementMoveEase);
+                    // Scale back to original (compensate for bump if still active)
+                    transform.DOScale(_originalScale, _placementScaleDuration).SetEase(_placementScaleEase);
                     // Punch effect after a slight delay
-                    transform.DOPunchPosition(Vector3.down * 0.15f, 0.3f, 10, 1).SetDelay(0.1f);
+                    transform.DOPunchPosition(Vector3.down * _placementPunchStrength, _placementPunchDuration, 10, 1)
+                             .SetDelay(_placementPunchDelay);
                 }
                 
                 AttachCombatComponentIfNeeded();
