@@ -1,10 +1,10 @@
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using DG.Tweening;
 using GridSystemModule.Core.Interfaces;
-using BoardGameTestCase.Core.Common; // For ServiceLocator
 using BoardGameTestCase.Core.ScriptableObjects;
 
 namespace UISystemModule.UIElements
@@ -25,49 +25,49 @@ namespace UISystemModule.UIElements
 
 
         [Header("Grid Placement Integration")]
+        [SerializeField] private MonoBehaviour _gridPlacementSystemObject; // Inspector'dan atanacak
         [SerializeField] private GameObject _gridItem2DPrefab;
         [SerializeField] private Transform _inventoryParent;
 
         private IGridPlacementSystem _gridPlacementSystem;
+        // Event dinleme için yardımcı interface (GridPlacementSystem'da public event ile uygulanmalı)
+        public interface IGridPlacementSystemEventSource
+        {
+            event Action<IPlaceable> OnItemPlaced;
+        }
 
         private void OnEnable()
         {
-            // Attempt to resolve dependency if not already set
-            if (_gridPlacementSystem == null)
+            if (_gridPlacementSystemObject != null)
             {
-                _gridPlacementSystem = ServiceLocator.Instance?.Get<IGridPlacementSystem>();
-            }
-
-            if (_gridPlacementSystem != null)
-            {
-                _gridPlacementSystem.OnItemPlaced += HandleGridItemPlaced;
+                _gridPlacementSystem = _gridPlacementSystemObject as IGridPlacementSystem;
+                var eventSource = _gridPlacementSystemObject as IGridPlacementSystemEventSource;
+                if (eventSource != null)
+                    eventSource.OnItemPlaced += HandleGridItemPlaced;
             }
         }
 
         private void OnDisable()
         {
-            if (_gridPlacementSystem != null)
+            if (_gridPlacementSystemObject != null)
             {
-                _gridPlacementSystem.OnItemPlaced -= HandleGridItemPlaced;
+                var eventSource = _gridPlacementSystemObject as IGridPlacementSystemEventSource;
+                if (eventSource != null)
+                    eventSource.OnItemPlaced -= HandleGridItemPlaced;
+            }
+        }
+
+        // Grid'e item yerleştirildiğinde çağrılır (event handler)
+        private void HandleGridItemPlaced(IPlaceable placeable)
+        {
+            _placedItemCount++;
+            if (_placedItemCount % 3 == 0)
+            {
+                AddRandomItemsToInventory(3);
             }
         }
 
         private int _placedItemCount = 0;
-
-        private void HandleGridItemPlaced(IPlaceable placeable)
-        {
-            // Only count items that are currently tracked in the inventory (IsItemInSlot).
-            // Items already on the grid (moved/swapped) are not in slots, so they won't trigger this.
-            var gridItem = placeable as GridItem2D;
-            if (gridItem != null && IsItemInSlot(gridItem))
-            {
-                _placedItemCount++;
-                if (_placedItemCount % 3 == 0)
-                {
-                    AddRandomItemsToInventory(3);
-                }
-            }
-        }
 
         private List<SlotData> _slots = new List<SlotData>();
         private GridItem2D _currentlyDraggingItem = null;
@@ -92,37 +92,61 @@ namespace UISystemModule.UIElements
 
         private void AddRandomItemsToInventory(int count)
         {
+            Debug.Log("SLOTSTEP: " + _slotStep + ", parent: " + (_inventoryParent != null ? _inventoryParent.name : "null"));
             for (int i = 0; i < count; i++)
             {
-               CreateAndRegisterItem(null);
+               // Pass -1 to automatically find the next empty slot
+               CreateAndRegisterItem(null, -1);
             }
         }
 
+        /// <summary>
+        /// Ortak item instantiate methodu. Hem DefenceItemPanel hem de buradan erişilebilir.
+        /// </summary>
+        /// <summary>
+        /// slotPosition: item'ın slot'a göre localPosition'ı (örn: slotStep * slotIndex)
+        /// </summary>
         public GridItem2D CreateAndRegisterItem(BoardGameTestCase.Core.ScriptableObjects.DefenceItemData itemData = null, int specificSlotIndex = -1)
         {
             if (_gridItem2DPrefab == null || _inventoryParent == null) return null;
 
+            // 1. Determine Slot Index and Position
+            int targetIndex = specificSlotIndex != -1 ? specificSlotIndex : GetFirstEmptySlotIndex();
+            Vector3 slotPos = CalculateSlotPosition(targetIndex);
+
+            // 2. Instantiate Item
             var itemObject = Instantiate(_gridItem2DPrefab, _inventoryParent);
+            itemObject.transform.localPosition = slotPos;
             
-            // Setup components
-            var gridItem = itemObject.GetComponent<GridItem2D>() ?? itemObject.AddComponent<GridItem2D>();
+            // 3. Get or Add GridItem2D
+            if (!itemObject.TryGetComponent<GridItem2D>(out var gridItem))
+            {
+                gridItem = itemObject.AddComponent<GridItem2D>();
+            }
             
+            // 4. Setup based on data
             if (itemData != null)
             {
                 gridItem.SetDefenceItemData(itemData);
                 
-                // Setup Drag Handler
-                var handler = itemObject.GetComponent<SpriteGridItemDragHandler>() ?? itemObject.AddComponent<SpriteGridItemDragHandler>();
+                // Drag Handler
+                if (!itemObject.TryGetComponent<SpriteGridItemDragHandler>(out var handler))
+                {
+                    handler = itemObject.AddComponent<SpriteGridItemDragHandler>();
+                }
                 handler.SetDefenceItemData(itemData);
 
-                // Setup visual
-                if (gridItem.GetSpriteRenderer() == null)
+                // Sprite Renderer
+                var sr = gridItem.GetSpriteRenderer();
+                if (sr == null)
                 {
-                    var spriteRenderer = itemObject.GetComponent<SpriteRenderer>() ?? itemObject.AddComponent<SpriteRenderer>();
-                    gridItem.SetSpriteRenderer(spriteRenderer);
+                   if (!itemObject.TryGetComponent(out sr))
+                   {
+                       sr = itemObject.AddComponent<SpriteRenderer>();
+                   }
+                   gridItem.SetSpriteRenderer(sr);
                 }
                 
-                var sr = gridItem.GetSpriteRenderer();
                 if (sr != null)
                 {
                     if (itemData.Sprite != null) sr.sprite = itemData.Sprite;
@@ -133,28 +157,26 @@ namespace UISystemModule.UIElements
             }
             else
             {
-                // Random/Default item logic if needed for test cases
-                 var handler = itemObject.GetComponent<SpriteGridItemDragHandler>() ?? itemObject.AddComponent<SpriteGridItemDragHandler>();
+                 if (!itemObject.TryGetComponent<SpriteGridItemDragHandler>(out _))
+                 {
+                     itemObject.AddComponent<SpriteGridItemDragHandler>();
+                 }
             }
 
-            // Configure common properties
+            // 5. Common Configuration
             gridItem.SetDraggable(true);
             gridItem.IsPlaced = false;
-            gridItem.SetPlacementSystem(null); // Managed by slot manager
-            
-            // Set layer to Ignore Raycast to prevent tile interaction
+            gridItem.SetPlacementSystem(null);
             itemObject.layer = LayerMask.NameToLayer("Ignore Raycast");
 
-            // Setup drag notifications
-             var notifier = itemObject.GetComponent<InventoryDragNotifier>() ?? itemObject.AddComponent<InventoryDragNotifier>();
+            // 6. Drag Notification
+            if (!itemObject.TryGetComponent<InventoryDragNotifier>(out var notifier))
+            {
+                notifier = itemObject.AddComponent<InventoryDragNotifier>();
+            }
              notifier.Initialize(gridItem, this, _gridPlacementSystem);
 
-            // Register and Position
-            int targetIndex = specificSlotIndex != -1 ? specificSlotIndex : GetFirstEmptySlotIndex();
-            
-            // Apply immediate position using Step
-            itemObject.transform.localPosition = CalculateSlotPosition(targetIndex);
-            
+            // 7. Registration
             RegisterItem(gridItem, targetIndex);
             
             return gridItem;
