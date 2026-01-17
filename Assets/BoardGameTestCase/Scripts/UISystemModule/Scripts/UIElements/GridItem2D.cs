@@ -383,6 +383,9 @@ namespace UISystemModule.UIElements
             // IMPORTANT: Kill any ongoing animations to prevent scale/position issues
             transform.DOKill();
             
+            // Reset scale to original immediately to prevent stuck enlarged state
+            transform.localScale = _originalScale;
+            
             // Clear the global dragging flag
             if (_currentlyDraggingItem == this)
             {
