@@ -500,7 +500,10 @@ namespace UISystemModule.UIElements
             }
             
             transform.SetParent(_originalParent, true);
-            transform.position = _originalPosition;
+            
+            // Animate return
+            transform.DOLocalMove(Vector3.zero, 0.3f).SetEase(Ease.OutCubic);
+            transform.DOScale(_originalScale, 0.3f).SetEase(Ease.OutCubic);
             
             SetColor(_normalColor);
         }
@@ -584,6 +587,10 @@ namespace UISystemModule.UIElements
         public void OnDragStart()
         {
             SetColor(_draggingColor);
+            
+            // Bump/Scale Up effect on selection
+            transform.DOScale(new Vector3(_originalScale.x * 1.2f, _originalScale.y * 1.2f, _originalScale.z), 0.2f)
+                     .SetEase(Ease.OutBack);
         }
         
         public void OnDrag(Vector3 worldPosition)
@@ -608,7 +615,10 @@ namespace UISystemModule.UIElements
                 if (_placementSystem != null)
                 {
                     Vector3 worldPosition = _placementSystem.GridToWorld(gridPosition);
-                    transform.position = worldPosition;
+                    // Smooth placement animation
+                    transform.DOMove(worldPosition, 0.25f).SetEase(Ease.OutBack);
+                    transform.DOScale(_originalScale, 0.25f).SetEase(Ease.OutBack);
+                    transform.DOPunchPosition(Vector3.down * 0.15f, 0.3f, 10, 1);
                 }
                 
                 AttachCombatComponentIfNeeded();
@@ -631,6 +641,8 @@ namespace UISystemModule.UIElements
             {
                 Vector3 worldPosition = _placementSystem.GridToWorld(gridPosition);
                 transform.position = worldPosition;
+                // Ensure scale is correct for placed items
+                transform.localScale = _originalScale;
             }
             
             AttachCombatComponentIfNeeded();
