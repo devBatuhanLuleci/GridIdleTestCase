@@ -1567,6 +1567,7 @@ namespace GridSystemModule.Services
         
         public BaseTile FindTileAtPosition(Vector2Int gridPos)
         {
+            if (ServiceLocator.Instance == null) return null;
             var gridManager = ServiceLocator.Instance.Get<GridManager>();
             if (gridManager == null)
             {
