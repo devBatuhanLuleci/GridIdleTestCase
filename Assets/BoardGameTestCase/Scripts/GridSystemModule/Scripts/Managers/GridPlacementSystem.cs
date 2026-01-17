@@ -761,6 +761,9 @@ namespace GridSystemModule.Services
             if (occupant != null && occupantGridPos.HasValue)
             {
                 occupantGridPos = occupant.GridPosition;
+
+                // Play fail animation on the occupant to indicate why the dragged item is blocked
+                occupant.PlayFailAnimation();
                 
                 // Swap feature is temporarily disabled
                 if (_enableSwap)

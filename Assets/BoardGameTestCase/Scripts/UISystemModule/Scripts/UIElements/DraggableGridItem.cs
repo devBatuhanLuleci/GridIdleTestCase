@@ -143,5 +143,22 @@ namespace UISystemModule.UIElements
         
         public void SetGridSize(Vector2Int newSize) => _gridSize = newSize;
         public void SetPlaceableId(string id) => _placeableId = id;
+
+        public void PlayFailAnimation()
+        {
+            // Simple visual feedback for UI items (could be expanded)
+            if (_image != null)
+            {
+                _image.color = _invalidColor;
+                // Using a simple delayed call to return to normal color or DRAGGING color if still dragging
+                BoardGameTestCase.Core.Common.ServiceLocator.Instance?.Get<MonoBehaviour>().StartCoroutine(ResetColorAfterDelay(0.4f));
+            }
+        }
+
+        private System.Collections.IEnumerator ResetColorAfterDelay(float delay)
+        {
+            yield return new WaitForSeconds(delay);
+            SetColor(_isDragging ? _draggingColor : _normalColor);
+        }
     }
 }

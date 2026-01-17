@@ -17,5 +17,6 @@ namespace GridSystemModule.Core.Interfaces
         void OnPlaced(Vector2Int gridPosition);
         void OnRemoved();
         Vector3? GetOriginalScale();
+        void PlayFailAnimation();
     }
 }
