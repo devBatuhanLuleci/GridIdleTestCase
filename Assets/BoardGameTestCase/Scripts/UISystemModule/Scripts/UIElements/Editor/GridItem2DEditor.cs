@@ -30,6 +30,11 @@ namespace UISystemModule.UIElements.Editor
             {
                 item.TestReturn();
             }
+
+            if (GUILayout.Button("Test Fail Animation (Shake/Red)"))
+            {
+                item.TestFailAnimation();
+            }
         }
     }
 }

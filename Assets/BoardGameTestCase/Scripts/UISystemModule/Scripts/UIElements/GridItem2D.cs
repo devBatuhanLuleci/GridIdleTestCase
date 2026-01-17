@@ -55,6 +55,12 @@ namespace UISystemModule.UIElements
         [SerializeField] private float _returnDuration = 0.3f; // Duration for return to inventory animation
         [SerializeField] private Ease _returnEase = Ease.OutCubic; // Easing for return animation
         
+        [Header("Fail Animation Settings")]
+        [SerializeField] private float _failPunchStrength = 0.2f; // Movement strength of fail shake
+        [SerializeField] private float _failPunchDuration = 0.4f; // Duration of fail animation
+        [SerializeField] private Color _failFlashColor = Color.red; // Color to flash on failure
+        [SerializeField] private float _failFlashDuration = 0.4f; // How long the color flash lasts
+        
         private Vector3 _originalPosition;
         private Transform _originalParent;
         private Vector3 _originalScale;
@@ -636,6 +642,12 @@ namespace UISystemModule.UIElements
         {
             ReturnToOriginalPosition();
         }
+
+        [ContextMenu("Test Fail Animation")]
+        public void TestFailAnimation()
+        {
+            PlayFailAnimation();
+        }
         public void OnDrop(Vector2Int gridPosition, bool isValid)
         {
             if (isValid)
@@ -680,14 +692,16 @@ namespace UISystemModule.UIElements
                 // But for safety and consistency, let's let the GridPlacementSystem handle the world revert,
                 // and we'll handle the UI/State revert here.
                 
+                // Trigger fail animation before/during movement back
+                PlayFailAnimation();
+                
                 if (_placementSystem == null || !IsPlacingState())
                 {
                     ReturnToOriginalPosition();
                 }
                 else
                 {
-                    // Ensure color and state are reset even if GridPlacementSystem handles movement
-                    SetColor(_normalColor);
+                    // Ensure state is reset even if GridPlacementSystem handles movement
                     if (_spriteRenderer != null && !string.IsNullOrEmpty(_originalSortingLayerName))
                     {
                         _spriteRenderer.sortingLayerName = _originalSortingLayerName;
@@ -829,6 +843,26 @@ namespace UISystemModule.UIElements
         public Vector3? GetOriginalScale()
         {
             return _originalScale;
+        }
+
+        public void PlayFailAnimation()
+        {
+            // Position shake (horizontal)
+            // We use DOPunchPosition which is additive and works well with existing movement
+            transform.DOPunchPosition(Vector3.right * _failPunchStrength, _failPunchDuration, 20, 0.5f);
+            
+            // Color flash
+            if (_spriteRenderer != null)
+            {
+                // Kill current color tweens
+                _spriteRenderer.DOKill();
+                
+                // Sequence for color flash: normal -> red -> normal
+                // Using DOTween.To to ensure compatibility with all DOTween configurations
+                Sequence colorSeq = DOTween.Sequence();
+                colorSeq.Append(DOTween.To(() => _spriteRenderer.color, x => _spriteRenderer.color = x, _failFlashColor, _failFlashDuration * 0.4f));
+                colorSeq.Append(DOTween.To(() => _spriteRenderer.color, x => _spriteRenderer.color = x, _normalColor, _failFlashDuration * 0.6f));
+            }
         }
 
         private Vector3 GetCorrectPlacedWorldPosition(Vector2Int gridPosition)
