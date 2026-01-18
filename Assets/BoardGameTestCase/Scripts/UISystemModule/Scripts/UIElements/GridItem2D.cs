@@ -591,7 +591,7 @@ namespace UISystemModule.UIElements
             else ReturnToOriginalPosition();
         }
         
-        private void ReturnToOriginalPosition()
+        public void ReturnToOriginalPosition()
         {
             if (_originalParent == null && _originalPosition == Vector3.zero && !_isPlaced)
             {
@@ -880,6 +880,21 @@ namespace UISystemModule.UIElements
             }
         }
         
+        public void PlayPlacementAnimation()
+        {
+            // Reset to original scale first
+            transform.localScale = _originalScale;
+            
+            // Placement Animation Sequence
+            transform.DOScale(_originalScale * 1.1f, _placementScaleDuration).SetEase(_placementScaleEase);
+            
+            // Dual Punch effect (Position + Scale) for maximum "snap" feel
+            transform.DOPunchPosition(Vector3.down * _placementPunchPositionStrength, _placementPunchDuration, 10, 1)
+                     .SetDelay(_placementPunchDelay);
+            transform.DOPunchScale(Vector3.one * _placementPunchScaleStrength, _placementPunchDuration, 10, 1)
+                     .SetDelay(_placementPunchDelay);
+        }
+
         private void AttachCombatComponentIfNeeded()
         {
             if (_defenceItemData == null || _combatComponent == null) return;
@@ -1046,6 +1061,12 @@ namespace UISystemModule.UIElements
                 if (this != null && gameObject != null)
                     Destroy(gameObject);
             });
+        }
+        
+        public void PlayDiscardAnimationTest()
+        {
+            // Discard to a position to the right and down
+            PlayDiscardAnimation(transform.position + new Vector3(2f, -5f, 0f));
         }
         
         public Vector3? GetOriginalScale()

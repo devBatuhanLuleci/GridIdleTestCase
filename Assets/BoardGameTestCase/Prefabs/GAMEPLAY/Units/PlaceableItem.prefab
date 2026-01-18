@@ -90,6 +90,10 @@ MonoBehaviour:
   _enableReloadAnimation: 1
   _reloadDuration: 2
   _loopReload: 1
+  _reloadCompleteScaleDuration: 0.1
+  _reloadCompleteScaleEase: 27
+  _reloadCompletePunchScaleStrength: 0.1
+  _reloadCompletePunchDuration: 0.1
 --- !u!212 &9154927729986020510
 SpriteRenderer:
   serializedVersion: 2
