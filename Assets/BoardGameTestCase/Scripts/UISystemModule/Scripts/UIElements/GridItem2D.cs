@@ -708,7 +708,7 @@ namespace UISystemModule.UIElements
                     .SetEase(Ease.InSine)
                     .OnComplete(() =>
                     {
-                        if (_instancedMaterial != null)
+                        if (_instancedMaterial != null && !_isPlaced)
                         {
                             _instancedMaterial.SetFloat(UseOutlineProp, 0f);
                             _instancedMaterial.DisableKeyword("_OUTLINE_ON");
@@ -827,6 +827,13 @@ namespace UISystemModule.UIElements
             
             AttachCombatComponentIfNeeded();
             UpdateShineState();
+
+            // Ensure outline is enabled for placed items
+            if (_instancedMaterial != null)
+            {
+                _instancedMaterial.SetFloat(UseOutlineProp, 1f);
+                _instancedMaterial.EnableKeyword("_OUTLINE_ON");
+            }
         }
         
         private void AttachCombatComponentIfNeeded()

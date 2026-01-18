@@ -692,10 +692,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: PlaceableItem
       objectReference: {fileID: 0}
-    - target: {fileID: 4716802334451248274, guid: a08f9dbe0937c4b4795e92f0bd1685d8, type: 3}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 6755409816985408616, guid: a08f9dbe0937c4b4795e92f0bd1685d8, type: 3}
       propertyPath: m_LocalPosition.x
       value: 1.757
@@ -736,10 +732,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 9154927729986020510, guid: a08f9dbe0937c4b4795e92f0bd1685d8, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
-      value: 
-      objectReference: {fileID: 2100000, guid: d130a87e52d314229b3763e0ff1b6848, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
