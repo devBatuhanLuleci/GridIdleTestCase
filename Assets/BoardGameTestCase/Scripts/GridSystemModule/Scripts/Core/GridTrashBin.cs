@@ -18,6 +18,7 @@ namespace GridSystemModule.Core
         private Color _normalColor;
         private bool _isHighlighted = false;
         private Tweener _currentFadeTween;
+        private Tween _delayedCallTween;
         
         public Transform Transform => transform;
 
@@ -47,6 +48,10 @@ namespace GridSystemModule.Core
             {
                 ServiceLocator.Instance.Unregister<IGridTrashBin>();
             }
+            
+            // Kill all tweens
+            _currentFadeTween?.Kill();
+            _delayedCallTween?.Kill();
             if (_spriteRenderer != null) _spriteRenderer.DOKill();
         }
 
@@ -86,12 +91,13 @@ namespace GridSystemModule.Core
             float targetAlpha = active ? 1f : 0f;
             float delay = active ? _activationDelay : _deactivationDelay;
             
-            // Kill any previous alpha tween to avoid conflicts
+            // Kill any previous tweens AND delayed calls to avoid conflicts
             _currentFadeTween?.Kill();
+            _delayedCallTween?.Kill();
             _spriteRenderer.DOKill();
             
             // Use DOVirtual.DelayedCall for the delay, then start the fade
-            DOVirtual.DelayedCall(delay, () =>
+            _delayedCallTween = DOVirtual.DelayedCall(delay, () =>
             {
                 if (_spriteRenderer == null) return;
                 
