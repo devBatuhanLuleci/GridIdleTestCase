@@ -78,6 +78,10 @@ MonoBehaviour:
   _failPunchDuration: 0.4
   _failFlashColor: {r: 1, g: 0, b: 0, a: 0.69411767}
   _failFlashDuration: 0.4
+  _dragOutlineStartWidth: 1.5
+  _dragOutlineEndWidth: 2.5
+  _dragOutlineLoopDuration: 0.5
+  _dropOutlineFadeDuration: 0.3
 --- !u!212 &9154927729986020510
 SpriteRenderer:
   serializedVersion: 2
@@ -104,7 +108,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
+  - {fileID: 2100000, guid: 35940d41fc561484b8759232898d2876, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
