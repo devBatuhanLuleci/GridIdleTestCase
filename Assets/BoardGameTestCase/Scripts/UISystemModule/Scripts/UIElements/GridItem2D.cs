@@ -437,6 +437,7 @@ namespace UISystemModule.UIElements
             // IMPORTANT: Kill any ongoing animations to prevent scale/position issues
             // The placement system (OnDrop/ReturnToOriginalPosition) will handle scale animation
             transform.DOKill();
+            StopOutlineAnimation();
             
             // Clear the global dragging flag
             if (_currentlyDraggingItem == this)
@@ -541,8 +542,9 @@ namespace UISystemModule.UIElements
                 if (_isDragging) EndDragging();
                 return;
             }
-            if (!_isDragging) return;
             _isDragging = false;
+            StopOutlineAnimation();
+            
             Vector3 worldPosition = _camera.ScreenToWorldPoint(new Vector3(eventData.position.x, eventData.position.y, _camera.nearClipPlane));
             worldPosition.z = transform.position.z;
             if (_placementSystem != null) _placementSystem.EndDragging(worldPosition);
@@ -768,6 +770,8 @@ namespace UISystemModule.UIElements
                     {
                         _spriteRenderer.sortingLayerName = _originalSortingLayerName;
                     }
+                    SetColor(_normalColor);
+                    StopOutlineAnimation();
                 }
             }
         }
@@ -880,6 +884,7 @@ namespace UISystemModule.UIElements
         {
             if (_isDragging)
             {
+                StopOutlineAnimation();
                 Vector3 mousePos = _camera.ScreenToWorldPoint(Input.mousePosition);
                 mousePos.z = transform.position.z;
                 EndManualDrag(mousePos);
