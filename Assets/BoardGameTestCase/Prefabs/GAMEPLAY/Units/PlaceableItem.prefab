@@ -78,10 +78,8 @@ MonoBehaviour:
   _failPunchDuration: 0.4
   _failFlashColor: {r: 1, g: 0, b: 0, a: 0.69411767}
   _failFlashDuration: 0.4
-  _dragOutlineStartWidth: 1.5
-  _dragOutlineEndWidth: 2.5
-  _dragOutlineLoopDuration: 0.5
   _dropOutlineFadeDuration: 0.3
+  _dragOutlineGlowValue: 7
 --- !u!212 &9154927729986020510
 SpriteRenderer:
   serializedVersion: 2
