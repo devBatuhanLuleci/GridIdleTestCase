@@ -74,17 +74,27 @@ namespace UISystemModule.UIElements
         [SerializeField] private float _placedOutlineWidth = 1.2f;
         [SerializeField] private float _dragOutlineGlowValue = 2f;
         [SerializeField] private float _dragOutlineWidthValue = 2f;
+        
+        [Header("Reload Animation Settings")]
+        [SerializeField] private bool _enableReloadAnimation = true;
+        [SerializeField] private float _reloadDuration = 3f;
+        [SerializeField] private bool _loopReload = true;
 
         private Material _instancedMaterial;
         private static readonly int UseOutlineProp = Shader.PropertyToID("_UseOutline");
         private static readonly int OutlineWidthProp = Shader.PropertyToID("_OutlineWidth");
         private static readonly int OutlineGlowProp = Shader.PropertyToID("_OutlineGlow");
         private static readonly int UseShineProp = Shader.PropertyToID("_UseShine");
+        private static readonly int UseFillTileProp = Shader.PropertyToID("_UseFillTile");
+        private static readonly int FillVerticalProgressProp = Shader.PropertyToID("_FillVerticalProgress");
         
         private float _initialOutlineGlow;
         private bool _initialShineState;
         private Tween _glowTween;
         private Tween _widthTween;
+        private Tween _reloadTween;
+
+        public event System.Action OnReloadComplete;
         
         private Vector3 _originalPosition;
         private Transform _originalParent;
@@ -150,6 +160,7 @@ namespace UISystemModule.UIElements
             // Kill any active tweens on this object to prevent errors when destroyed
             _glowTween?.Kill();
             _widthTween?.Kill();
+            _reloadTween?.Kill();
             transform.DOKill();
             if (_spriteRenderer != null) _spriteRenderer.DOKill();
 
@@ -522,6 +533,7 @@ namespace UISystemModule.UIElements
             if (!IsPlacingState()) return;
             if (!_isDraggable && !_isPlaced) return;
             
+            StopReloadAnimation();
             _originalPosition = transform.position;
             _originalParent = transform.parent;
             _isDragging = true;
@@ -858,6 +870,10 @@ namespace UISystemModule.UIElements
             {
                 _instancedMaterial.SetFloat(UseOutlineProp, 1f);
                 _instancedMaterial.EnableKeyword("_OUTLINE_ON");
+                // Ensure placed width is set
+                _instancedMaterial.SetFloat(OutlineWidthProp, _placedOutlineWidth);
+                
+                StartReloadAnimation();
             }
         }
         
@@ -882,6 +898,7 @@ namespace UISystemModule.UIElements
         {
             if (!_isDraggable && !_isPlaced) return;
             
+            StopReloadAnimation();
             _originalPosition = transform.position;
             _originalParent = transform.parent;
             _isDragging = true;
@@ -960,6 +977,7 @@ namespace UISystemModule.UIElements
         public void OnRemoved()
         {
             _isPlaced = false;
+            StopReloadAnimation();
             
             if (_combatComponent != null)
             {
@@ -1065,6 +1083,51 @@ namespace UISystemModule.UIElements
                 }
             }
             return _placementSystem.MultiTileGridToWorld(positions);
+        }
+
+        public void StartReloadAnimation(float? duration = null)
+        {
+            if (!_enableReloadAnimation) return;
+            if (duration.HasValue) _reloadDuration = duration.Value;
+            
+            StopReloadAnimation();
+            
+            if (_instancedMaterial != null)
+            {
+                // Ensure Fill Tile is active in the shader
+                _instancedMaterial.SetFloat(UseFillTileProp, 1f);
+                _instancedMaterial.EnableKeyword("_FILL_TILE_ON");
+                
+                // User requirement: Start at 1 (Full) then go to 0
+                _instancedMaterial.SetFloat(FillVerticalProgressProp, 1f);
+                
+                _reloadTween = DOTween.To(() => _instancedMaterial.GetFloat(FillVerticalProgressProp), 
+                    x => _instancedMaterial.SetFloat(FillVerticalProgressProp, x), 0f, _reloadDuration)
+                    .SetEase(Ease.Linear)
+                    .SetTarget(this)
+                    .OnComplete(() => {
+                        // User requirement: When it reaches 0, go value of 1 instantly
+                        if (_instancedMaterial != null)
+                            _instancedMaterial.SetFloat(FillVerticalProgressProp, 1f);
+                            
+                        OnReloadComplete?.Invoke();
+                        
+                        if (_loopReload && _isPlaced && !_isDragging && !_isBeingDiscarded)
+                        {
+                            StartReloadAnimation();
+                        }
+                    });
+            }
+        }
+
+        public void StopReloadAnimation()
+        {
+            _reloadTween?.Kill();
+            if (_instancedMaterial != null)
+            {
+                // Reset to 1 (Filled) as base state
+                _instancedMaterial.SetFloat(FillVerticalProgressProp, 1f);
+            }
         }
     }
 }
