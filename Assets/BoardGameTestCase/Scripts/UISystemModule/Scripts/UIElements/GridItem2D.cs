@@ -669,14 +669,7 @@ namespace UISystemModule.UIElements
                 _instancedMaterial.SetFloat(UseOutlineProp, 1f);
                 _instancedMaterial.EnableKeyword("_OUTLINE_ON");
 
-                _outlineTween?.Kill();
                 _glowTween?.Kill();
-
-                // Animate Outline Width Loop
-                _instancedMaterial.SetFloat(OutlineWidthProp, _dragOutlineStartWidth);
-                _outlineTween = _instancedMaterial.DOFloat(_dragOutlineEndWidth, OutlineWidthProp, _dragOutlineLoopDuration)
-                    .SetLoops(-1, LoopType.Yoyo)
-                    .SetEase(Ease.InOutSine);
 
                 // Animate Glow to target value
                 _glowTween = _instancedMaterial.DOFloat(_dragOutlineGlowValue, OutlineGlowProp, _selectionPunchDuration)
@@ -688,11 +681,11 @@ namespace UISystemModule.UIElements
         {
             if (_instancedMaterial != null)
             {
-                _outlineTween?.Kill();
                 _glowTween?.Kill();
 
-                // Animate back to hidden width
-                _outlineTween = _instancedMaterial.DOFloat(0f, OutlineWidthProp, _dropOutlineFadeDuration)
+                // Animate Glow back to initial value
+                _glowTween = _instancedMaterial.DOFloat(_initialOutlineGlow, OutlineGlowProp, _dropOutlineFadeDuration)
+                    .SetEase(Ease.InSine)
                     .OnComplete(() =>
                     {
                         if (_instancedMaterial != null)
@@ -701,10 +694,6 @@ namespace UISystemModule.UIElements
                             _instancedMaterial.DisableKeyword("_OUTLINE_ON");
                         }
                     });
-
-                // Animate Glow back to initial value
-                _glowTween = _instancedMaterial.DOFloat(_initialOutlineGlow, OutlineGlowProp, _dropOutlineFadeDuration)
-                    .SetEase(Ease.InSine);
             }
         }
         
