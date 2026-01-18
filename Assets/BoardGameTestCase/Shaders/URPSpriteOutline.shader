@@ -8,13 +8,14 @@ Shader "Custom/URPSuperSprite"
         [Header(Outline Settings)]
         [Toggle(_OUTLINE_ON)] _UseOutline ("Use Outline", Float) = 0
         _OutlineColor ("Outline Color", Color) = (1,1,1,1)
-        _OutlineWidth ("Outline Width", Range(0, 10)) = 1
-        _AlphaThreshold ("Alpha Threshold", Range(0, 1)) = 0.01
+        _OutlineWidth ("Outline Width", Range(0, 5)) = 1
+        _OutlineSmoothness ("Outline Smoothness", Range(0, 1)) = 0.5
+        _AlphaThreshold ("Alpha Threshold", Range(0, 1)) = 0.5
         
         [Header(Inner Outline Settings)]
         [Toggle(_INNER_OUTLINE_ON)] _UseInnerOutline ("Use Inner Outline", Float) = 0
         _InnerOutlineColor ("Inner Outline Color", Color) = (1,1,0,1)
-        _InnerOutlineWidth ("Inner Outline Width", Range(0, 10)) = 1
+        _InnerOutlineWidth ("Inner Outline Width", Range(0, 5)) = 1
 
         [Header(Color Adjustments)]
         _Brightness ("Brightness", Range(0, 2)) = 1
@@ -98,6 +99,7 @@ Shader "Custom/URPSuperSprite"
                 
                 float4 _OutlineColor;
                 float _OutlineWidth;
+                float _OutlineSmoothness;
                 float _AlphaThreshold;
                 
                 float4 _InnerOutlineColor;
@@ -124,7 +126,6 @@ Shader "Custom/URPSuperSprite"
             float4 _RendererColor;
             float4 _Flip;
 
-            // Grayscale coefficients
             static const float3 lum = float3(0.299, 0.587, 0.114);
 
             Varyings vert(Attributes input)
@@ -150,7 +151,6 @@ Shader "Custom/URPSuperSprite"
 
                 float2 uv = input.uv;
 
-                // 1. Distortion
                 #if _DISTORTION_ON
                     float distort = sin(_Time.y * _DistortSpeed + uv.y * _DistortFreq) * _DistortAmount;
                     uv.x += distort;
@@ -159,23 +159,30 @@ Shader "Custom/URPSuperSprite"
                 float4 mainTexColor = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv);
                 float alpha = mainTexColor.a;
 
-                // 2. Outline Detection (Outer)
                 float outlineFactor = 0;
                 #if _OUTLINE_ON
                     float2 texelSize = _MainTex_TexelSize.xy * _OutlineWidth;
-                    float alphaSum = 0;
-                    alphaSum += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv + float2(texelSize.x, 0)).a;
-                    alphaSum += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv + float2(-texelSize.x, 0)).a;
-                    alphaSum += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv + float2(0, texelSize.y)).a;
-                    alphaSum += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv + float2(0, -texelSize.y)).a;
-                    alphaSum += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv + float2(texelSize.x, texelSize.y)).a;
-                    alphaSum += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv + float2(-texelSize.x, texelSize.y)).a;
-                    alphaSum += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv + float2(texelSize.x, -texelSize.y)).a;
-                    alphaSum += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv + float2(-texelSize.x, -texelSize.y)).a;
-                    outlineFactor = step(0.001, alphaSum) * step(alpha, _AlphaThreshold);
+                    
+                    // Sample more directions (16-tap) for smoother results
+                    float alphaMax = 0;
+                    
+                    // Define sampling directions
+                    float2 directions[16] = {
+                        float2(1, 0), float2(-1, 0), float2(0, 1), float2(0, -1),
+                        float2(0.7, 0.7), float2(-0.7, 0.7), float2(0.7, -0.7), float2(-0.7, -0.7),
+                        float2(1, 0.5), float2(1, -0.5), float2(-1, 0.5), float2(-1, -0.5),
+                        float2(0.5, 1), float2(0.5, -1), float2(-0.5, 1), float2(-0.5, -1)
+                    };
+
+                    for (int i = 0; i < 16; i++) {
+                        alphaMax = max(alphaMax, SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv + directions[i] * texelSize).a);
+                    }
+
+                    // Smoothstep creates a soft gradient instead of a hard pixel edge
+                    float edgeWidth = max(0.01, _OutlineSmoothness);
+                    outlineFactor = smoothstep(_AlphaThreshold - edgeWidth, _AlphaThreshold, alphaMax) * (1.0 - alpha);
                 #endif
 
-                // 3. Inner Outline Detection
                 float innerOutlineFactor = 0;
                 #if _INNER_OUTLINE_ON
                     float2 innerTexelSize = _MainTex_TexelSize.xy * _InnerOutlineWidth;
@@ -184,46 +191,30 @@ Shader "Custom/URPSuperSprite"
                     innerAlphaMin = min(innerAlphaMin, SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv + float2(-innerTexelSize.x, 0)).a);
                     innerAlphaMin = min(innerAlphaMin, SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv + float2(0, innerTexelSize.y)).a);
                     innerAlphaMin = min(innerAlphaMin, SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv + float2(0, -innerTexelSize.y)).a);
-                    innerOutlineFactor = step(innerAlphaMin, 0.5) * step(0.5, alpha);
+                    innerOutlineFactor = smoothstep(0.5 + _OutlineSmoothness, 0.5, innerAlphaMin) * step(0.1, alpha);
                 #endif
 
-                // 4. Base Color Processing
                 float3 baseRGB = mainTexColor.rgb;
-                
-                // Brightness
                 baseRGB *= _Brightness;
-                
-                // Contrast
                 baseRGB = (baseRGB - 0.5) * _Contrast + 0.5;
-                
-                // Saturation & Grayscale
                 float g = dot(baseRGB, lum);
                 float3 grayscaleColor = float3(g, g, g);
                 baseRGB = lerp(baseRGB, grayscaleColor, _Grayscale);
                 baseRGB = lerp(grayscaleColor, baseRGB, _Saturation);
-
-                // Flash Effect
                 baseRGB = lerp(baseRGB, _FlashColor.rgb, _FlashAmount);
-
-                // Emission
                 baseRGB += _EmissionColor.rgb * _EmissionPower;
 
-                // Final Alpha
                 float finalAlpha = alpha * input.color.a * _AlphaMultiplier;
-
-                // Construct Color Layers
                 float4 spriteLayer = float4(baseRGB * input.color.rgb, finalAlpha);
                 
-                // Apply Inner Outline
                 #if _INNER_OUTLINE_ON
                     float4 innerColor = _InnerOutlineColor;
                     innerColor.rgb *= innerColor.a;
                     spriteLayer = lerp(spriteLayer, innerColor, innerOutlineFactor);
                 #endif
 
-                // Final Combining with Outer Outline
                 float4 finalColor = spriteLayer;
-                finalColor.rgb *= finalColor.a; // Premultiply
+                finalColor.rgb *= finalColor.a;
 
                 #if _OUTLINE_ON
                     float4 outColor = _OutlineColor;
