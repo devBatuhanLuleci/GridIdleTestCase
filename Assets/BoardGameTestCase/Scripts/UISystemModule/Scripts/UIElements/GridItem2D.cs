@@ -378,6 +378,9 @@ namespace UISystemModule.UIElements
             // This prevents scale stacking and other animation conflicts
             transform.DOKill();
             
+            // NOTE: We do NOT stop reload animation here anymore. 
+            // If item is dragged, reload should continue.
+            
             // Ensure GameFlowController is initialized (lazy loading)
             if (_gameFlowController == null)
             {
@@ -541,7 +544,7 @@ namespace UISystemModule.UIElements
             if (!IsPlacingState()) return;
             if (!_isDraggable && !_isPlaced) return;
             
-            StopReloadAnimation();
+            // StopReloadAnimation(); // REMOVED: Reload continues during drag
             _originalPosition = transform.position;
             _originalParent = transform.parent;
             _isDragging = true;
@@ -876,7 +879,12 @@ namespace UISystemModule.UIElements
                 // Ensure placed width is set
                 _instancedMaterial.SetFloat(OutlineWidthProp, _placedOutlineWidth);
                 
-                StartReloadAnimation();
+                // Only start if not already reloading
+                // But generally OnPlaced means a successful drop, likely logic handles checks
+                if (_reloadTween == null || !_reloadTween.IsActive() || !_reloadTween.IsPlaying())
+                {
+                    StartReloadAnimation();
+                }
             }
         }
         
@@ -916,7 +924,7 @@ namespace UISystemModule.UIElements
         {
             if (!_isDraggable && !_isPlaced) return;
             
-            StopReloadAnimation();
+            // StopReloadAnimation(); // REMOVED: Reload continues during drag
             _originalPosition = transform.position;
             _originalParent = transform.parent;
             _isDragging = true;
@@ -1112,6 +1120,15 @@ namespace UISystemModule.UIElements
         public void StartReloadAnimation(float? duration = null)
         {
             if (!_enableReloadAnimation) return;
+
+            // If ALREADY reloading, do NOT restart/reset.
+            if (_reloadTween != null && _reloadTween.IsActive() && _reloadTween.IsPlaying()) 
+            {
+                // Just ensure materials are set, but don't kill tween
+                // Maybe update duration if provided? For now, just return.
+                return; 
+            }
+
             if (duration.HasValue) _reloadDuration = duration.Value;
             
             StopReloadAnimation();
