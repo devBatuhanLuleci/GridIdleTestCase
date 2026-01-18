@@ -87,6 +87,7 @@ namespace UISystemModule.UIElements
         private static readonly int UseShineProp = Shader.PropertyToID("_UseShine");
         private static readonly int UseFillTileProp = Shader.PropertyToID("_UseFillTile");
         private static readonly int FillVerticalProgressProp = Shader.PropertyToID("_FillVerticalProgress");
+        private static readonly int FillTexProp = Shader.PropertyToID("_FillTex");
         
         private float _initialOutlineGlow;
         private bool _initialShineState;
@@ -1092,11 +1093,17 @@ namespace UISystemModule.UIElements
             
             StopReloadAnimation();
             
-            if (_instancedMaterial != null)
+                if (_instancedMaterial != null)
             {
                 // Ensure Fill Tile is active in the shader
                 _instancedMaterial.SetFloat(UseFillTileProp, 1f);
                 _instancedMaterial.EnableKeyword("_FILL_TILE_ON");
+                
+                // User requirement: Fill tiling texture must be same with sprite texture
+                if (_spriteRenderer != null && _spriteRenderer.sprite != null)
+                {
+                    _instancedMaterial.SetTexture(FillTexProp, _spriteRenderer.sprite.texture);
+                }
                 
                 // User requirement: Start at 1 (Full) then go to 0
                 _instancedMaterial.SetFloat(FillVerticalProgressProp, 1f);
