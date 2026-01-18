@@ -963,6 +963,8 @@ namespace UISystemModule.UIElements
             
             if (_isPlaced)
             {
+                // Show trash bin when dragging a previously placed item (Manual Drag)
+                ServiceLocator.Instance?.Get<IGridTrashBin>()?.Show(true);
                 _isPlaced = false;
             }
             
@@ -976,6 +978,12 @@ namespace UISystemModule.UIElements
         private void EndManualDrag(Vector3 mousePosition)
         {
             _isDragging = false;
+            
+            // Hide trash bin if we are not discarding (if discarding, it stays shown until animation ends)
+            if (!_isBeingDiscarded)
+            {
+                 ServiceLocator.Instance?.Get<IGridTrashBin>()?.Show(false);
+            }
             
             if (_placementSystem != null)
             {
