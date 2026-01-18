@@ -62,9 +62,6 @@ namespace UISystemModule.UIElements
         [SerializeField] private float _failFlashDuration = 0.4f; // How long the color flash lasts
 
         [Header("Outline Selection Animation Settings")]
-        [SerializeField] private float _dragOutlineStartWidth = 1.5f;
-        [SerializeField] private float _dragOutlineEndWidth = 2.5f;
-        [SerializeField] private float _dragOutlineLoopDuration = 0.5f;
         [SerializeField] private float _dropOutlineFadeDuration = 0.3f;
         [SerializeField] private float _dragOutlineGlowValue = 2f;
 
@@ -76,7 +73,6 @@ namespace UISystemModule.UIElements
         
         private float _initialOutlineGlow;
         private bool _initialShineState;
-        private Tween _outlineTween;
         private Tween _glowTween;
         
         private Vector3 _originalPosition;
@@ -139,7 +135,6 @@ namespace UISystemModule.UIElements
         private void OnDestroy()
         {
             // Kill any active tweens on this object to prevent errors when destroyed
-            _outlineTween?.Kill();
             _glowTween?.Kill();
             transform.DOKill();
             if (_spriteRenderer != null) _spriteRenderer.DOKill();
@@ -702,8 +697,8 @@ namespace UISystemModule.UIElements
                         }
                     });
 
-                // Restore Shine if it was initially enabled
-                if (_initialShineState)
+                // Restore Shine if it was initially enabled AND item is not placed on the grid
+                if (_initialShineState && !_isPlaced)
                 {
                     _instancedMaterial.SetFloat(UseShineProp, 1f);
                     _instancedMaterial.EnableKeyword("_SHINE_ON");
