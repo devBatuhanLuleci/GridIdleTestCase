@@ -5,14 +5,14 @@ Shader "Custom/URPSuperSprite"
         [MainTexture] _MainTex ("Sprite Texture", 2D) = "white" {}
         _Color ("Tint", Color) = (1,1,1,1)
         
-        [Header(Primary Outline - Outer)]
+        [Header(Primary Outline)]
         [Toggle(_OUTLINE_ON)] _UseOutline ("Use Primary Outline", Float) = 0
         _OutlineColor ("Primary Color 1", Color) = (1,1,1,1)
         _OutlineColor2 ("Primary Color 2 (Gradient)", Color) = (1,1,1,1)
         _OutlineWidth ("Primary Width", Range(0, 20)) = 2
         _OutlineGlow ("Primary Glow", Range(0, 10)) = 1
         
-        [Header(Secondary Outline - Inner Outer)]
+        [Header(Secondary Outline)]
         [Toggle(_OUTLINE_SECONDARY_ON)] _UseOutlineSecondary ("Use Secondary Outline", Float) = 0
         _OutlineColorSecondary ("Secondary Color", Color) = (0,0,0,1)
         _OutlineWidthSecondary ("Secondary Width", Range(0, 20)) = 1
@@ -25,12 +25,22 @@ Shader "Custom/URPSuperSprite"
         _OutlineGradientSpeed ("Gradient Speed", Range(0, 10)) = 0
         
         [Header(Mesh Boundary Fix)]
-        _VerticesExpand ("Expand Mesh (Fix Clipping)", Range(0, 1)) = 0.1
+        _VerticesExpand ("Expand Mesh", Range(0, 1)) = 0.1
 
         [Header(Inner Sprite Outline)]
         [Toggle(_INNER_OUTLINE_ON)] _UseInnerOutline ("Use Inner Sprite Outline", Float) = 0
         _InnerOutlineColor ("Inner Color", Color) = (1,1,0,1)
         _InnerOutlineWidth ("Inner Width", Range(0, 5)) = 1
+
+        [Header(Shine Glow Effect)]
+        [Toggle(_SHINE_ON)] _UseShine ("Use Shine Effect", Float) = 0
+        [HDR] _ShineColor ("Shine Color", Color) = (1,1,1,1)
+        _ShineLocation ("Shine Location", Range(-1, 2)) = 0
+        _ShineWidth ("Shine Width", Range(0, 1)) = 0.1
+        _ShineSmoothness ("Shine Smoothness", Range(0.01, 1)) = 0.2
+        _ShineSpeed ("Shine Auto Speed", Range(0, 10)) = 0
+        _ShineAngle ("Shine Angle", Range(0, 360)) = 45
+        _ShineTex ("Shine Pattern (Optional)", 2D) = "white" {}
 
         [Header(Color Adjustments)]
         _Brightness ("Brightness", Range(0, 2)) = 1
@@ -84,6 +94,7 @@ Shader "Custom/URPSuperSprite"
             #pragma shader_feature _OUTLINE_ON
             #pragma shader_feature _OUTLINE_SECONDARY_ON
             #pragma shader_feature _INNER_OUTLINE_ON
+            #pragma shader_feature _SHINE_ON
             #pragma shader_feature _DISTORTION_ON
             
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
@@ -108,6 +119,9 @@ Shader "Custom/URPSuperSprite"
             TEXTURE2D(_MainTex);
             SAMPLER(sampler_MainTex);
 
+            TEXTURE2D(_ShineTex);
+            SAMPLER(sampler_ShineTex);
+
             CBUFFER_START(UnityPerMaterial)
                 float4 _MainTex_ST;
                 float4 _MainTex_TexelSize;
@@ -131,6 +145,14 @@ Shader "Custom/URPSuperSprite"
                 
                 float4 _InnerOutlineColor;
                 float _InnerOutlineWidth;
+
+                float4 _ShineColor;
+                float _ShineLocation;
+                float _ShineWidth;
+                float _ShineSmoothness;
+                float _ShineSpeed;
+                float _ShineAngle;
+                float4 _ShineTex_ST;
 
                 float _Brightness;
                 float _Contrast;
@@ -200,6 +222,36 @@ Shader "Custom/URPSuperSprite"
                 float4 mainTexColor = isOutside ? float4(0,0,0,0) : SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv);
                 float alpha = mainTexColor.a;
 
+                // Color Adjustments
+                float3 baseRGB = mainTexColor.rgb;
+                baseRGB *= _Brightness;
+                baseRGB = (baseRGB - 0.5) * _Contrast + 0.5;
+                float greyValue = dot(baseRGB, lum);
+                baseRGB = lerp(baseRGB, float3(greyValue, greyValue, greyValue), _Grayscale);
+                baseRGB = lerp(float3(greyValue, greyValue, greyValue), baseRGB, _Saturation);
+                baseRGB = lerp(baseRGB, _FlashColor.rgb, _FlashAmount);
+                baseRGB += _EmissionColor.rgb * _EmissionPower;
+
+                // Shine Effect
+                #if _SHINE_ON
+                    float angleRad = _ShineAngle * 0.0174533;
+                    float2 shineDir = float2(cos(angleRad), sin(angleRad));
+                    float shinePos = (uv.x * shineDir.x + uv.y * shineDir.y);
+                    
+                    float currentTime = _Time.y * _ShineSpeed;
+                    float effectiveLocation = _ShineLocation + frac(currentTime);
+                    if (_ShineSpeed <= 0) effectiveLocation = _ShineLocation;
+
+                    float shine = smoothstep(effectiveLocation - _ShineWidth - _ShineSmoothness, effectiveLocation - _ShineWidth, shinePos) 
+                                - smoothstep(effectiveLocation + _ShineWidth, effectiveLocation + _ShineWidth + _ShineSmoothness, shinePos);
+                    
+                    // Texture overlay for shine if provided
+                    float4 shineTexCol = SAMPLE_TEXTURE2D(_ShineTex, sampler_ShineTex, TRANSFORM_TEX(uv, _ShineTex));
+                    
+                    baseRGB += _ShineColor.rgb * shine * _ShineColor.a * shineTexCol.rgb;
+                #endif
+
+                // Outline Logic
                 float3 outlineRGB = float3(0,0,0);
                 float outlineAlpha = 0;
 
@@ -214,7 +266,6 @@ Shader "Custom/URPSuperSprite"
 
                     float edgeSmooth = max(0.01, _OutlineSmoothness);
                     
-                    // Primary Outline (usually the outer one)
                     float factorPrimary = 0;
                     #if _OUTLINE_ON
                         float alphaMax1 = 0;
@@ -227,7 +278,6 @@ Shader "Custom/URPSuperSprite"
                         factorPrimary = smoothstep(_AlphaThreshold - edgeSmooth, _AlphaThreshold, alphaMax1);
                     #endif
 
-                    // Secondary Outline (usually the inner one)
                     float factorSecondary = 0;
                     #if _OUTLINE_SECONDARY_ON
                         float alphaMax2 = 0;
@@ -240,8 +290,6 @@ Shader "Custom/URPSuperSprite"
                         factorSecondary = smoothstep(_AlphaThreshold - edgeSmooth, _AlphaThreshold, alphaMax2);
                     #endif
 
-                    // Combiner logic: Secondary sits "inside" or "behind" Primary depending on widths
-                    // Calculate colors
                     float gradient = saturate(sin(uv.y * 3.0 + _Time.y * _OutlineGradientSpeed) * 0.5 + 0.5);
                     float4 colPrimary = lerp(_OutlineColor, _OutlineColor2, gradient);
                     colPrimary.rgb *= colPrimary.a * _OutlineGlow;
@@ -249,21 +297,9 @@ Shader "Custom/URPSuperSprite"
                     float4 colSecondary = _OutlineColorSecondary;
                     colSecondary.rgb *= colSecondary.a * _OutlineGlowSecondary;
 
-                    // We use alpha blending logic for concentric outlines
-                    // If Width1 > Width2, Width1 contains Width2.
-                    // We want to show Secondary (Inner-Outer) on top if it's "closer" to the sprite.
-                    
-                    float outlineLayerAlpha = 0;
-                    float3 outlineLayerRGB = float3(0,0,0);
-
-                    // Mix based on which factor is stronger (hierarchical)
-                    // If factorSecondary is active, it takes over the "inner" part of the outer edge
                     float3 combinedOutline = lerp(colPrimary.rgb, colSecondary.rgb, factorSecondary);
-                    outlineLayerRGB = combinedOutline;
-                    outlineLayerAlpha = max(factorPrimary, factorSecondary) * (1.0 - alpha);
-                    
-                    outlineRGB = outlineLayerRGB;
-                    outlineAlpha = outlineLayerAlpha;
+                    outlineAlpha = max(factorPrimary, factorSecondary) * (1.0 - alpha);
+                    outlineRGB = combinedOutline;
                 #endif
 
                 float innerOutlineFactor = 0;
@@ -277,15 +313,6 @@ Shader "Custom/URPSuperSprite"
                     innerOutlineFactor = smoothstep(0.5 + _OutlineSmoothness, 0.5, innerAlphaMin) * step(0.1, alpha);
                 #endif
 
-                float3 baseRGB = mainTexColor.rgb;
-                baseRGB *= _Brightness;
-                baseRGB = (baseRGB - 0.5) * _Contrast + 0.5;
-                float greyValue = dot(baseRGB, lum);
-                baseRGB = lerp(baseRGB, float3(greyValue, greyValue, greyValue), _Grayscale);
-                baseRGB = lerp(float3(greyValue, greyValue, greyValue), baseRGB, _Saturation);
-                baseRGB = lerp(baseRGB, _FlashColor.rgb, _FlashAmount);
-                baseRGB += _EmissionColor.rgb * _EmissionPower;
-
                 float finalAlpha = alpha * input.color.a * _AlphaMultiplier;
                 float4 spriteLayer = float4(baseRGB * input.color.rgb, finalAlpha);
                 
@@ -298,7 +325,6 @@ Shader "Custom/URPSuperSprite"
                 float4 finalColor = spriteLayer;
                 finalColor.rgb *= finalColor.a;
 
-                // Apply combined Outer Outlines
                 float4 outL = float4(outlineRGB, outlineAlpha);
                 finalColor = lerp(finalColor, outL, outL.a);
 
