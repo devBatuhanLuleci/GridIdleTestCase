@@ -64,6 +64,7 @@ namespace UISystemModule.UIElements
         [Header("Outline Selection Animation Settings")]
         [SerializeField] private float _dropOutlineFadeDuration = 0.3f;
         [SerializeField] private float _dragOutlineGlowValue = 2f;
+        [SerializeField] private float _dragOutlineWidthValue = 2f;
 
         private Material _instancedMaterial;
         private static readonly int UseOutlineProp = Shader.PropertyToID("_UseOutline");
@@ -72,8 +73,10 @@ namespace UISystemModule.UIElements
         private static readonly int UseShineProp = Shader.PropertyToID("_UseShine");
         
         private float _initialOutlineGlow;
+        private float _initialOutlineWidth;
         private bool _initialShineState;
         private Tween _glowTween;
+        private Tween _widthTween;
         
         private Vector3 _originalPosition;
         private Transform _originalParent;
@@ -116,6 +119,7 @@ namespace UISystemModule.UIElements
                 // Eagerly create material instance
                 _instancedMaterial = _spriteRenderer.material;
                 _initialOutlineGlow = _instancedMaterial.GetFloat(OutlineGlowProp);
+                _initialOutlineWidth = _instancedMaterial.GetFloat(OutlineWidthProp);
                 _initialShineState = _instancedMaterial.GetFloat(UseShineProp) > 0.5f;
                 UpdateShineState();
             }
@@ -137,6 +141,7 @@ namespace UISystemModule.UIElements
         {
             // Kill any active tweens on this object to prevent errors when destroyed
             _glowTween?.Kill();
+            _widthTween?.Kill();
             transform.DOKill();
             if (_spriteRenderer != null) _spriteRenderer.DOKill();
 
@@ -690,9 +695,14 @@ namespace UISystemModule.UIElements
                 UpdateShineState();
 
                 _glowTween?.Kill();
+                _widthTween?.Kill();
 
                 // Animate Glow to target value
                 _glowTween = _instancedMaterial.DOFloat(_dragOutlineGlowValue, OutlineGlowProp, _selectionPunchDuration)
+                    .SetEase(Ease.OutSine);
+                
+                // Animate Width to target value
+                _widthTween = _instancedMaterial.DOFloat(_dragOutlineWidthValue, OutlineWidthProp, _selectionPunchDuration)
                     .SetEase(Ease.OutSine);
             }
         }
@@ -702,6 +712,7 @@ namespace UISystemModule.UIElements
             if (_instancedMaterial != null)
             {
                 _glowTween?.Kill();
+                _widthTween?.Kill();
 
                 // Animate Glow back to initial value
                 _glowTween = _instancedMaterial.DOFloat(_initialOutlineGlow, OutlineGlowProp, _dropOutlineFadeDuration)
@@ -714,6 +725,10 @@ namespace UISystemModule.UIElements
                             _instancedMaterial.DisableKeyword("_OUTLINE_ON");
                         }
                     });
+
+                // Animate Width back to initial value
+                _widthTween = _instancedMaterial.DOFloat(_initialOutlineWidth, OutlineWidthProp, _dropOutlineFadeDuration)
+                    .SetEase(Ease.InSine);
 
                 // Sync shine state (will restore if not placed)
                 UpdateShineState();
