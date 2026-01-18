@@ -222,7 +222,7 @@ Shader "Custom/URPSuperSprite"
                 float4 mainTexColor = isOutside ? float4(0,0,0,0) : SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv);
                 float alpha = mainTexColor.a;
 
-                // Color Adjustments
+                // Color Adjustments logic
                 float3 baseRGB = mainTexColor.rgb;
                 baseRGB *= _Brightness;
                 baseRGB = (baseRGB - 0.5) * _Contrast + 0.5;
@@ -232,7 +232,10 @@ Shader "Custom/URPSuperSprite"
                 baseRGB = lerp(baseRGB, _FlashColor.rgb, _FlashAmount);
                 baseRGB += _EmissionColor.rgb * _EmissionPower;
 
-                // Shine Effect
+                float finalAlpha = alpha * input.color.a * _AlphaMultiplier;
+                float4 spriteLayer = float4(baseRGB * input.color.rgb, finalAlpha);
+                
+                // Shine Effect - Applied AFTER tinting to look like it is "on top"
                 #if _SHINE_ON
                     float angleRad = _ShineAngle * 0.0174533;
                     float2 shineDir = float2(cos(angleRad), sin(angleRad));
@@ -245,13 +248,14 @@ Shader "Custom/URPSuperSprite"
                     float shine = smoothstep(effectiveLocation - _ShineWidth - _ShineSmoothness, effectiveLocation - _ShineWidth, shinePos) 
                                 - smoothstep(effectiveLocation + _ShineWidth, effectiveLocation + _ShineWidth + _ShineSmoothness, shinePos);
                     
-                    // Texture overlay for shine if provided
                     float4 shineTexCol = SAMPLE_TEXTURE2D(_ShineTex, sampler_ShineTex, TRANSFORM_TEX(uv, _ShineTex));
                     
-                    baseRGB += _ShineColor.rgb * shine * _ShineColor.a * shineTexCol.rgb;
+                    // Add separate shine contribution as a literal layer on top
+                    float3 shineLayer = _ShineColor.rgb * shine * _ShineColor.a * shineTexCol.rgb;
+                    spriteLayer.rgb += shineLayer * alpha; // Mask by alpha to keep it inside sprite bounds
                 #endif
 
-                // Outline Logic
+                // Outline Logic (Remains identical to keep concentric behavior)
                 float3 outlineRGB = float3(0,0,0);
                 float outlineAlpha = 0;
 
@@ -302,7 +306,6 @@ Shader "Custom/URPSuperSprite"
                     outlineRGB = combinedOutline;
                 #endif
 
-                float innerOutlineFactor = 0;
                 #if _INNER_OUTLINE_ON
                     float2 innerTexelSize = _MainTex_TexelSize.xy * _InnerOutlineWidth;
                     float innerAlphaMin = 1;
@@ -310,13 +313,8 @@ Shader "Custom/URPSuperSprite"
                     innerAlphaMin = min(innerAlphaMin, (uv.x - innerTexelSize.x < 0 ? 0 : SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv + float2(-innerTexelSize.x, 0)).a));
                     innerAlphaMin = min(innerAlphaMin, (uv.y + innerTexelSize.y > 1 ? 0 : SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv + float2(0, innerTexelSize.y)).a));
                     innerAlphaMin = min(innerAlphaMin, (uv.y - innerTexelSize.y < 0 ? 0 : SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv + float2(0, -innerTexelSize.y)).a));
-                    innerOutlineFactor = smoothstep(0.5 + _OutlineSmoothness, 0.5, innerAlphaMin) * step(0.1, alpha);
-                #endif
-
-                float finalAlpha = alpha * input.color.a * _AlphaMultiplier;
-                float4 spriteLayer = float4(baseRGB * input.color.rgb, finalAlpha);
-                
-                #if _INNER_OUTLINE_ON
+                    float innerOutlineFactor = smoothstep(0.5 + _OutlineSmoothness, 0.5, innerAlphaMin) * step(0.1, alpha);
+                    
                     float4 innerCol = _InnerOutlineColor;
                     innerCol.rgb *= innerCol.a;
                     spriteLayer = lerp(spriteLayer, innerCol, innerOutlineFactor);
