@@ -94,9 +94,11 @@ namespace UISystemModule.UIElements
         private static readonly int UseFillTileProp = Shader.PropertyToID("_UseFillTile");
         private static readonly int FillVerticalProgressProp = Shader.PropertyToID("_FillVerticalProgress");
         private static readonly int FillTexProp = Shader.PropertyToID("_FillTex");
+        private static readonly int SpriteUVsProp = Shader.PropertyToID("_SpriteUVs");
         
         private float _initialOutlineGlow;
         private bool _initialShineState;
+        private Sprite _lastSprite;
         private Tween _glowTween;
         private Tween _widthTween;
         private Tween _reloadTween;
@@ -148,6 +150,7 @@ namespace UISystemModule.UIElements
                 _instancedMaterial = _spriteRenderer.material;
                 _initialOutlineGlow = _instancedMaterial.GetFloat(OutlineGlowProp);
                 _initialShineState = _instancedMaterial.GetFloat(UseShineProp) > 0.5f;
+                UpdateMaterialSpriteST();
                 UpdateShineState();
             }
             
@@ -340,6 +343,9 @@ namespace UISystemModule.UIElements
                 
                 _wasTouchingLastFrame = isTouchingNow;
             }
+
+            // Always sync sprite ST to handle animations or dynamic sprite changes
+            UpdateMaterialSpriteST();
         }
         
         private void CheckForMouseClick()
@@ -651,6 +657,32 @@ namespace UISystemModule.UIElements
             if (_spriteRenderer != null)
             {
                 _spriteRenderer.color = color;
+            }
+        }
+
+        private void UpdateMaterialSpriteST()
+        {
+            if (_spriteRenderer == null || _instancedMaterial == null) return;
+            
+            Sprite currentSprite = _spriteRenderer.sprite;
+            if (currentSprite == null) return;
+            
+            // Only update if sprite has changed (efficient for animations)
+            if (currentSprite != _lastSprite)
+            {
+                _lastSprite = currentSprite;
+                
+                // Get UVs from the sprite. This works for Atlases and Sprite Sheets.
+                // We use GetOuterUV to get the rect in atlas-space [0-1].
+                Vector4 uvRect = UnityEngine.Sprites.DataUtility.GetOuterUV(currentSprite);
+                
+                // Convert [minX, minY, maxX, maxY] to [scaleX, scaleY, offsetX, offsetY]
+                float scaleX = uvRect.z - uvRect.x;
+                float scaleY = uvRect.w - uvRect.y;
+                float offsetX = uvRect.x;
+                float offsetY = uvRect.y;
+                
+                _instancedMaterial.SetVector(SpriteUVsProp, new Vector4(scaleX, scaleY, offsetX, offsetY));
             }
         }
 
