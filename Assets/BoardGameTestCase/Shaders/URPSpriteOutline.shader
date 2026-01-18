@@ -72,6 +72,8 @@ Shader "Custom/URPSuperSprite"
         _FillColor ("Fill Tint", Color) = (1,1,1,1)
         _FillTiling ("Fill Tiling (XY) Scroll (ZW)", Vector) = (1,1,0,0)
         _FillAmount ("Fill Intensity", Range(0, 1)) = 1
+        _FillVerticalProgress ("Fill Vertical Progress", Range(0, 1)) = 1
+        _FillVerticalSmoothness ("Fill Vertical Smoothness", Range(0.001, 0.5)) = 0.01
 
         [HideInInspector] _RendererColor ("RendererColor", Color) = (1,1,1,1)
         [HideInInspector] _Flip ("Flip", Vector) = (1,1,1,1)
@@ -186,6 +188,8 @@ Shader "Custom/URPSuperSprite"
                 float4 _FillColor;
                 float4 _FillTiling;
                 float _FillAmount;
+                float _FillVerticalProgress;
+                float _FillVerticalSmoothness;
             CBUFFER_END
 
             float4 _RendererColor;
@@ -254,9 +258,13 @@ Shader "Custom/URPSuperSprite"
                 // Fill Tiling Logic
                 #if _FILL_TILE_ON
                     float2 fillUv = (uv - _MainTex_ST.zw) / _MainTex_ST.xy;
+                    
+                    // Vertical Fill Masking (Bottom to Top)
+                    float verticalMask = smoothstep(_FillVerticalProgress + _FillVerticalSmoothness, _FillVerticalProgress, 1.0 - fillUv.y);
+                    
                     fillUv = fillUv * _FillTiling.xy + _FillTiling.zw * _Time.y;
                     float4 fillCol = SAMPLE_TEXTURE2D(_FillTex, sampler_FillTex, fillUv) * _FillColor;
-                    baseRGB = lerp(baseRGB, fillCol.rgb, _FillAmount * fillCol.a);
+                    baseRGB = lerp(baseRGB, fillCol.rgb, _FillAmount * fillCol.a * verticalMask);
                 #endif
 
                 float finalAlpha = alpha * input.color.a * _AlphaMultiplier;
