@@ -66,6 +66,13 @@ Shader "Custom/URPSuperSprite"
         _DistortAmount ("Distort Amount", Range(0, 0.1)) = 0.01
         _DistortFreq ("Distort Freq", Range(0, 50)) = 10
 
+        [Header(Fill Tiling)]
+        [Toggle(_FILL_TILE_ON)] _UseFillTile ("Use Fill Tiling", Float) = 0
+        _FillTex ("Fill Texture Pattern", 2D) = "white" {}
+        _FillColor ("Fill Tint", Color) = (1,1,1,1)
+        _FillTiling ("Fill Tiling (XY) Scroll (ZW)", Vector) = (1,1,0,0)
+        _FillAmount ("Fill Intensity", Range(0, 1)) = 1
+
         [HideInInspector] _RendererColor ("RendererColor", Color) = (1,1,1,1)
         [HideInInspector] _Flip ("Flip", Vector) = (1,1,1,1)
     }
@@ -97,6 +104,7 @@ Shader "Custom/URPSuperSprite"
             #pragma shader_feature _INNER_OUTLINE_ON
             #pragma shader_feature _SHINE_ON
             #pragma shader_feature _DISTORTION_ON
+            #pragma shader_feature _FILL_TILE_ON
             
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
@@ -121,6 +129,9 @@ Shader "Custom/URPSuperSprite"
 
             TEXTURE2D(_ShineTex);
             SAMPLER(sampler_ShineTex);
+
+            TEXTURE2D(_FillTex);
+            SAMPLER(sampler_FillTex);
 
             CBUFFER_START(UnityPerMaterial)
                 float4 _MainTex_ST;
@@ -171,6 +182,10 @@ Shader "Custom/URPSuperSprite"
                 float _DistortSpeed;
                 float _DistortAmount;
                 float _DistortFreq;
+
+                float4 _FillColor;
+                float4 _FillTiling;
+                float _FillAmount;
             CBUFFER_END
 
             float4 _RendererColor;
@@ -235,6 +250,14 @@ Shader "Custom/URPSuperSprite"
                 baseRGB = lerp(float3(greyValue, greyValue, greyValue), baseRGB, _Saturation);
                 baseRGB = lerp(baseRGB, _FlashColor.rgb, _FlashAmount);
                 baseRGB += _EmissionColor.rgb * _EmissionPower;
+
+                // Fill Tiling Logic
+                #if _FILL_TILE_ON
+                    float2 fillUv = (uv - _MainTex_ST.zw) / _MainTex_ST.xy;
+                    fillUv = fillUv * _FillTiling.xy + _FillTiling.zw * _Time.y;
+                    float4 fillCol = SAMPLE_TEXTURE2D(_FillTex, sampler_FillTex, fillUv) * _FillColor;
+                    baseRGB = lerp(baseRGB, fillCol.rgb, _FillAmount * fillCol.a);
+                #endif
 
                 float finalAlpha = alpha * input.color.a * _AlphaMultiplier;
                 float4 spriteLayer = float4(baseRGB * input.color.rgb, finalAlpha);
