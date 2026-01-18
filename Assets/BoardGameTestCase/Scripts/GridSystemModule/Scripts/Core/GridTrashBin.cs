@@ -57,9 +57,17 @@ namespace GridSystemModule.Core
         {
             if (_spriteRenderer != null)
             {
-                Color targetColor = active ? _highlightColor : _normalColor;
-                targetColor.a = _spriteRenderer.color.a; // Preserve current alpha
-                _spriteRenderer.color = targetColor;
+                Color targetBase = active ? _highlightColor : _normalColor;
+                Color currentColor = _spriteRenderer.color;
+
+                // Optimization: Only update if RGB differs (ignoring alpha which is controlled by tween)
+                if (!Mathf.Approximately(currentColor.r, targetBase.r) ||
+                    !Mathf.Approximately(currentColor.g, targetBase.g) ||
+                    !Mathf.Approximately(currentColor.b, targetBase.b))
+                {
+                    targetBase.a = currentColor.a; // Strict preservation
+                    _spriteRenderer.color = targetBase;
+                }
             }
         }
 
@@ -67,14 +75,17 @@ namespace GridSystemModule.Core
         {
             if (_spriteRenderer == null) return;
             
+            // Debug.Log($"[GridTrashBin] Show({active}) called. Current Alpha: {_spriteRenderer.color.a}");
+            
             float targetAlpha = active ? 1f : 0f;
             _spriteRenderer.DOKill();
+            
             DOTween.To(() => _spriteRenderer.color.a, x => 
             {
                 Color c = _spriteRenderer.color;
                 c.a = x;
                 _spriteRenderer.color = c;
-            }, targetAlpha, 0.3f);
+            }, targetAlpha, 0.3f).SetTarget(_spriteRenderer);
         }
     }
 }
