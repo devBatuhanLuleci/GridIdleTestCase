@@ -117,6 +117,7 @@ namespace UISystemModule.UIElements
                 _instancedMaterial = _spriteRenderer.material;
                 _initialOutlineGlow = _instancedMaterial.GetFloat(OutlineGlowProp);
                 _initialShineState = _instancedMaterial.GetFloat(UseShineProp) > 0.5f;
+                UpdateShineState();
             }
             
             SetupScaleFromGridParent();
@@ -581,6 +582,23 @@ namespace UISystemModule.UIElements
                 _spriteRenderer.color = color;
             }
         }
+
+        private void UpdateShineState()
+        {
+            if (_instancedMaterial == null) return;
+
+            // Shine is ON only if: 
+            // 1. It was ON initially
+            // 2. It is NOT currently placed on the grid
+            // 3. It is NOT currently being dragged
+            bool shouldShowShine = _initialShineState && !_isPlaced && !_isDragging;
+
+            _instancedMaterial.SetFloat(UseShineProp, shouldShowShine ? 1f : 0f);
+            if (shouldShowShine)
+                _instancedMaterial.EnableKeyword("_SHINE_ON");
+            else
+                _instancedMaterial.DisableKeyword("_SHINE_ON");
+        }
         
         public void SetDraggable(bool draggable)
         {
@@ -652,6 +670,7 @@ namespace UISystemModule.UIElements
         
         public void OnDragStart()
         {
+            _isDragging = true;
             SetColor(_draggingColor);
             
             // Punch effect on selection - like snapping into a slot
@@ -667,9 +686,8 @@ namespace UISystemModule.UIElements
                 _instancedMaterial.SetFloat(UseOutlineProp, 1f);
                 _instancedMaterial.EnableKeyword("_OUTLINE_ON");
 
-                // Disable Shine during drag
-                _instancedMaterial.SetFloat(UseShineProp, 0f);
-                _instancedMaterial.DisableKeyword("_SHINE_ON");
+                // Sync shine state (will turn off since _isDragging is true)
+                UpdateShineState();
 
                 _glowTween?.Kill();
 
@@ -697,12 +715,8 @@ namespace UISystemModule.UIElements
                         }
                     });
 
-                // Restore Shine if it was initially enabled AND item is not placed on the grid
-                if (_initialShineState && !_isPlaced)
-                {
-                    _instancedMaterial.SetFloat(UseShineProp, 1f);
-                    _instancedMaterial.EnableKeyword("_SHINE_ON");
-                }
+                // Sync shine state (will restore if not placed)
+                UpdateShineState();
             }
         }
         
@@ -812,6 +826,7 @@ namespace UISystemModule.UIElements
             }
             
             AttachCombatComponentIfNeeded();
+            UpdateShineState();
         }
         
         private void AttachCombatComponentIfNeeded()
@@ -924,6 +939,7 @@ namespace UISystemModule.UIElements
             {
                 ReturnToOriginalPosition();
             }
+            UpdateShineState();
         }
         
         public Vector3? GetOriginalScale()
