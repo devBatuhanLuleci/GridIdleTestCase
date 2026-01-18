@@ -377,6 +377,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: GridSystemModule.Core::GridSystemModule.Core.GridTrashBin
   _spriteRenderer: {fileID: 405729758}
   _highlightColor: {r: 1, g: 0.7028302, b: 0.7028302, a: 1}
+  _fadeDuration: 0.3
+  _activationDelay: 0.4
+  _deactivationDelay: 0.1
 --- !u!212 &405729758
 SpriteRenderer:
   serializedVersion: 2
