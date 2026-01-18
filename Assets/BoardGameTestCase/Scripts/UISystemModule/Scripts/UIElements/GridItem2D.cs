@@ -72,8 +72,10 @@ namespace UISystemModule.UIElements
         private static readonly int UseOutlineProp = Shader.PropertyToID("_UseOutline");
         private static readonly int OutlineWidthProp = Shader.PropertyToID("_OutlineWidth");
         private static readonly int OutlineGlowProp = Shader.PropertyToID("_OutlineGlow");
+        private static readonly int UseShineProp = Shader.PropertyToID("_UseShine");
         
         private float _initialOutlineGlow;
+        private bool _initialShineState;
         private Tween _outlineTween;
         private Tween _glowTween;
         
@@ -118,6 +120,7 @@ namespace UISystemModule.UIElements
                 // Eagerly create material instance
                 _instancedMaterial = _spriteRenderer.material;
                 _initialOutlineGlow = _instancedMaterial.GetFloat(OutlineGlowProp);
+                _initialShineState = _instancedMaterial.GetFloat(UseShineProp) > 0.5f;
             }
             
             SetupScaleFromGridParent();
@@ -669,6 +672,10 @@ namespace UISystemModule.UIElements
                 _instancedMaterial.SetFloat(UseOutlineProp, 1f);
                 _instancedMaterial.EnableKeyword("_OUTLINE_ON");
 
+                // Disable Shine during drag
+                _instancedMaterial.SetFloat(UseShineProp, 0f);
+                _instancedMaterial.DisableKeyword("_SHINE_ON");
+
                 _glowTween?.Kill();
 
                 // Animate Glow to target value
@@ -694,6 +701,13 @@ namespace UISystemModule.UIElements
                             _instancedMaterial.DisableKeyword("_OUTLINE_ON");
                         }
                     });
+
+                // Restore Shine if it was initially enabled
+                if (_initialShineState)
+                {
+                    _instancedMaterial.SetFloat(UseShineProp, 1f);
+                    _instancedMaterial.EnableKeyword("_SHINE_ON");
+                }
             }
         }
         
