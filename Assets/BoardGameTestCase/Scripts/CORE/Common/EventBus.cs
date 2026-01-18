@@ -18,6 +18,7 @@ namespace BoardGameTestCase.Core.Common
                 {
                     var go = new GameObject("EventBus");
                     _instance = go.AddComponent<EventBus>();
+                    go.transform.SetParent(null);
                     DontDestroyOnLoad(go);
                 }
                 return _instance;
@@ -29,6 +30,7 @@ namespace BoardGameTestCase.Core.Common
             if (_instance == null)
             {
                 _instance = this;
+                transform.SetParent(null);
                 DontDestroyOnLoad(gameObject);
             }
             else if (_instance != this)
@@ -67,7 +69,7 @@ namespace BoardGameTestCase.Core.Common
                 {
                     handler.Handle(eventData);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                 }
             }
