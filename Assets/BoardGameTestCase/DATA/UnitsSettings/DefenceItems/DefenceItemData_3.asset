@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: BoardGameTestCase.Core::BoardGameTestCase.Core.ScriptableObjects.DefenceItemData
   _sprite: {fileID: 21300000, guid: 72d0d4cfae0b348a8b73f192dfe7f4cc, type: 3}
   _displayName: Defence Item 3
-  _damage: 6
+  _damage: 3
   _reloadDuration: 6
   _gridSize: {x: 2, y: 3}
   _itemId: defence_item_3

@@ -169,15 +169,8 @@ namespace UISystemModule.UIElements
         {
             var currentLevel = _levelDataProvider.CurrentLevel;
             
-            // If full reset, unregister all items but keep slot structure
-            // This avoids re-creating all slots which causes offset issues
-            if (forceFullReset)
-            {
-                foreach (var item in _allSpriteItems)
-                {
-                    _slotManager?.UnregisterItem(item);
-                }
-            }
+            // Removed redundant unregistration loop that was causing SlotManager to lose track of items.
+            // SyncSpriteItems will handle adding/removing items as needed based on inventory quantity.
             
             int spawnCursor = 0;
             for (int itemIndex = 0; itemIndex < currentLevel.DefenceItems.Count; itemIndex++)

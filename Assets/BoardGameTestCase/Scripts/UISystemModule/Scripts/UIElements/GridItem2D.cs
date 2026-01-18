@@ -1110,6 +1110,8 @@ namespace UISystemModule.UIElements
             transform.DOKill();
             _glowTween?.Kill();
             _widthTween?.Kill();
+            StopReloadAnimation();
+            _reloadCompleteSequence?.Kill();
 
             Vector3 startPos = transform.position;
             Vector3 controlPoint = BezierUtils.GetAutomaticControlPoint(startPos, trashPosition, _discardBezierHeight, Vector3.up);
@@ -1204,7 +1206,7 @@ namespace UISystemModule.UIElements
 
         public void StartReloadAnimation(float? duration = null)
         {
-            if (!_enableReloadAnimation) return;
+            if (!_enableReloadAnimation || _isBeingDiscarded) return;
 
             // If ALREADY reloading, do NOT restart/reset.
             if (_reloadTween != null && _reloadTween.IsActive() && _reloadTween.IsPlaying()) 

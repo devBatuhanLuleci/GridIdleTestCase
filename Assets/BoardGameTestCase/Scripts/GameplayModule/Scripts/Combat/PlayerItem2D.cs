@@ -84,12 +84,14 @@ namespace GameplayModule
         }
 
         private void HandleItemPlaced(IPlaceable placeable)
+    {
+        var item = placeable as GridItem2D;
+        if (item != null)
         {
-            if (placeable is GridItem2D gridItem)
-            {
-                TrackItem(gridItem);
-            }
+            Debug.Log($"[PlayerItem2D] HandleItemPlaced: {item.name} at {item.GridPosition}");
+            TrackItem(item);
         }
+    }
 
         private void TrackItem(GridItem2D item)
         {
@@ -106,7 +108,9 @@ namespace GameplayModule
 
         private void HandleReloadComplete(GridItem2D item)
         {
-            if (item == null || !item.IsPlaced) return;
+            if (item == null) return;
+            // Allow launch if placed OR if being dragged (for already placed items)
+            if (!item.IsPlaced && !item.IsDragging) return;
             
             LaunchProjectile(item);
         }

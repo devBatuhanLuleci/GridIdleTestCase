@@ -37,12 +37,42 @@ namespace UISystemModule.UIElements
 
         private void OnEnable()
         {
-            if (_gridPlacementSystemObject != null)
+            if (_gridPlacementSystem == null)
             {
-                _gridPlacementSystem = _gridPlacementSystemObject as IGridPlacementSystem;
+                if (_gridPlacementSystemObject != null)
+                {
+                    _gridPlacementSystem = _gridPlacementSystemObject as IGridPlacementSystem;
+                }
+                else
+                {
+                    _gridPlacementSystem = ServiceLocator.Instance?.Get<IGridPlacementSystem>();
+                }
+            }
+
+            if (_gridPlacementSystem != null)
+            {
+                // Unsubscribe first to avoid double registration
+                _gridPlacementSystem.OnItemPlaced -= HandleGridItemPlaced;
+                _gridPlacementSystem.OnItemPlaced += HandleGridItemPlaced;
+                Debug.Log($"[InventorySlotManager] Subscribed to OnItemPlaced of {_gridPlacementSystem.GetType().Name}");
+            }
+            else
+            {
+                Debug.LogWarning("[InventorySlotManager] Could not find IGridPlacementSystem! Replenishment won't work.");
+            }
+        }
+
+        private void Start()
+        {
+            // Retry finding and subscribing in Start in case ServiceLocator was not ready in OnEnable
+            if (_gridPlacementSystem == null)
+            {
+                _gridPlacementSystem = ServiceLocator.Instance?.Get<IGridPlacementSystem>();
                 if (_gridPlacementSystem != null)
                 {
+                    _gridPlacementSystem.OnItemPlaced -= HandleGridItemPlaced;
                     _gridPlacementSystem.OnItemPlaced += HandleGridItemPlaced;
+                    Debug.Log($"[InventorySlotManager] Subscribed to OnItemPlaced of {_gridPlacementSystem.GetType().Name} in Start");
                 }
             }
         }
@@ -59,9 +89,12 @@ namespace UISystemModule.UIElements
         private void HandleGridItemPlaced(IPlaceable placeable)
         {
             var gridItem = placeable as GridItem2D;
-            // Only count items that are currently tracked in the inventory slots.
-            // Items already on the grid (moved/swapped) are not in slots.
-            if (gridItem != null && IsItemInSlot(gridItem))
+            int slotIdx = GetSlotIndex(gridItem);
+            bool inSlot = gridItem != null && slotIdx != -1;
+            
+            Debug.Log($"[InventorySlotManager] HandleGridItemPlaced: item={gridItem?.name}, inSlot={inSlot}, slotIdx={slotIdx}, totalSlots={_slots.Count}, countBefore={_placedItemCount}");
+            
+            if (gridItem != null && inSlot)
             {
                 // IMPORTANT: Immediately unregister and reorder to close the gap
                 // This must happen BEFORE adding new items so GetFirstEmptySlotIndex works correctly
@@ -69,8 +102,11 @@ namespace UISystemModule.UIElements
                 ReorderItemsByXPosition();
 
                 _placedItemCount++;
+                Debug.Log($"[InventorySlotManager] Incremented placedItemCount: {_placedItemCount}");
+
                 if (_placedItemCount % 3 == 0)
                 {
+                    Debug.Log("[InventorySlotManager] Reached 3 placements! Adding random items...");
                     AddRandomItemsToInventory(3);
                 }
             }
@@ -235,6 +271,8 @@ namespace UISystemModule.UIElements
             var slot = _slots[slotIndex];
             slot.Item = item;
             
+            Debug.Log($"[InventorySlotManager] Registered item {item.name} to slot {slotIndex}. Total slots: {_slots.Count}");
+            
             // Subscribe to drag events
             SubscribeToDragEvents(item);
         }
@@ -250,6 +288,7 @@ namespace UISystemModule.UIElements
             {
                 if (_slots[i].Item == item)
                 {
+                    Debug.Log($"[InventorySlotManager] Unregistered item {item.name} from slot {i}");
                     _slots[i].Item = null;
                     UnsubscribeFromDragEvents(item);
                     break;
