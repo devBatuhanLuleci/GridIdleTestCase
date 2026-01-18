@@ -60,6 +60,16 @@ namespace UISystemModule.UIElements
         [SerializeField] private float _failPunchDuration = 0.4f; // Duration of fail animation
         [SerializeField] private Color _failFlashColor = Color.red; // Color to flash on failure
         [SerializeField] private float _failFlashDuration = 0.4f; // How long the color flash lasts
+
+        [Header("Outline Selection Animation Settings")]
+        [SerializeField] private float _dragOutlineStartWidth = 1.5f;
+        [SerializeField] private float _dragOutlineEndWidth = 2.5f;
+        [SerializeField] private float _dragOutlineLoopDuration = 0.5f;
+        [SerializeField] private float _dropOutlineFadeDuration = 0.3f;
+
+        private Tween _outlineTween;
+        private static readonly int UseOutlineProp = Shader.PropertyToID("_UseOutline");
+        private static readonly int OutlineWidthProp = Shader.PropertyToID("_OutlineWidth");
         
         private Vector3 _originalPosition;
         private Transform _originalParent;
@@ -542,6 +552,7 @@ namespace UISystemModule.UIElements
             transform.DOScale(_originalScale, _returnDuration).SetEase(_returnEase);
             
             SetColor(_normalColor);
+            StopOutlineAnimation();
         }
         
         private void SetColor(Color color)
@@ -626,6 +637,41 @@ namespace UISystemModule.UIElements
             
             // Punch effect on selection - like snapping into a slot
             transform.DOPunchScale(Vector3.one * _selectionPunchStrength, _selectionPunchDuration, _selectionPunchVibrato, 1);
+
+            StartOutlineAnimation();
+        }
+
+        private void StartOutlineAnimation()
+        {
+            if (_spriteRenderer != null)
+            {
+                var mat = _spriteRenderer.material; // Creates instance material
+                mat.SetFloat(UseOutlineProp, 1f);
+                mat.EnableKeyword("_OUTLINE_ON");
+
+                _outlineTween?.Kill();
+                mat.SetFloat(OutlineWidthProp, _dragOutlineStartWidth);
+                _outlineTween = mat.DOFloat(_dragOutlineEndWidth, OutlineWidthProp, _dragOutlineLoopDuration)
+                    .SetLoops(-1, LoopType.Yoyo)
+                    .SetEase(Ease.InOutSine);
+            }
+        }
+
+        private void StopOutlineAnimation()
+        {
+            if (_spriteRenderer != null)
+            {
+                _outlineTween?.Kill();
+                _outlineTween = _spriteRenderer.material.DOFloat(0f, OutlineWidthProp, _dropOutlineFadeDuration)
+                    .OnComplete(() =>
+                    {
+                        if (_spriteRenderer != null)
+                        {
+                            _spriteRenderer.material.SetFloat(UseOutlineProp, 0f);
+                            _spriteRenderer.material.DisableKeyword("_OUTLINE_ON");
+                        }
+                    });
+            }
         }
         
         public void OnDrag(Vector3 worldPosition)
@@ -689,6 +735,7 @@ namespace UISystemModule.UIElements
                              .SetDelay(_placementPunchDelay);
                 }
                 
+                StopOutlineAnimation();
                 AttachCombatComponentIfNeeded();
             }
             else
