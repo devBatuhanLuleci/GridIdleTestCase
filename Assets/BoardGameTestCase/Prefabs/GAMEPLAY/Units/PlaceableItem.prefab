@@ -80,6 +80,7 @@ MonoBehaviour:
   _failFlashDuration: 0.4
   _dropOutlineFadeDuration: 0.3
   _dragOutlineGlowValue: 4
+  _dragOutlineWidthValue: 6
 --- !u!212 &9154927729986020510
 SpriteRenderer:
   serializedVersion: 2

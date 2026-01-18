@@ -63,6 +63,8 @@ namespace UISystemModule.UIElements
 
         [Header("Outline Selection Animation Settings")]
         [SerializeField] private float _dropOutlineFadeDuration = 0.3f;
+        [SerializeField] private float _idleOutlineWidth = 1f;
+        [SerializeField] private float _placedOutlineWidth = 1.2f;
         [SerializeField] private float _dragOutlineGlowValue = 2f;
         [SerializeField] private float _dragOutlineWidthValue = 2f;
 
@@ -73,7 +75,6 @@ namespace UISystemModule.UIElements
         private static readonly int UseShineProp = Shader.PropertyToID("_UseShine");
         
         private float _initialOutlineGlow;
-        private float _initialOutlineWidth;
         private bool _initialShineState;
         private Tween _glowTween;
         private Tween _widthTween;
@@ -119,7 +120,6 @@ namespace UISystemModule.UIElements
                 // Eagerly create material instance
                 _instancedMaterial = _spriteRenderer.material;
                 _initialOutlineGlow = _instancedMaterial.GetFloat(OutlineGlowProp);
-                _initialOutlineWidth = _instancedMaterial.GetFloat(OutlineWidthProp);
                 _initialShineState = _instancedMaterial.GetFloat(UseShineProp) > 0.5f;
                 UpdateShineState();
             }
@@ -726,8 +726,9 @@ namespace UISystemModule.UIElements
                         }
                     });
 
-                // Animate Width back to initial value
-                _widthTween = _instancedMaterial.DOFloat(_initialOutlineWidth, OutlineWidthProp, _dropOutlineFadeDuration)
+                // Animate Width back to target value
+                float targetWidth = _isPlaced ? _placedOutlineWidth : _idleOutlineWidth;
+                _widthTween = _instancedMaterial.DOFloat(targetWidth, OutlineWidthProp, _dropOutlineFadeDuration)
                     .SetEase(Ease.InSine);
 
                 // Sync shine state (will restore if not placed)
