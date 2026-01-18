@@ -34,11 +34,7 @@ namespace BoardGameTestCase.Core
         [Tooltip("Maximum scale limit")]
         [SerializeField] private float _maxScale = 2f;
         
-        [Header("Auto Update")]
-        [Tooltip("Automatically update when screen size changes")]
-        [SerializeField] private bool _autoUpdate = true;
-        
-        [Tooltip("Reference camera (null = main camera)")]
+        [Header("Reference camera (null = main camera)")]
         [SerializeField] private Camera _targetCamera;
         
         [Header("Debug")]
@@ -65,23 +61,19 @@ namespace BoardGameTestCase.Core
             }
         }
         
+        private void OnEnable()
+        {
+            ScreenChangeEventManager.OnScreenSizeChanged += ApplyResponsiveScale;
+        }
+
+        private void OnDisable()
+        {
+            ScreenChangeEventManager.OnScreenSizeChanged -= ApplyResponsiveScale;
+        }
+
         private void Start()
         {
             ApplyResponsiveScale();
-            _lastScreenSize = new Vector2(Screen.width, Screen.height);
-        }
-        
-        private void Update()
-        {
-            if (_autoUpdate)
-            {
-                Vector2 currentScreenSize = new Vector2(Screen.width, Screen.height);
-                if (currentScreenSize != _lastScreenSize)
-                {
-                    ApplyResponsiveScale();
-                    _lastScreenSize = currentScreenSize;
-                }
-            }
         }
         
         [ContextMenu("Apply Responsive Scale")]

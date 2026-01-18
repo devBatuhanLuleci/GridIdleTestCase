@@ -151,15 +151,11 @@ namespace GridSystemModule.Managers
         {
             if (_tilesParent == null || _gridService == null) return;
             
-            bool scaleChanged = _tilesParent.localScale != _lastTilesParentScale;
-            bool positionChanged = _tilesParent.localPosition != _lastTilesParentPosition;
-            bool rotationChanged = _tilesParent.localRotation != _lastTilesParentRotation;
-            
-            if (scaleChanged || positionChanged || rotationChanged)
+            // transform.hasChanged is much more efficient than manual vector comparisons
+            if (_tilesParent.hasChanged)
             {
                 MaintainTileLocalTransforms();
-                
-                TrackTilesParentTransform();
+                _tilesParent.hasChanged = false; // Reset the flag
             }
         }
         

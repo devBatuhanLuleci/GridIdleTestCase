@@ -13,21 +13,16 @@ namespace BoardGameTestCase.Core
         [Tooltip("How the background should fit the screen")]
         [SerializeField] private FitMode _fitMode = FitMode.Cover;
         
-        [Tooltip("Automatically update when screen size changes")]
-        [SerializeField] private bool _autoUpdate = true;
+        [Tooltip("Vertical offset (useful for parallax)")]
+        [SerializeField] private float _verticalOffset = 0f;
         
         [Tooltip("Reference camera (null = main camera)")]
         [SerializeField] private Camera _targetCamera;
         
-        [Header("Offset Settings")]
         [Tooltip("Additional scale multiplier")]
         [SerializeField] private float _scaleMultiplier = 1f;
-        
-        [Tooltip("Vertical offset (useful for parallax)")]
-        [SerializeField] private float _verticalOffset = 0f;
-        
+
         private SpriteRenderer _spriteRenderer;
-        private Vector2 _lastScreenSize;
         
         public enum FitMode
         {
@@ -45,24 +40,20 @@ namespace BoardGameTestCase.Core
                 _targetCamera = Camera.main;
             }
         }
+
+        private void OnEnable()
+        {
+            ScreenChangeEventManager.OnScreenSizeChanged += ScaleToFitCamera;
+        }
+
+        private void OnDisable()
+        {
+            ScreenChangeEventManager.OnScreenSizeChanged -= ScaleToFitCamera;
+        }
         
         private void Start()
         {
             ScaleToFitCamera();
-            _lastScreenSize = new Vector2(Screen.width, Screen.height);
-        }
-        
-        private void Update()
-        {
-            if (_autoUpdate)
-            {
-                Vector2 currentScreenSize = new Vector2(Screen.width, Screen.height);
-                if (currentScreenSize != _lastScreenSize)
-                {
-                    ScaleToFitCamera();
-                    _lastScreenSize = currentScreenSize;
-                }
-            }
         }
         
         [ContextMenu("Scale To Fit Camera")]
