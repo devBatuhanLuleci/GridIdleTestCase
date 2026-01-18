@@ -12,23 +12,38 @@ namespace GridSystemModule.Core
         private Color _normalColor;
         public Transform Transform => transform;
 
+        private float _currentAlpha = 0f;
+        private Color _currentBaseColor;
+
         private void Awake()
         {
             if (_spriteRenderer == null) _spriteRenderer = GetComponent<SpriteRenderer>();
             if (_spriteRenderer != null)
             {
                 _normalColor = _spriteRenderer.color;
+                _currentBaseColor = _normalColor;
                 
                 // Start invisible
                 Color c = _spriteRenderer.color;
                 c.a = 0f;
                 _spriteRenderer.color = c;
+                _currentAlpha = 0f;
             }
 
             // Register to service locator
             if (ServiceLocator.Instance != null)
             {
                 ServiceLocator.Instance.Register<IGridTrashBin>(this);
+            }
+        }
+        
+        private void Update()
+        {
+            if (_spriteRenderer != null)
+            {
+                Color finalColor = _currentBaseColor;
+                finalColor.a = _currentAlpha;
+                _spriteRenderer.color = finalColor;
             }
         }
 
@@ -55,37 +70,22 @@ namespace GridSystemModule.Core
 
         public void SetHighlight(bool active)
         {
-            if (_spriteRenderer != null)
-            {
-                Color targetBase = active ? _highlightColor : _normalColor;
-                Color currentColor = _spriteRenderer.color;
-
-                // Optimization: Only update if RGB differs (ignoring alpha which is controlled by tween)
-                if (!Mathf.Approximately(currentColor.r, targetBase.r) ||
-                    !Mathf.Approximately(currentColor.g, targetBase.g) ||
-                    !Mathf.Approximately(currentColor.b, targetBase.b))
-                {
-                    targetBase.a = currentColor.a; // Strict preservation
-                    _spriteRenderer.color = targetBase;
-                }
-            }
+            // Just update the target base color
+            _currentBaseColor = active ? _highlightColor : _normalColor;
         }
 
         public void Show(bool active)
         {
             if (_spriteRenderer == null) return;
             
-            // Debug.Log($"[GridTrashBin] Show({active}) called. Current Alpha: {_spriteRenderer.color.a}");
-            
             float targetAlpha = active ? 1f : 0f;
-            _spriteRenderer.DOKill();
             
-            DOTween.To(() => _spriteRenderer.color.a, x => 
-            {
-                Color c = _spriteRenderer.color;
-                c.a = x;
-                _spriteRenderer.color = c;
-            }, targetAlpha, 0.3f).SetTarget(_spriteRenderer);
+            // Kill any alpha tweens on this object (or specifically on the field if we stored the Tweener)
+            DOTween.Kill(this, "AlphaTween");
+
+            DOTween.To(() => _currentAlpha, x => _currentAlpha = x, targetAlpha, 0.3f)
+                   .SetTarget(this)
+                   .SetId("AlphaTween");
         }
     }
 }
