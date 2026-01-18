@@ -24,9 +24,6 @@ Shader "Custom/URPSuperSprite"
         _OutlineOffset ("Outline Offset", Vector) = (0,0,0,0)
         _OutlineGradientSpeed ("Gradient Speed", Range(0, 10)) = 0
         
-        [Header(Mesh Boundary Fix)]
-        _VerticesExpand ("Expand Mesh", Range(0, 1)) = 0.1
-
         [Header(Inner Sprite Outline)]
         [Toggle(_INNER_OUTLINE_ON)] _UseInnerOutline ("Use Inner Sprite Outline", Float) = 0
         _InnerOutlineColor ("Inner Color", Color) = (1,1,0,1)
@@ -113,7 +110,6 @@ Shader "Custom/URPSuperSprite"
                 float4 positionCS : SV_POSITION;
                 float4 color      : COLOR;
                 float2 uv         : TEXCOORD0;
-                float2 originalUv : TEXCOORD1;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
@@ -141,8 +137,6 @@ Shader "Custom/URPSuperSprite"
                 float _OutlineGlow;
                 float4 _OutlineOffset;
                 float _OutlineGradientSpeed;
-
-                float _VerticesExpand;
                 
                 float4 _InnerOutlineColor;
                 float _InnerOutlineWidth;
@@ -188,15 +182,8 @@ Shader "Custom/URPSuperSprite"
                 float4 positionOS = input.positionOS;
                 positionOS.xy *= _Flip.xy;
 
-                #if defined(_OUTLINE_ON) || defined(_OUTLINE_SECONDARY_ON)
-                    float maxWidth = max(_OutlineWidth, _OutlineWidthSecondary);
-                    float2 expansion = sign(input.uv - 0.5) * _VerticesExpand * maxWidth * 0.01;
-                    positionOS.xy += expansion;
-                #endif
-
                 output.positionCS = TransformObjectToHClip(positionOS.xyz);
                 output.uv = TRANSFORM_TEX(input.uv, _MainTex);
-                output.originalUv = input.uv;
                 output.color = input.color * _Color * _RendererColor;
 
                 return output;
@@ -208,20 +195,12 @@ Shader "Custom/URPSuperSprite"
 
                 float2 uv = input.uv;
                 
-                #if defined(_OUTLINE_ON) || defined(_OUTLINE_SECONDARY_ON)
-                    float maxWidth = max(_OutlineWidth, _OutlineWidthSecondary);
-                    float expandFactor = 1.0 + (_VerticesExpand * maxWidth * 0.01) * 2.0;
-                    uv = (input.originalUv - 0.5) * expandFactor + 0.5;
-                    uv = uv * _MainTex_ST.xy + _MainTex_ST.zw;
-                #endif
-
                 #if _DISTORTION_ON
                     float distort = sin(_Time.y * _DistortSpeed + uv.y * _DistortFreq) * _DistortAmount;
                     uv.x += distort;
                 #endif
 
-                bool isOutside = uv.x < 0 || uv.x > 1 || uv.y < 0 || uv.y > 1;
-                float4 mainTexColor = isOutside ? float4(0,0,0,0) : SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv);
+                float4 mainTexColor = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv);
                 float alpha = mainTexColor.a;
 
                 float3 baseRGB = mainTexColor.rgb;
@@ -241,10 +220,9 @@ Shader "Custom/URPSuperSprite"
                     float2 shineDir = float2(cos(angleRad), sin(angleRad));
                     float shinePos = (uv.x * shineDir.x + uv.y * shineDir.y);
                     
-                    // Delay/Pause Logic
-                    float totalCycle = 2.0 + _ShinePause; // Total distance + pause
+                    float totalCycle = 2.0 + _ShinePause;
                     float t = fmod(_Time.y * _ShineSpeed, totalCycle);
-                    float shineMask = step(t, 2.0); // Only visible during traversal (range 2.0 covers -0.5 to 1.5)
+                    float shineMask = step(t, 2.0);
                     
                     float effectiveLocation = _ShineLocation + t;
                     if (_ShineSpeed <= 0) effectiveLocation = _ShineLocation;
@@ -277,8 +255,7 @@ Shader "Custom/URPSuperSprite"
                         float2 texelSize1 = _MainTex_TexelSize.xy * _OutlineWidth;
                         for (int i = 0; i < 16; i++) {
                             float2 sUv = offsetUv + directions[i] * texelSize1;
-                            float a = (sUv.x < 0 || sUv.x > 1 || sUv.y < 0 || sUv.y > 1) ? 0 : SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, sUv).a;
-                            alphaMax1 = max(alphaMax1, a);
+                            alphaMax1 = max(alphaMax1, SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, sUv).a);
                         }
                         factorPrimary = smoothstep(_AlphaThreshold - edgeSmooth, _AlphaThreshold, alphaMax1);
                     #endif
@@ -289,8 +266,7 @@ Shader "Custom/URPSuperSprite"
                         float2 texelSize2 = _MainTex_TexelSize.xy * _OutlineWidthSecondary;
                         for (int j = 0; j < 16; j++) {
                             float2 sUv2 = offsetUv + directions[j] * texelSize2;
-                            float a2 = (sUv2.x < 0 || sUv2.x > 1 || sUv2.y < 0 || sUv2.y > 1) ? 0 : SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, sUv2).a;
-                            alphaMax2 = max(alphaMax2, a2);
+                            alphaMax2 = max(alphaMax2, SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, sUv2).a);
                         }
                         factorSecondary = smoothstep(_AlphaThreshold - edgeSmooth, _AlphaThreshold, alphaMax2);
                     #endif
@@ -310,10 +286,10 @@ Shader "Custom/URPSuperSprite"
                 #if _INNER_OUTLINE_ON
                     float2 innerTexelSize = _MainTex_TexelSize.xy * _InnerOutlineWidth;
                     float innerAlphaMin = 1;
-                    innerAlphaMin = min(innerAlphaMin, (uv.x + innerTexelSize.x > 1 ? 0 : SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv + float2(innerTexelSize.x, 0)).a));
-                    innerAlphaMin = min(innerAlphaMin, (uv.x - innerTexelSize.x < 0 ? 0 : SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv + float2(-innerTexelSize.x, 0)).a));
-                    innerAlphaMin = min(innerAlphaMin, (uv.y + innerTexelSize.y > 1 ? 0 : SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv + float2(0, innerTexelSize.y)).a));
-                    innerAlphaMin = min(innerAlphaMin, (uv.y - innerTexelSize.y < 0 ? 0 : SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv + float2(0, -innerTexelSize.y)).a));
+                    innerAlphaMin = min(innerAlphaMin, SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv + float2(innerTexelSize.x, 0)).a);
+                    innerAlphaMin = min(innerAlphaMin, SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv + float2(-innerTexelSize.x, 0)).a);
+                    innerAlphaMin = min(innerAlphaMin, SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv + float2(0, innerTexelSize.y)).a);
+                    innerAlphaMin = min(innerAlphaMin, SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv + float2(0, -innerTexelSize.y)).a);
                     float innerOutlineFactor = smoothstep(0.5 + _OutlineSmoothness, 0.5, innerAlphaMin) * step(0.1, alpha);
                     
                     float4 innerCol = _InnerOutlineColor;
