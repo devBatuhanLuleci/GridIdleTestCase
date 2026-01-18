@@ -66,6 +66,7 @@ namespace UISystemModule.UIElements
         [SerializeField] private float _dragOutlineEndWidth = 2.5f;
         [SerializeField] private float _dragOutlineLoopDuration = 0.5f;
         [SerializeField] private float _dropOutlineFadeDuration = 0.3f;
+        [SerializeField] private float _dragOutlineGlowValue = 2f;
 
         private Material _instancedMaterial;
         private static readonly int UseOutlineProp = Shader.PropertyToID("_UseOutline");
@@ -677,8 +678,8 @@ namespace UISystemModule.UIElements
                     .SetLoops(-1, LoopType.Yoyo)
                     .SetEase(Ease.InOutSine);
 
-                // Animate Glow to 2
-                _glowTween = _instancedMaterial.DOFloat(2f, OutlineGlowProp, _selectionPunchDuration)
+                // Animate Glow to target value
+                _glowTween = _instancedMaterial.DOFloat(_dragOutlineGlowValue, OutlineGlowProp, _selectionPunchDuration)
                     .SetEase(Ease.OutSine);
             }
         }
