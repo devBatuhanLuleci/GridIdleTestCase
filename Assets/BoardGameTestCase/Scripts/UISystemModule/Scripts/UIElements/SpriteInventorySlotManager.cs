@@ -63,6 +63,11 @@ namespace UISystemModule.UIElements
             // Items already on the grid (moved/swapped) are not in slots.
             if (gridItem != null && IsItemInSlot(gridItem))
             {
+                // IMPORTANT: Immediately unregister and reorder to close the gap
+                // This must happen BEFORE adding new items so GetFirstEmptySlotIndex works correctly
+                UnregisterItem(gridItem);
+                ReorderItemsByXPosition();
+
                 _placedItemCount++;
                 if (_placedItemCount % 3 == 0)
                 {
@@ -195,6 +200,9 @@ namespace UISystemModule.UIElements
 
             // 7. Registration
             RegisterItem(gridItem, targetIndex);
+            
+            // 8. Rebuild layout to ensure new items and any existing ones are correctly aligned
+            RebuildLayout();
             
             return gridItem;
         }
