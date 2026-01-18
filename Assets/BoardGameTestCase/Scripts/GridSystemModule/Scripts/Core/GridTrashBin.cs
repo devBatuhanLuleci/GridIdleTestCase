@@ -1,5 +1,6 @@
 using UnityEngine;
 using BoardGameTestCase.Core.Common;
+using DG.Tweening;
 using GridSystemModule.Core.Interfaces;
 
 namespace GridSystemModule.Core
@@ -14,7 +15,15 @@ namespace GridSystemModule.Core
         private void Awake()
         {
             if (_spriteRenderer == null) _spriteRenderer = GetComponent<SpriteRenderer>();
-            if (_spriteRenderer != null) _normalColor = _spriteRenderer.color;
+            if (_spriteRenderer != null)
+            {
+                _normalColor = _spriteRenderer.color;
+                
+                // Start invisible
+                Color c = _spriteRenderer.color;
+                c.a = 0f;
+                _spriteRenderer.color = c;
+            }
 
             // Register to service locator
             if (ServiceLocator.Instance != null)
@@ -29,6 +38,7 @@ namespace GridSystemModule.Core
             {
                 ServiceLocator.Instance.Unregister<IGridTrashBin>();
             }
+            _spriteRenderer.DOKill();
         }
 
         public bool IsPointOver(Vector3 worldPoint)
@@ -47,8 +57,24 @@ namespace GridSystemModule.Core
         {
             if (_spriteRenderer != null)
             {
-                _spriteRenderer.color = active ? _highlightColor : _normalColor;
+                Color targetColor = active ? _highlightColor : _normalColor;
+                targetColor.a = _spriteRenderer.color.a; // Preserve current alpha
+                _spriteRenderer.color = targetColor;
             }
+        }
+
+        public void Show(bool active)
+        {
+            if (_spriteRenderer == null) return;
+            
+            float targetAlpha = active ? 1f : 0f;
+            _spriteRenderer.DOKill();
+            DOTween.To(() => _spriteRenderer.color.a, x => 
+            {
+                Color c = _spriteRenderer.color;
+                c.a = x;
+                _spriteRenderer.color = c;
+            }, targetAlpha, 0.3f);
         }
     }
 }

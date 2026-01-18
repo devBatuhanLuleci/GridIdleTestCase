@@ -7,6 +7,7 @@ namespace GridSystemModule.Core.Interfaces
     {
         bool IsPointOver(Vector3 worldPoint);
         void SetHighlight(bool active);
+        void Show(bool active);
         Transform Transform { get; }
     }
 }

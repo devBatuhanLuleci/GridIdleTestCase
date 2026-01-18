@@ -434,6 +434,8 @@ namespace UISystemModule.UIElements
             
             if (_isPlaced)
             {
+                // Show trash bin when dragging a previously placed item
+                ServiceLocator.Instance?.Get<IGridTrashBin>()?.Show(true);
                 _isPlaced = false;
             }
             
@@ -503,6 +505,12 @@ namespace UISystemModule.UIElements
                 _currentlyDraggingItem = null;
             }
             
+            // Hide trash bin if we are not discarding (if discarding, it stays shown until animation ends)
+            if (!_isBeingDiscarded)
+            {
+                 ServiceLocator.Instance?.Get<IGridTrashBin>()?.Show(false);
+            }
+            
             // Restore sorting layer to DraggableItem
             if (_spriteRenderer != null)
             {
@@ -569,6 +577,8 @@ namespace UISystemModule.UIElements
             
             if (_isPlaced)
             {
+                // Show trash bin when dragging a previously placed item
+                ServiceLocator.Instance?.Get<IGridTrashBin>()?.Show(true);
                 _isPlaced = false;
             }
             
@@ -1088,6 +1098,9 @@ namespace UISystemModule.UIElements
             // 5. Cleanup on complete
             DOVirtual.DelayedCall(_discardDuration, () =>
             {
+                // Hide trash bin now that throw is complete
+                ServiceLocator.Instance?.Get<IGridTrashBin>()?.Show(false);
+                
                 onComplete?.Invoke();
                 if (this != null && gameObject != null)
                     Destroy(gameObject);
