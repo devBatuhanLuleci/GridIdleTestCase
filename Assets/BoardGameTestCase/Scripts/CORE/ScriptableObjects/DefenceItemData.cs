@@ -17,14 +17,8 @@ namespace BoardGameTestCase.Core.ScriptableObjects
         
         [Header("Combat")]
         [SerializeField] private int _damage = 10;
-        [SerializeField] private float _range = 2.0f;
-        [SerializeField] private float _attackInterval = 1.0f;
         [SerializeField] private float _reloadDuration = 3f;
-        [SerializeField] private AttackDirection _attackDirection = AttackDirection.Forward;
-        [SerializeField] private int _health = 100;
         
-        [Header("Economy")]
-        [SerializeField] private int _cost = 50;
         
         [Header("Grid Settings")]
         [SerializeField] private Vector2Int _gridSize = new Vector2Int(1, 1);
@@ -46,12 +40,7 @@ namespace BoardGameTestCase.Core.ScriptableObjects
         public Sprite Sprite => _sprite;
         public string DisplayName => _displayName;
         public int Damage => _damage;
-        public float Range => _range;
-        public float AttackInterval => _attackInterval;
         public float ReloadDuration => _reloadDuration;
-        public AttackDirection AttackDirection => _attackDirection;
-        public int Health => _health;
-        public int Cost => _cost;
         public Vector2Int GridSize => _gridSize;
         public string ItemId => string.IsNullOrEmpty(_itemId) ? name : _itemId;
         public string Type => _type;

@@ -56,7 +56,9 @@ namespace GameplayModule
         {
             if (_defenceItemData == null) return;
             
-            switch (_defenceItemData.AttackDirection)
+            // Default to Forward since AttackDirection was removed from data
+            AttackDirection direction = AttackDirection.Forward; 
+            switch (direction)
             {
                 case AttackDirection.Forward:
                     _attackStrategy = new ForwardAttackStrategy();
@@ -164,7 +166,7 @@ namespace GameplayModule
                 
                 List<EnemyItem2D> enemiesInRange = _targetFinder.FindEnemiesInRange(
                     _cachedAttackerPosition, 
-                    _defenceItemData.Range, 
+                    2.0f, // Default Range
                     _enemySpawner
                 );
                 
@@ -177,7 +179,7 @@ namespace GameplayModule
                     _attackStrategy?.Attack(this, enemiesInRange);
                 }
                 
-                float attackInterval = _defenceItemData.AttackInterval;
+                float attackInterval = 1.0f; // Default Attack Interval
                 yield return new WaitForSeconds(attackInterval);
             }
         }

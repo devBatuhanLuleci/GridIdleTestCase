@@ -689,11 +689,6 @@ namespace UISystemModule.UIElements
         }
         
         public int Damage => _defenceItemData != null ? _defenceItemData.Damage : 0;
-        public float Range => _defenceItemData != null ? _defenceItemData.Range : 0f;
-        public float AttackInterval => _defenceItemData != null ? _defenceItemData.AttackInterval : 0f;
-        public AttackDirection AttackDirection => _defenceItemData != null ? _defenceItemData.AttackDirection : AttackDirection.Forward;
-        public int Health => _defenceItemData != null ? _defenceItemData.Health : 0;
-        public int Cost => _defenceItemData != null ? _defenceItemData.Cost : 0;
         public string DisplayName => _defenceItemData != null ? _defenceItemData.DisplayName : gameObject.name;
         
         public void OnDragStart()

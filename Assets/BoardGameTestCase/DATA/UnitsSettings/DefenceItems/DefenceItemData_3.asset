@@ -17,6 +17,7 @@ MonoBehaviour:
   _damage: 10
   _range: 1
   _attackInterval: 5
+  _reloadDuration: 6
   _attackDirection: 1
   _health: 100
   _cost: 50
