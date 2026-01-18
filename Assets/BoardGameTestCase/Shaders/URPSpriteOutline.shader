@@ -92,12 +92,9 @@ Shader "Custom/URPSpriteOutline"
                 UNITY_SETUP_INSTANCE_ID(input);
 
                 float2 uv = input.uv;
-                float4 mainColor = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv);
+                float4 mainTexColor = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv);
                 
-                // Determine if this pixel is part of the sprite
-                float alpha = mainColor.a;
-                
-                // Sampling offset based on texel size and thickness
+                float alpha = mainTexColor.a;
                 float2 texelSize = _MainTex_TexelSize.xy * _OutlineThickness;
 
                 // 8-tap sampling for outline detection
@@ -112,20 +109,21 @@ Shader "Custom/URPSpriteOutline"
                 alphaSum += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv + float2(texelSize.x, -texelSize.y)).a;
                 alphaSum += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv + float2(-texelSize.x, -texelSize.y)).a;
 
-                // Simple check: if current pixel is transparent but there are opaque neighbors
+                // Outline condition: pixel is relatively transparent but has opaque neighbors
                 float outlineFactor = step(0.001, alphaSum) * step(alpha, _AlphaThreshold);
                 
-                // Combine main color with outline
-                float4 finalColor = mainColor;
-                finalColor.rgb *= alpha; // Premultiply alpha for Sprite compliance
+                // 1. Calculate Sprite Color with Tint
+                float4 spriteColor = mainTexColor * input.color;
+                spriteColor.rgb *= spriteColor.a; // Premultiply for sprite rendering
+
+                // 2. Calculate Outline Color (independent of sprite tint)
+                float4 outlineColor = _OutlineColor;
+                outlineColor.rgb *= outlineColor.a; // Premultiply for sprite rendering
                 
-                float4 outColor = _OutlineColor;
-                outColor.rgb *= outColor.a; // Premultiply outline alpha
+                // 3. Combine: use outlineColor if outlineFactor is high, else use spriteColor
+                float4 finalColor = lerp(spriteColor, outlineColor, outlineFactor);
                 
-                // Apply outline where necessary
-                finalColor = lerp(finalColor, outColor, outlineFactor);
-                
-                return finalColor * input.color;
+                return finalColor;
             }
             ENDHLSL
         }
