@@ -66,6 +66,8 @@ namespace GridSystemModule.Core
                 Color targetBase = active ? _highlightColor : _normalColor;
                 Color currentColor = _spriteRenderer.color;
                 
+                Debug.Log($"[GridTrashBin] SetHighlight({active}) called. Current Alpha: {currentColor.a}, preserving it.");
+                
                 // Preserve the CURRENT alpha which is being animated by Show()
                 targetBase.a = currentColor.a;
                 _spriteRenderer.color = targetBase;
@@ -76,7 +78,10 @@ namespace GridSystemModule.Core
         {
             if (_spriteRenderer == null) return;
             
+            float currentAlpha = _spriteRenderer.color.a;
             float targetAlpha = active ? 1f : 0f;
+            
+            Debug.Log($"[GridTrashBin] Show({active}) called. Current Alpha: {currentAlpha}, Target Alpha: {targetAlpha}");
             
             // Kill any previous alpha tween to avoid conflicts
             _spriteRenderer.DOKill();
@@ -89,7 +94,8 @@ namespace GridSystemModule.Core
                 _spriteRenderer.color = c;
             }, targetAlpha, 0.3f)
             .SetTarget(_spriteRenderer)
-            .SetUpdate(true); // Ensure it runs even if time scale is 0 (just in case)
+            .SetUpdate(true)
+            .OnComplete(() => Debug.Log($"[GridTrashBin] Tween complete. Final Alpha: {(_spriteRenderer != null ? _spriteRenderer.color.a : -1f)}"));
         }
     }
 }
