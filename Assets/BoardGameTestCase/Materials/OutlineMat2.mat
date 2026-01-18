@@ -127,7 +127,7 @@ Material:
     - _OutlineGradientSpeed: 3.51
     - _OutlineSmoothness: 1
     - _OutlineThickness: 4.07
-    - _OutlineWidth: 6
+    - _OutlineWidth: 1.5
     - _OutlineWidthSecondary: 3.2
     - _Parallax: 0.005
     - _QueueOffset: 0

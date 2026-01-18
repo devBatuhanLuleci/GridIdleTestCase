@@ -79,6 +79,8 @@ MonoBehaviour:
   _failFlashColor: {r: 1, g: 0, b: 0, a: 0.69411767}
   _failFlashDuration: 0.4
   _dropOutlineFadeDuration: 0.3
+  _idleOutlineWidth: 1.5
+  _placedOutlineWidth: 1.5
   _dragOutlineGlowValue: 4
   _dragOutlineWidthValue: 6
 --- !u!212 &9154927729986020510
