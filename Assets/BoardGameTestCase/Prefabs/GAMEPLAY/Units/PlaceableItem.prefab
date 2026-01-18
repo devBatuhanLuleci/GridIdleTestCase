@@ -78,6 +78,10 @@ MonoBehaviour:
   _failPunchDuration: 0.4
   _failFlashColor: {r: 1, g: 0, b: 0, a: 0.69411767}
   _failFlashDuration: 0.4
+  _discardDuration: 0.6
+  _discardRotationAmount: 720
+  _discardBezierHeight: 2
+  _discardEase: 5
   _dropOutlineFadeDuration: 0.3
   _idleOutlineWidth: 1.5
   _placedOutlineWidth: 1.5
