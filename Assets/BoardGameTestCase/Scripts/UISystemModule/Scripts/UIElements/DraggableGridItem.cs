@@ -2,6 +2,8 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using GridSystemModule.Core.Interfaces;
 using BoardGameTestCase.Core.Common;
+using DG.Tweening;
+using BoardGameTestCase.Core;
 
 namespace UISystemModule.UIElements
 {
@@ -17,6 +19,12 @@ namespace UISystemModule.UIElements
         [SerializeField] private Color _normalColor = Color.white;
         [SerializeField] private Color _draggingColor = new Color(1f, 1f, 1f, 0.7f);
         [SerializeField] private Color _invalidColor = Color.red;
+
+        [Header("Discard Animation Settings")]
+        [SerializeField] private float _discardDuration = 0.8f;
+        [SerializeField] private float _discardRotationAmount = 720f;
+        [SerializeField] private float _discardBezierHeight = 3f;
+        [SerializeField] private Ease _discardEase = Ease.InQuad;
         
         private Vector3 _originalPosition;
         private Transform _originalParent;
@@ -24,6 +32,7 @@ namespace UISystemModule.UIElements
         private IGridPlacementSystem _placementSystem;
         private bool _isDragging = false;
         private bool _isPlaced = false;
+        private bool _isBeingDiscarded = false;
         private Vector2Int _gridPosition;
         
         public string PlaceableId => _placeableId;
@@ -53,6 +62,7 @@ namespace UISystemModule.UIElements
         
         public void OnBeginDrag(PointerEventData eventData)
         {
+            if (_isBeingDiscarded) return;
             if (_placementSystem == null) return;
             _originalPosition = transform.position;
             _originalParent = transform.parent;
@@ -159,6 +169,48 @@ namespace UISystemModule.UIElements
         {
             yield return new WaitForSeconds(delay);
             SetColor(_isDragging ? _draggingColor : _normalColor);
+        }
+
+        public void PlayDiscardAnimation(Vector3 trashPosition, System.Action onComplete = null)
+        {
+            if (_isBeingDiscarded) return;
+            _isBeingDiscarded = true;
+            
+            // Kill any active tweens on the transform
+            transform.DOKill();
+
+            Vector3 startPos = transform.position;
+            Vector3 controlPoint = BezierUtils.GetAutomaticControlPoint(startPos, trashPosition, _discardBezierHeight, Vector3.up);
+
+            // 1. Move along Bezier Curve
+            DOVirtual.Float(0f, 1f, _discardDuration, t =>
+            {
+                if (this == null) return;
+                transform.position = BezierUtils.GetPoint(startPos, controlPoint, trashPosition, t);
+            }).SetEase(_discardEase);
+
+            // 2. Rotate along Z axis
+            transform.DORotate(new Vector3(0, 0, _discardRotationAmount), _discardDuration, RotateMode.FastBeyond360)
+                .SetEase(_discardEase);
+
+            // 3. Shrink scale
+            transform.DOScale(Vector3.zero, _discardDuration)
+                .SetEase(_discardEase);
+
+            // 4. Fade out transparency (Alpha)
+            if (_canvasGroup != null)
+            {
+                DOTween.To(() => _canvasGroup.alpha, x => _canvasGroup.alpha = x, 0f, _discardDuration)
+                    .SetEase(_discardEase);
+            }
+
+            // 5. Cleanup on complete
+            DOVirtual.DelayedCall(_discardDuration, () =>
+            {
+                onComplete?.Invoke();
+                if (this != null && gameObject != null)
+                    Destroy(gameObject);
+            });
         }
     }
 }

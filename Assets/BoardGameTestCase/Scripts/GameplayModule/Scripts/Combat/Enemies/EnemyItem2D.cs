@@ -6,6 +6,7 @@ using GridSystemModule.Core.Interfaces;
 using BoardGameTestCase.Core.ScriptableObjects;
 using GameModule.Core.Interfaces;
 using BoardGameTestCase.Core.Common;
+using BoardGameTestCase.Core;
 
 namespace GameplayModule
 {
@@ -25,6 +26,7 @@ namespace GameplayModule
         private bool _isPlaced = false;
         private Tween _healthBarTween;
         private Vector3 _originalScale;
+        private bool _isBeingDiscarded = false;
         
         public string PlaceableId => _placeableId;
         public Vector2Int GridSize => _gridSize;
@@ -248,6 +250,61 @@ namespace GameplayModule
                 colorSeq.Append(DOTween.To(() => _spriteRenderer.color, x => _spriteRenderer.color = x, Color.red, 0.15f));
                 colorSeq.Append(DOTween.To(() => _spriteRenderer.color, x => _spriteRenderer.color = x, Color.white, 0.25f));
             }
+        }
+
+        public void PlayDiscardAnimation(Vector3 trashPosition, System.Action onComplete = null)
+        {
+            if (_isBeingDiscarded) return;
+            _isBeingDiscarded = true;
+            
+            // Kill any active tweens
+            transform.DOKill();
+
+            Vector3 startPos = transform.position;
+            // Use a default height since this class doesn't have serialized discard settings yet
+            float discardBezierHeight = 3f;
+            float discardDuration = 0.8f;
+            float discardRotationAmount = 720f;
+            
+            Vector3 controlPoint = BezierUtils.GetAutomaticControlPoint(startPos, trashPosition, discardBezierHeight, Vector3.up);
+
+            // 1. Move along Bezier Curve
+            DOVirtual.Float(0f, 1f, discardDuration, t =>
+            {
+                if (this == null) return;
+                transform.position = BezierUtils.GetPoint(startPos, controlPoint, trashPosition, t);
+            }).SetEase(DG.Tweening.Ease.InQuad);
+
+            // 2. Rotate along Z axis
+            transform.DORotate(new Vector3(0, 0, discardRotationAmount), discardDuration, RotateMode.FastBeyond360)
+                .SetEase(DG.Tweening.Ease.InQuad);
+
+            // 3. Shrink scale
+            transform.DOScale(Vector3.zero, discardDuration)
+                .SetEase(DG.Tweening.Ease.InQuad);
+
+            // 4. Fade out transparency (Alpha)
+            if (_spriteRenderer != null)
+            {
+                Color startColor = _spriteRenderer.color;
+                DOTween.To(() => _spriteRenderer.color.a, x => 
+                {
+                    if (_spriteRenderer != null)
+                    {
+                        Color c = _spriteRenderer.color;
+                        c.a = x;
+                        _spriteRenderer.color = c;
+                    }
+                }, 0f, discardDuration).SetEase(DG.Tweening.Ease.InQuad);
+            }
+
+            // 5. Cleanup on complete
+            DOVirtual.DelayedCall(discardDuration, () =>
+            {
+                onComplete?.Invoke();
+                if (this != null && gameObject != null)
+                    Destroy(gameObject);
+            });
         }
     }
 }
