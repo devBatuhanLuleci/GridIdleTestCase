@@ -9,6 +9,7 @@ namespace GridSystemModule.Core
         [SerializeField] private SpriteRenderer _spriteRenderer;
         [SerializeField] private Color _highlightColor = Color.red;
         private Color _normalColor;
+        public Transform Transform => transform;
 
         private void Awake()
         {

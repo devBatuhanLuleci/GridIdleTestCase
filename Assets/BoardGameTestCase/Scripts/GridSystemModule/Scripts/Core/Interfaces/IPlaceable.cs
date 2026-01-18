@@ -18,5 +18,6 @@ namespace GridSystemModule.Core.Interfaces
         void OnRemoved();
         Vector3? GetOriginalScale();
         void PlayFailAnimation();
+        void PlayDiscardAnimation(Vector3 targetPosition, System.Action onComplete = null);
     }
 }

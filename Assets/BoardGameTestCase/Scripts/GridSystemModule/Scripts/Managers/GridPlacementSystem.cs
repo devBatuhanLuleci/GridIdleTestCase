@@ -747,13 +747,14 @@ namespace GridSystemModule.Services
                 trashBin.SetHighlight(false);
                 if (trashBin.IsPointOver(worldPosition))
                 {
+                    IPlaceable itemRef = _currentDraggedObject;
+                    string itemId = itemRef.PlaceableId;
+                    Vector3 trashPos = trashBin.Transform != null ? trashBin.Transform.position : worldPosition;
+
                     if (_dragStartWasPlaced)
                     {
                         // Item was on grid, deallocate it
                         Vector2Int lastPos = _dragStartGridPos;
-                        string itemId = _currentDraggedObject.PlaceableId;
-                        IPlaceable itemRef = _currentDraggedObject;
-
                         RemoveObject(itemRef);
                         
                         // Publish event via modular EventBus
@@ -761,22 +762,23 @@ namespace GridSystemModule.Services
                         {
                             EventBus.Instance.Publish(new GameModule.Core.GridItemRemovedEvent(itemRef, itemId, lastPos));
                         }
-                        
-                        if (itemRef.Transform != null)
-                        {
-                            Destroy(itemRef.Transform.gameObject);
-                        }
-                        
-                        _currentDraggedObject = null;
-                        ClearTileHighlight();
-                        return;
                     }
                     else
                     {
-                        // Item was not yet on the grid (e.g. from inventory), don't delete
-                        FinishDragWithoutPlacement(new Vector2Int(-1, -1));
-                        return;
+                        // Item was from inventory, notify that it was discarded without being placed
+                        if (EventBus.Instance != null)
+                        {
+                            // We can use a special event or reuse GridItemRemovedEvent with a dummy position
+                            EventBus.Instance.Publish(new GameModule.Core.GridItemRemovedEvent(itemRef, itemId, new Vector2Int(-1, -1)));
+                        }
                     }
+
+                    // Play the beautiful Bezier discard animation
+                    itemRef.PlayDiscardAnimation(trashPos);
+                    
+                    _currentDraggedObject = null;
+                    ClearTileHighlight();
+                    return;
                 }
             }
             

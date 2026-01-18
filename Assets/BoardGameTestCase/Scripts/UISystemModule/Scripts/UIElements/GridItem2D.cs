@@ -9,6 +9,7 @@ using UISystemModule.Core.Interfaces;
 using BoardGameTestCase.Core.Common;
 using GameModule.Core.Interfaces;
 using GameState = GameModule.Core.Interfaces.GameState;
+using BoardGameTestCase.Core;
 
 namespace UISystemModule.UIElements
 {
@@ -60,6 +61,12 @@ namespace UISystemModule.UIElements
         [SerializeField] private float _failPunchDuration = 0.4f; // Duration of fail animation
         [SerializeField] private Color _failFlashColor = Color.red; // Color to flash on failure
         [SerializeField] private float _failFlashDuration = 0.4f; // How long the color flash lasts
+        
+        [Header("Discard Animation Settings")]
+        [SerializeField] private float _discardDuration = 0.8f;
+        [SerializeField] private float _discardRotationAmount = 720f;
+        [SerializeField] private float _discardBezierHeight = 3f;
+        [SerializeField] private Ease _discardEase = Ease.InQuad;
 
         [Header("Outline Selection Animation Settings")]
         [SerializeField] private float _dropOutlineFadeDuration = 0.3f;
@@ -84,6 +91,7 @@ namespace UISystemModule.UIElements
         private Vector3 _originalScale;
         private bool _isDragging = false;
         private bool _isPlaced = false;
+        private bool _isBeingDiscarded = false;
         private Vector2Int _gridPosition;
         private IGridPlacementSystem _placementSystem;
         private Camera _camera;
@@ -510,6 +518,7 @@ namespace UISystemModule.UIElements
         
         public void OnBeginDrag(PointerEventData eventData)
         {
+            if (_isBeingDiscarded) return;
             if (!IsPlacingState()) return;
             if (!_isDraggable && !_isPlaced) return;
             
@@ -963,6 +972,59 @@ namespace UISystemModule.UIElements
                 ReturnToOriginalPosition();
             }
             UpdateShineState();
+        }
+
+        public void PlayDiscardAnimation(Vector3 trashPosition, System.Action onComplete = null)
+        {
+            if (_isBeingDiscarded) return;
+            _isBeingDiscarded = true;
+            _isDraggable = false;
+            
+            // Kill any active tweens
+            transform.DOKill();
+            _glowTween?.Kill();
+            _widthTween?.Kill();
+
+            Vector3 startPos = transform.position;
+            Vector3 controlPoint = BezierUtils.GetAutomaticControlPoint(startPos, trashPosition, _discardBezierHeight, Vector3.up);
+
+            // 1. Move along Bezier Curve
+            DOVirtual.Float(0f, 1f, _discardDuration, t =>
+            {
+                if (this == null) return;
+                transform.position = BezierUtils.GetPoint(startPos, controlPoint, trashPosition, t);
+            }).SetEase(_discardEase);
+
+            // 2. Rotate along Z axis
+            transform.DORotate(new Vector3(0, 0, _discardRotationAmount), _discardDuration, RotateMode.FastBeyond360)
+                .SetEase(_discardEase);
+
+            // 3. Shrink scale
+            transform.DOScale(Vector3.zero, _discardDuration)
+                .SetEase(_discardEase);
+
+            // 4. Fade out transparency (Alpha) - Safer version without needing specific DOFade extension
+            if (_spriteRenderer != null)
+            {
+                Color startColor = _spriteRenderer.color;
+                DOTween.To(() => _spriteRenderer.color.a, x => 
+                {
+                    if (_spriteRenderer != null)
+                    {
+                        Color c = _spriteRenderer.color;
+                        c.a = x;
+                        _spriteRenderer.color = c;
+                    }
+                }, 0f, _discardDuration).SetEase(_discardEase);
+            }
+
+            // 5. Cleanup on complete
+            DOVirtual.DelayedCall(_discardDuration, () =>
+            {
+                onComplete?.Invoke();
+                if (this != null && gameObject != null)
+                    Destroy(gameObject);
+            });
         }
         
         public Vector3? GetOriginalScale()
