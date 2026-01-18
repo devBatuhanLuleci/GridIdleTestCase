@@ -7,10 +7,14 @@ Shader "Custom/URPSuperSprite"
         
         [Header(Outline Settings)]
         [Toggle(_OUTLINE_ON)] _UseOutline ("Use Outline", Float) = 0
-        _OutlineColor ("Outline Color", Color) = (1,1,1,1)
-        _OutlineWidth ("Outline Width", Range(0, 5)) = 1
+        _OutlineColor ("Outline Color 1", Color) = (1,1,1,1)
+        _OutlineColor2 ("Outline Color 2 (Gradient)", Color) = (1,1,1,1)
+        _OutlineWidth ("Outline Width", Range(0, 10)) = 1
         _OutlineSmoothness ("Outline Smoothness", Range(0, 1)) = 0.5
         _AlphaThreshold ("Alpha Threshold", Range(0, 1)) = 0.5
+        _OutlineGlow ("Outline Glow Power", Range(0, 10)) = 1
+        _OutlineOffset ("Outline Offset", Vector) = (0,0,0,0)
+        _OutlineGradientSpeed ("Gradient Speed", Range(0, 10)) = 0
         
         [Header(Inner Outline Settings)]
         [Toggle(_INNER_OUTLINE_ON)] _UseInnerOutline ("Use Inner Outline", Float) = 0
@@ -98,9 +102,13 @@ Shader "Custom/URPSuperSprite"
                 float4 _Color;
                 
                 float4 _OutlineColor;
+                float4 _OutlineColor2;
                 float _OutlineWidth;
                 float _OutlineSmoothness;
                 float _AlphaThreshold;
+                float _OutlineGlow;
+                float4 _OutlineOffset;
+                float _OutlineGradientSpeed;
                 
                 float4 _InnerOutlineColor;
                 float _InnerOutlineWidth;
@@ -162,23 +170,22 @@ Shader "Custom/URPSuperSprite"
                 float outlineFactor = 0;
                 #if _OUTLINE_ON
                     float2 texelSize = _MainTex_TexelSize.xy * _OutlineWidth;
+                    float2 offsetUv = uv + _OutlineOffset.xy * _MainTex_TexelSize.xy;
                     
-                    // Sample more directions (16-tap) for smoother results
                     float alphaMax = 0;
                     
-                    // Define sampling directions
-                    float2 directions[16] = {
+                    // Optimized 16-tap sampling using simplified loop
+                    const float2 directions[16] = {
                         float2(1, 0), float2(-1, 0), float2(0, 1), float2(0, -1),
-                        float2(0.7, 0.7), float2(-0.7, 0.7), float2(0.7, -0.7), float2(-0.7, -0.7),
-                        float2(1, 0.5), float2(1, -0.5), float2(-1, 0.5), float2(-1, -0.5),
-                        float2(0.5, 1), float2(0.5, -1), float2(-0.5, 1), float2(-0.5, -1)
+                        float2(0.707, 0.707), float2(-0.707, 0.707), float2(0.707, -0.707), float2(-0.707, -0.707),
+                        float2(0.923, 0.382), float2(0.923, -0.382), float2(-0.923, 0.382), float2(-0.923, -0.382),
+                        float2(0.382, 0.923), float2(0.382, -0.923), float2(-0.382, 0.923), float2(-0.382, -0.923)
                     };
 
                     for (int i = 0; i < 16; i++) {
-                        alphaMax = max(alphaMax, SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv + directions[i] * texelSize).a);
+                        alphaMax = max(alphaMax, SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, offsetUv + directions[i] * texelSize).a);
                     }
 
-                    // Smoothstep creates a soft gradient instead of a hard pixel edge
                     float edgeWidth = max(0.01, _OutlineSmoothness);
                     outlineFactor = smoothstep(_AlphaThreshold - edgeWidth, _AlphaThreshold, alphaMax) * (1.0 - alpha);
                 #endif
@@ -194,6 +201,7 @@ Shader "Custom/URPSuperSprite"
                     innerOutlineFactor = smoothstep(0.5 + _OutlineSmoothness, 0.5, innerAlphaMin) * step(0.1, alpha);
                 #endif
 
+                // Base Color Processing
                 float3 baseRGB = mainTexColor.rgb;
                 baseRGB *= _Brightness;
                 baseRGB = (baseRGB - 0.5) * _Contrast + 0.5;
@@ -217,8 +225,12 @@ Shader "Custom/URPSuperSprite"
                 finalColor.rgb *= finalColor.a;
 
                 #if _OUTLINE_ON
-                    float4 outColor = _OutlineColor;
-                    outColor.rgb *= outColor.a;
+                    // Dynamic Gradient Color
+                    float gradient = saturate(sin(uv.y * 3.0 + _Time.y * _OutlineGradientSpeed) * 0.5 + 0.5);
+                    float4 outColor = lerp(_OutlineColor, _OutlineColor2, gradient);
+                    
+                    // Apply Glow and Premultiply
+                    outColor.rgb *= outColor.a * _OutlineGlow;
                     finalColor = lerp(finalColor, outColor, outlineFactor);
                 #endif
 
