@@ -574,7 +574,7 @@ Transform:
   m_GameObject: {fileID: 519420028}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 1.74, y: 1.3, z: -10}
+  m_LocalPosition: {x: 0, y: 1.3, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -713,7 +713,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6667920305758052313, guid: 40158f5c84712480d81b5203c0422b6e, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0
+      value: -1.63
       objectReference: {fileID: 0}
     - target: {fileID: 6667920305758052313, guid: 40158f5c84712480d81b5203c0422b6e, type: 3}
       propertyPath: m_LocalPosition.y
@@ -1112,6 +1112,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1547548547}
   - component: {fileID: 1547548546}
+  - component: {fileID: 1547548548}
   m_Layer: 0
   m_Name: UpperEnvironment
   m_TagString: Untagged
@@ -1187,12 +1188,29 @@ Transform:
   m_GameObject: {fileID: 1547548545}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.62, y: 5.26, z: 0}
+  m_LocalPosition: {x: 0, y: 5.26, z: 0}
   m_LocalScale: {x: 0.5155914, y: 0.5155914, z: 0.5155914}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1547548548
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1547548545}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 72aac26b3eec242baa8048921c639b86, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BoardGameTestCase.Core::BoardGameTestCase.Core.BackgroundScaler
+  _fitMode: 1
+  _autoUpdate: 1
+  _targetCamera: {fileID: 519420031}
+  _scaleMultiplier: 1
+  _verticalOffset: 0
 --- !u!1 &1573879823
 GameObject:
   m_ObjectHideFlags: 0
