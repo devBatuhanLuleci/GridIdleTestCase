@@ -35,10 +35,11 @@ Shader "Custom/URPSuperSprite"
         [Header(Shine Glow Effect)]
         [Toggle(_SHINE_ON)] _UseShine ("Use Shine Effect", Float) = 0
         [HDR] _ShineColor ("Shine Color", Color) = (1,1,1,1)
-        _ShineLocation ("Shine Location", Range(-1, 2)) = 0
+        _ShineLocation ("Shine Location", Range(-1, 2)) = -0.5
         _ShineWidth ("Shine Width", Range(0, 1)) = 0.1
         _ShineSmoothness ("Shine Smoothness", Range(0.01, 1)) = 0.2
-        _ShineSpeed ("Shine Auto Speed", Range(0, 10)) = 0
+        _ShineSpeed ("Shine Auto Speed", Range(0, 10)) = 1
+        _ShinePause ("Shine Pause Duration", Range(0, 10)) = 1
         _ShineAngle ("Shine Angle", Range(0, 360)) = 45
         _ShineTex ("Shine Pattern (Optional)", 2D) = "white" {}
 
@@ -151,6 +152,7 @@ Shader "Custom/URPSuperSprite"
                 float _ShineWidth;
                 float _ShineSmoothness;
                 float _ShineSpeed;
+                float _ShinePause;
                 float _ShineAngle;
                 float4 _ShineTex_ST;
 
@@ -222,7 +224,6 @@ Shader "Custom/URPSuperSprite"
                 float4 mainTexColor = isOutside ? float4(0,0,0,0) : SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv);
                 float alpha = mainTexColor.a;
 
-                // Color Adjustments logic
                 float3 baseRGB = mainTexColor.rgb;
                 baseRGB *= _Brightness;
                 baseRGB = (baseRGB - 0.5) * _Contrast + 0.5;
@@ -235,27 +236,27 @@ Shader "Custom/URPSuperSprite"
                 float finalAlpha = alpha * input.color.a * _AlphaMultiplier;
                 float4 spriteLayer = float4(baseRGB * input.color.rgb, finalAlpha);
                 
-                // Shine Effect - Applied AFTER tinting to look like it is "on top"
                 #if _SHINE_ON
                     float angleRad = _ShineAngle * 0.0174533;
                     float2 shineDir = float2(cos(angleRad), sin(angleRad));
                     float shinePos = (uv.x * shineDir.x + uv.y * shineDir.y);
                     
-                    float currentTime = _Time.y * _ShineSpeed;
-                    float effectiveLocation = _ShineLocation + frac(currentTime);
+                    // Delay/Pause Logic
+                    float totalCycle = 2.0 + _ShinePause; // Total distance + pause
+                    float t = fmod(_Time.y * _ShineSpeed, totalCycle);
+                    float shineMask = step(t, 2.0); // Only visible during traversal (range 2.0 covers -0.5 to 1.5)
+                    
+                    float effectiveLocation = _ShineLocation + t;
                     if (_ShineSpeed <= 0) effectiveLocation = _ShineLocation;
 
                     float shine = smoothstep(effectiveLocation - _ShineWidth - _ShineSmoothness, effectiveLocation - _ShineWidth, shinePos) 
                                 - smoothstep(effectiveLocation + _ShineWidth, effectiveLocation + _ShineWidth + _ShineSmoothness, shinePos);
                     
                     float4 shineTexCol = SAMPLE_TEXTURE2D(_ShineTex, sampler_ShineTex, TRANSFORM_TEX(uv, _ShineTex));
-                    
-                    // Add separate shine contribution as a literal layer on top
-                    float3 shineLayer = _ShineColor.rgb * shine * _ShineColor.a * shineTexCol.rgb;
-                    spriteLayer.rgb += shineLayer * alpha; // Mask by alpha to keep it inside sprite bounds
+                    float3 shineLayer = _ShineColor.rgb * shine * _ShineColor.a * shineTexCol.rgb * shineMask;
+                    spriteLayer.rgb += shineLayer * alpha;
                 #endif
 
-                // Outline Logic (Remains identical to keep concentric behavior)
                 float3 outlineRGB = float3(0,0,0);
                 float outlineAlpha = 0;
 
