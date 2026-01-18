@@ -431,8 +431,6 @@ namespace UISystemModule.UIElements
             _isDragging = true;
             _currentlyDraggingItem = this; // Mark this item as currently dragging
             
-            Debug.Log($"[GridItem2D] StartDragging called. _isPlaced = {_isPlaced}");
-            
             // IMPORTANT: Check _isPlaced BEFORE calling GridPlacementSystem.StartDragging
             // because that method calls RemoveObject which sets _isPlaced to false
             bool wasPlaced = _isPlaced;
@@ -442,7 +440,6 @@ namespace UISystemModule.UIElements
             if (wasPlaced)
             {
                 // Show trash bin when dragging a previously placed item
-                Debug.Log("[GridItem2D] Calling Show(true) on trash bin");
                 ServiceLocator.Instance?.Get<IGridTrashBin>()?.Show(true);
             }
             
