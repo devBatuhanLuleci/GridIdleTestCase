@@ -430,16 +430,20 @@ namespace UISystemModule.UIElements
             
             _isDragging = true;
             _currentlyDraggingItem = this; // Mark this item as currently dragging
-            _placementSystem?.StartDragging(this);
             
             Debug.Log($"[GridItem2D] StartDragging called. _isPlaced = {_isPlaced}");
             
-            if (_isPlaced)
+            // IMPORTANT: Check _isPlaced BEFORE calling GridPlacementSystem.StartDragging
+            // because that method calls RemoveObject which sets _isPlaced to false
+            bool wasPlaced = _isPlaced;
+            
+            _placementSystem?.StartDragging(this);
+            
+            if (wasPlaced)
             {
                 // Show trash bin when dragging a previously placed item
                 Debug.Log("[GridItem2D] Calling Show(true) on trash bin");
                 ServiceLocator.Instance?.Get<IGridTrashBin>()?.Show(true);
-                _isPlaced = false;
             }
             
             // Save original sorting layer and set to DraggedItem
@@ -576,13 +580,16 @@ namespace UISystemModule.UIElements
             _originalPosition = transform.position;
             _originalParent = transform.parent;
             _isDragging = true;
+            
+            // IMPORTANT: Check _isPlaced BEFORE calling GridPlacementSystem.StartDragging
+            bool wasPlaced = _isPlaced;
+            
             _placementSystem?.StartDragging(this);
             
-            if (_isPlaced)
+            if (wasPlaced)
             {
                 // Show trash bin when dragging a previously placed item
                 ServiceLocator.Instance?.Get<IGridTrashBin>()?.Show(true);
-                _isPlaced = false;
             }
             
             OnDragStart();
@@ -959,16 +966,18 @@ namespace UISystemModule.UIElements
             _originalParent = transform.parent;
             _isDragging = true;
             
+            // IMPORTANT: Check _isPlaced BEFORE calling GridPlacementSystem.StartDragging
+            bool wasPlaced = _isPlaced;
+            
             if (_placementSystem != null)
             {
                 _placementSystem.StartDragging(this);
             }
             
-            if (_isPlaced)
+            if (wasPlaced)
             {
                 // Show trash bin when dragging a previously placed item (Manual Drag)
                 ServiceLocator.Instance?.Get<IGridTrashBin>()?.Show(true);
-                _isPlaced = false;
             }
             
             // Smooth movement to initial click position
