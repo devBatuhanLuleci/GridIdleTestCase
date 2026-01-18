@@ -9,8 +9,15 @@ namespace GridSystemModule.Core
     {
         [SerializeField] private SpriteRenderer _spriteRenderer;
         [SerializeField] private Color _highlightColor = Color.red;
+        
+        [Header("Animation Settings")]
+        [SerializeField] private float _fadeDuration = 0.3f;
+        [SerializeField] private float _activationDelay = 0.1f;
+        [SerializeField] private float _deactivationDelay = 0.1f;
+        
         private Color _normalColor;
         private bool _isHighlighted = false;
+        private Tweener _currentFadeTween;
         
         public Transform Transform => transform;
 
@@ -77,19 +84,27 @@ namespace GridSystemModule.Core
             if (_spriteRenderer == null) return;
             
             float targetAlpha = active ? 1f : 0f;
+            float delay = active ? _activationDelay : _deactivationDelay;
             
             // Kill any previous alpha tween to avoid conflicts
+            _currentFadeTween?.Kill();
             _spriteRenderer.DOKill();
             
-            DOTween.To(() => _spriteRenderer.color.a, x => 
+            // Use DOVirtual.DelayedCall for the delay, then start the fade
+            DOVirtual.DelayedCall(delay, () =>
             {
                 if (_spriteRenderer == null) return;
-                Color c = _spriteRenderer.color;
-                c.a = x;
-                _spriteRenderer.color = c;
-            }, targetAlpha, 0.3f)
-            .SetTarget(_spriteRenderer)
-            .SetUpdate(true);
+                
+                _currentFadeTween = DOTween.To(() => _spriteRenderer.color.a, x => 
+                {
+                    if (_spriteRenderer == null) return;
+                    Color c = _spriteRenderer.color;
+                    c.a = x;
+                    _spriteRenderer.color = c;
+                }, targetAlpha, _fadeDuration)
+                .SetTarget(_spriteRenderer)
+                .SetUpdate(true);
+            });
         }
     }
 }
