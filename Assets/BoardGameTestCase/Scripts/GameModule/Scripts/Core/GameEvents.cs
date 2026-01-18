@@ -1,6 +1,8 @@
 using BoardGameTestCase.Core.Common;
 using BoardGameTestCase.Core.ScriptableObjects;
 using GameModule.Core.Interfaces;
+using GridSystemModule.Core.Interfaces;
+using UnityEngine;
 
 namespace GameModule.Core
 {
@@ -63,6 +65,20 @@ namespace GameModule.Core
         public GameEndedEvent(bool isWin)
         {
             IsWin = isWin;
+        }
+    }
+
+    public struct GridItemRemovedEvent : IGameEvent
+    {
+        public IPlaceable Item;
+        public string ItemId;
+        public Vector2Int LastPosition;
+
+        public GridItemRemovedEvent(IPlaceable item, string itemId, Vector2Int lastPosition)
+        {
+            Item = item;
+            ItemId = itemId;
+            LastPosition = lastPosition;
         }
     }
 }

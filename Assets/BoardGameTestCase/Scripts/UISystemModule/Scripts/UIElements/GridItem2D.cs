@@ -112,6 +112,13 @@ namespace UISystemModule.UIElements
                 _gameFlowController = ServiceLocator.Instance?.Get<IGameFlowController>();
             }
         }
+
+        private void OnDestroy()
+        {
+            // Kill any active tweens on this object to prevent errors when destroyed
+            transform.DOKill();
+            if (_spriteRenderer != null) _spriteRenderer.DOKill();
+        }
         
         private bool IsPlacingState()
         {

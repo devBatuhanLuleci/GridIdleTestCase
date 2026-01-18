@@ -9,6 +9,7 @@ using PlacementModule.Settings;
 using BoardGameTestCase.Core.Common;
 using DG.Tweening;
 using GameModule.Core.Interfaces;
+using GameModule.Core;
 using GameState = GameModule.Core.Interfaces.GameState;
 using UISystemModule.UIElements;
 
@@ -639,6 +640,20 @@ namespace GridSystemModule.Services
                 return;
             }
             if (!_gridReady || _currentDraggedObject == null) return;
+
+            // Trash bin check
+            var trashBin = ServiceLocator.Instance?.Get<IGridTrashBin>();
+            if (trashBin != null)
+            {
+                bool isOverTrash = trashBin.IsPointOver(worldPosition);
+                trashBin.SetHighlight(isOverTrash);
+                if (isOverTrash)
+                {
+                    ClearTileHighlight();
+                    _lastEvaluatedGridPosition = new Vector2Int(int.MinValue, int.MinValue);
+                    return; // Skip grid logic if over trash
+                }
+            }
             
             // Convert world position from object center to grid anchor
             Vector3 adjustedWorldPos = worldPosition;
@@ -724,6 +739,46 @@ namespace GridSystemModule.Services
         {
             if (!_gridReady) return;
             if (_currentDraggedObject == null) return;
+
+            // Trash bin check
+            var trashBin = ServiceLocator.Instance?.Get<IGridTrashBin>();
+            if (trashBin != null)
+            {
+                trashBin.SetHighlight(false);
+                if (trashBin.IsPointOver(worldPosition))
+                {
+                    if (_dragStartWasPlaced)
+                    {
+                        // Item was on grid, deallocate it
+                        Vector2Int lastPos = _dragStartGridPos;
+                        string itemId = _currentDraggedObject.PlaceableId;
+                        IPlaceable itemRef = _currentDraggedObject;
+
+                        RemoveObject(itemRef);
+                        
+                        // Publish event via modular EventBus
+                        if (EventBus.Instance != null)
+                        {
+                            EventBus.Instance.Publish(new GameModule.Core.GridItemRemovedEvent(itemRef, itemId, lastPos));
+                        }
+                        
+                        if (itemRef.Transform != null)
+                        {
+                            Destroy(itemRef.Transform.gameObject);
+                        }
+                        
+                        _currentDraggedObject = null;
+                        ClearTileHighlight();
+                        return;
+                    }
+                    else
+                    {
+                        // Item was not yet on the grid (e.g. from inventory), don't delete
+                        FinishDragWithoutPlacement(new Vector2Int(-1, -1));
+                        return;
+                    }
+                }
+            }
             
             // Same adjustment as UpdateDrag - both X and Y offsets
             Vector3 adjustedWorldPos = worldPosition;
