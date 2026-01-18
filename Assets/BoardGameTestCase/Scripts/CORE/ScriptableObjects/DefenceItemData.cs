@@ -19,6 +19,7 @@ namespace BoardGameTestCase.Core.ScriptableObjects
         [SerializeField] private int _damage = 10;
         [SerializeField] private float _range = 2.0f;
         [SerializeField] private float _attackInterval = 1.0f;
+        [SerializeField] private float _reloadDuration = 3f;
         [SerializeField] private AttackDirection _attackDirection = AttackDirection.Forward;
         [SerializeField] private int _health = 100;
         
@@ -47,6 +48,7 @@ namespace BoardGameTestCase.Core.ScriptableObjects
         public int Damage => _damage;
         public float Range => _range;
         public float AttackInterval => _attackInterval;
+        public float ReloadDuration => _reloadDuration;
         public AttackDirection AttackDirection => _attackDirection;
         public int Health => _health;
         public int Cost => _cost;

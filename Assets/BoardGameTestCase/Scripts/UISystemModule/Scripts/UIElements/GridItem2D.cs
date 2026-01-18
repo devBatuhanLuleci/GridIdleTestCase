@@ -187,6 +187,7 @@ namespace UISystemModule.UIElements
             if (_defenceItemData == null) return;
             _gridSize = _defenceItemData.GridSize;
             _placeableId = _defenceItemData.ItemId;
+            _reloadDuration = _defenceItemData.ReloadDuration;
             ApplySprite(_defenceItemData.Sprite);
         }
 

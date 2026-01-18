@@ -87,6 +87,9 @@ MonoBehaviour:
   _placedOutlineWidth: 1.5
   _dragOutlineGlowValue: 4
   _dragOutlineWidthValue: 6
+  _enableReloadAnimation: 1
+  _reloadDuration: 3
+  _loopReload: 1
 --- !u!212 &9154927729986020510
 SpriteRenderer:
   serializedVersion: 2
