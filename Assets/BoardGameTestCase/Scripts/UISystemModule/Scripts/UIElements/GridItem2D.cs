@@ -1178,7 +1178,7 @@ namespace UISystemModule.UIElements
                         OnReloadComplete?.Invoke();
                         PlayReloadCompleteAnimation();
                         
-                        if (_loopReload && _isPlaced && !_isDragging && !_isBeingDiscarded)
+                        if (_loopReload && !_isBeingDiscarded && (_isPlaced || _isDragging))
                         {
                             StartReloadAnimation();
                         }
@@ -1190,6 +1190,9 @@ namespace UISystemModule.UIElements
         public void PlayReloadCompleteAnimation()
         {
             if (_instancedMaterial == null) return;
+
+            // If dragging, avoid interfering with drag movement/scale
+            if (_isDragging) return;
             
             // Similar to placement animation: Scale up slightly and punch
             transform.DOKill(true); // Complete active tweens first
