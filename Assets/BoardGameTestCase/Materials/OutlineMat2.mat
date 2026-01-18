@@ -126,7 +126,7 @@ Material:
     - _GlossyReflections: 0
     - _Grayscale: 0.799
     - _InnerOutlineWidth: 0.72
-    - _MeshExtension: 0.2
+    - _MeshExtension: 1
     - _Metallic: 0
     - _OcclusionStrength: 1
     - _OutlineGlow: 0
@@ -136,6 +136,7 @@ Material:
     - _OutlineThickness: 4.07
     - _OutlineWidth: 1.5
     - _OutlineWidthSecondary: 3.2
+    - _OverallScale: 0.824
     - _Parallax: 0.005
     - _QueueOffset: 0
     - _ReceiveShadows: 1

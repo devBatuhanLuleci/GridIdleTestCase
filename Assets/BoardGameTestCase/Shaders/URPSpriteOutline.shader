@@ -59,6 +59,7 @@ Shader "Custom/URPSuperSprite"
 
         [Header(Ghost Alpha)]
         _AlphaMultiplier ("Global Alpha Multiplier", Range(0, 1)) = 1
+        _OverallScale ("Overall Scale", Range(0, 1)) = 1
         
         [Header(Distortion)]
         [Toggle(_DISTORTION_ON)] _UseDistortion ("Use Distortion", Float) = 0
@@ -180,6 +181,7 @@ Shader "Custom/URPSuperSprite"
                 float _FlashAmount;
                 
                 float _AlphaMultiplier;
+                float _OverallScale;
                 
                 float _DistortSpeed;
                 float _DistortAmount;
@@ -228,9 +230,9 @@ Shader "Custom/URPSuperSprite"
                 // The center of the sprite in Atlas space is naturally the offset + half the scale.
                 float2 centerUV = _MainTex_ST.zw + _MainTex_ST.xy * 0.5;
                 
-                // Remap the interpolated UV back to original sprite bounds
                 // This "shrinks" the sampling to keep the sprite size original while the mesh is bigger.
-                float2 uv = (input.uv - centerUV) * expansion + centerUV;
+                // We also include _OverallScale to allow manual scaling in-shader.
+                float2 uv = (input.uv - centerUV) * (expansion / max(0.001, _OverallScale)) + centerUV;
 
                 #if _DISTORTION_ON
                     float distort = sin(_Time.y * _DistortSpeed + uv.y * _DistortFreq) * _DistortAmount;

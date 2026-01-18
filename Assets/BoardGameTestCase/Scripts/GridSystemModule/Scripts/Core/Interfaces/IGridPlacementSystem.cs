@@ -13,7 +13,7 @@ namespace GridSystemModule.Core.Interfaces
         bool PlaceObject(IPlaceable placeable, Vector2Int gridPosition, bool skipOnPlacedCallback = false);
         bool RemoveObject(IPlaceable placeable);
         IPlaceable GetObjectAt(Vector2Int gridPosition);
-        Vector2Int WorldToGrid(Vector3 worldPosition);
+        Vector2Int WorldToGrid(Vector3 worldPosition, Vector2Int? objectSize = null);
         Vector3 GridToWorld(Vector2Int gridPosition);
         Vector3 MultiTileGridToWorld(IEnumerable<Vector2Int> gridPositions);
         void StartDragging(IPlaceable placeable);

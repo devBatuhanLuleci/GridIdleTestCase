@@ -71,20 +71,13 @@ namespace GridSystemModule.Services
 
             var position = new Vector2(x, y);
             
-            // Calculate world position using CellSize and CellSpacing
             var settings = GetGridSystemSettings();
             Vector2 cellSize = settings != null ? settings.CellSize : Vector2.one;
             Vector2 cellSpacing = settings != null ? settings.CellSpacing : Vector2.zero;
-            
-            Vector3 worldPosition = new Vector3(
-                x * (cellSize.x + cellSpacing.x),
-                y * (cellSize.y + cellSpacing.y),
-                0
-            );
-            
+
             var spawnedTile = Object.Instantiate(
                 grassTilePrefab, 
-                worldPosition, 
+                Vector3.zero, // Position will be set via localPosition
                 Quaternion.identity
             );
             
@@ -92,12 +85,11 @@ namespace GridSystemModule.Services
             {
                 spawnedTile.transform.SetParent(_configuration.TilesParent, false);
                 
-                Vector3 localPosition = new Vector3(
-                    x * (cellSize.x + cellSpacing.x),
-                    y * (cellSize.y + cellSpacing.y),
-                    0
-                );
-                spawnedTile.transform.localPosition = localPosition;
+                // Calculate and apply local position including spacing
+                float px = x * (cellSize.x + cellSpacing.x);
+                float py = y * (cellSize.y + cellSpacing.y);
+                
+                spawnedTile.transform.localPosition = new Vector3(px, py, 0);
                 
                 // Calculate proper scale based on sprite size
                 // Sprite's natural world size = sprite.rect.size / ppu

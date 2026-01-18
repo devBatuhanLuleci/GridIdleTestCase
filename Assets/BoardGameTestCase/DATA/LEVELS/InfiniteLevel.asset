@@ -21,4 +21,10 @@ MonoBehaviour:
     _quantity: 1
   - _defenceItemData: {fileID: 11400000, guid: 944e7fbb61a3f40e59e7446ce61c5f38, type: 2}
     _quantity: 1
-  _enemies: []
+  _enemies:
+  - _enemyData: {fileID: 11400000, guid: 8189ee150ab3e479588326a29ddcf3e4, type: 2}
+    _quantity: 1
+  - _enemyData: {fileID: 11400000, guid: 89a5c2e36787045cf850b60591e4e454, type: 2}
+    _quantity: 1
+  - _enemyData: {fileID: 11400000, guid: bd8fcea82cff147f1b4f7e554c784134, type: 2}
+    _quantity: 1

@@ -28,9 +28,6 @@ namespace GridSystemModule.Managers
         private IGridService _gridService;
         private IGridConfiguration _gridConfiguration;
         
-        private Vector3 _lastTilesParentScale;
-        private Vector3 _lastTilesParentPosition;
-        private Quaternion _lastTilesParentRotation;
 
         private void Awake()
         {
@@ -105,7 +102,6 @@ namespace GridSystemModule.Managers
             
             UpdateGeneratedTilesList();
             
-            TrackTilesParentTransform();
             
             SyncGridPlacementSystem();
 
@@ -137,46 +133,6 @@ namespace GridSystemModule.Managers
             }
         }
         
-        private void TrackTilesParentTransform()
-        {
-            if (_tilesParent != null)
-            {
-                _lastTilesParentScale = _tilesParent.localScale;
-                _lastTilesParentPosition = _tilesParent.localPosition;
-                _lastTilesParentRotation = _tilesParent.localRotation;
-            }
-        }
-        
-        private void LateUpdate()
-        {
-            if (_tilesParent == null || _gridService == null) return;
-            
-            // transform.hasChanged is much more efficient than manual vector comparisons
-            if (_tilesParent.hasChanged)
-            {
-                MaintainTileLocalTransforms();
-                _tilesParent.hasChanged = false; // Reset the flag
-            }
-        }
-        
-        private void MaintainTileLocalTransforms()
-        {
-            var allTiles = _gridService.GetAllTiles();
-            if (allTiles == null) return;
-            
-            foreach (var kvp in allTiles)
-            {
-                Vector2 gridPos = kvp.Key;
-                BaseTile tile = kvp.Value;
-                
-                if (tile != null && tile.transform != null && tile.transform.parent == _tilesParent)
-                {
-                    Vector3 localPosition = new Vector3(gridPos.x, gridPos.y, 0);
-                    tile.transform.localPosition = localPosition;
-                    tile.transform.localScale = Vector3.one;
-                }
-            }
-        }
 
         public void ClearGrid()
         {

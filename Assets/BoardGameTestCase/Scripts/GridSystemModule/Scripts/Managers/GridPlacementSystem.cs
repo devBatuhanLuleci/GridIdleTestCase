@@ -447,21 +447,13 @@ namespace GridSystemModule.Services
             return obj;
         }
         
-        public Vector2Int WorldToGrid(Vector3 worldPosition)
+        public Vector2Int WorldToGrid(Vector3 worldPosition, Vector2Int? objectSize = null)
         {
             Transform tilesParent = GetTilesParent();
             if (tilesParent != null)
             {
-                Vector3 parentPos = tilesParent.position;
-                Quaternion parentRot = tilesParent.rotation;
-                Vector3 parentScale = tilesParent.lossyScale;
-                
-                Vector3 relativePos = Quaternion.Inverse(parentRot) * (worldPosition - parentPos);
-                relativePos = new Vector3(
-                    relativePos.x / parentScale.x,
-                    relativePos.y / parentScale.y,
-                    relativePos.z / parentScale.z
-                );
+                // Convert world position to local space of the tiles parent using Unity's built-in method
+                Vector3 relativePos = tilesParent.InverseTransformPoint(worldPosition);
                 
                 // Get CellSize and CellSpacing from GridManager settings
                 var gridManager = ServiceLocator.Instance?.Get<GridManager>();
@@ -474,44 +466,22 @@ namespace GridSystemModule.Services
                     cellSpacing = gridManager.GridSettings.CellSpacing;
                 }
                 
-                // Calculate grid position accounting for cell size and spacing
-                float cellSizeX = cellSize.x + cellSpacing.x;
-                float cellSizeY = cellSize.y + cellSpacing.y;
-                
-                int x = Mathf.RoundToInt(relativePos.x / cellSizeX);
-                int y = Mathf.RoundToInt(relativePos.y / cellSizeY);
-                return new Vector2Int(x, y);
-            }
-            
-            var gridManager2 = ServiceLocator.Instance?.Get<GridManager>();
-            if (gridManager2 != null)
-            {
-                var allTiles = gridManager2.GetAllTiles();
-                if (allTiles != null && allTiles.Count > 0)
+                // Correctly offset if we are dragging from the center of a larger object
+                if (objectSize.HasValue)
                 {
-                    BaseTile nearestTile = null;
-                    Vector2? nearestGridPos = null;
-                    float nearestDistance = float.MaxValue;
-                    
-                    foreach (var kvp in allTiles)
-                    {
-                        if (kvp.Value != null)
-                        {
-                            float distance = Vector3.Distance(worldPosition, kvp.Value.transform.position);
-                            if (distance < nearestDistance)
-                            {
-                                nearestDistance = distance;
-                                nearestTile = kvp.Value;
-                                nearestGridPos = kvp.Key;
-                            }
-                        }
-                    }
-                    
-                    if (nearestGridPos.HasValue)
-                    {
-                        return new Vector2Int(Mathf.RoundToInt(nearestGridPos.Value.x), Mathf.RoundToInt(nearestGridPos.Value.y));
-                    }
+                    float stepX = cellSize.x + cellSpacing.x;
+                    float stepY = cellSize.y + cellSpacing.y;
+                    relativePos.x -= (objectSize.Value.x - 1) * 0.5f * stepX;
+                    relativePos.y -= (objectSize.Value.y - 1) * 0.5f * stepY;
                 }
+                
+                // Calculate grid position accounting for cell size and spacing
+                float stepXCalc = cellSize.x + cellSpacing.x;
+                float stepYCalc = cellSize.y + cellSpacing.y;
+                
+                int x = Mathf.RoundToInt(relativePos.x / stepXCalc);
+                int y = Mathf.RoundToInt(relativePos.y / stepYCalc);
+                return new Vector2Int(x, y);
             }
             
             // Fallback: no spacing assumption
@@ -540,29 +510,19 @@ namespace GridSystemModule.Services
             }
             
             // Calculate local position accounting for cell size and spacing
-            float cellSizeX = cellSize.x + cellSpacing.x;
-            float cellSizeY = cellSize.y + cellSpacing.y;
+            float stepX = cellSize.x + cellSpacing.x;
+            float stepY = cellSize.y + cellSpacing.y;
             
             Vector3 localPosition = new Vector3(
-                gridPosition.x * cellSizeX,
-                gridPosition.y * cellSizeY,
+                gridPosition.x * stepX,
+                gridPosition.y * stepY,
                 0
             );
             
             Transform tilesParent = GetTilesParent();
             if (tilesParent != null)
             {
-                Vector3 parentPos = tilesParent.position;
-                Quaternion parentRot = tilesParent.rotation;
-                Vector3 parentScale = tilesParent.lossyScale;
-                
-                Vector3 scaledLocalPos = new Vector3(
-                    localPosition.x * parentScale.x,
-                    localPosition.y * parentScale.y,
-                    localPosition.z * parentScale.z
-                );
-                
-                return parentPos + parentRot * scaledLocalPos;
+                return tilesParent.TransformPoint(localPosition);
             }
             
             return localPosition;
@@ -660,26 +620,8 @@ namespace GridSystemModule.Services
                 }
             }
             
-            // Convert world position from object center to grid anchor
-            Vector3 adjustedWorldPos = worldPosition;
-            Vector2Int objectSize = _currentDraggedObject.GridSize;
-            
-            var gridManager = ServiceLocator.Instance?.Get<GridManager>();
-            if (gridManager != null && gridManager.GridSettings != null)
-            {
-                Vector2 cellSize = gridManager.GridSettings.CellSize;
-                Vector2 cellSpacing = gridManager.GridSettings.CellSpacing;
-                float cellSizeX = cellSize.x + cellSpacing.x;
-                float cellSizeY = cellSize.y + cellSpacing.y;
-                
-                // Offset: (size - 1) / 2 cells from center to bottom-left
-                float offsetX = (objectSize.x - 1) * 0.5f * cellSizeX;
-                float offsetY = (objectSize.y - 1) * 0.5f * cellSizeY;
-                
-                adjustedWorldPos = worldPosition - new Vector3(offsetX, offsetY, 0f);
-            }
-            
-            Vector2Int gridPos = WorldToGrid(adjustedWorldPos);
+            // Convert world position from object center to grid anchor using the new WorldToGrid logic
+            Vector2Int gridPos = WorldToGrid(worldPosition, _currentDraggedObject.GridSize);
             if (gridPos == _lastEvaluatedGridPosition)
             {
                 return;
@@ -790,25 +732,8 @@ namespace GridSystemModule.Services
                 }
             }
             
-            // Same adjustment as UpdateDrag - both X and Y offsets
-            Vector3 adjustedWorldPos = worldPosition;
-            Vector2Int objectSize = _currentDraggedObject.GridSize;
-            
-            var gridManager = ServiceLocator.Instance?.Get<GridManager>();
-            if (gridManager != null && gridManager.GridSettings != null)
-            {
-                Vector2 cellSize = gridManager.GridSettings.CellSize;
-                Vector2 cellSpacing = gridManager.GridSettings.CellSpacing;
-                float cellSizeX = cellSize.x + cellSpacing.x;
-                float cellSizeY = cellSize.y + cellSpacing.y;
-                
-                float offsetX = (objectSize.x - 1) * 0.5f * cellSizeX;
-                float offsetY = (objectSize.y - 1) * 0.5f * cellSizeY;
-                
-                adjustedWorldPos = worldPosition - new Vector3(offsetX, offsetY, 0f);
-            }
-            
-            Vector2Int gridPos = WorldToGrid(adjustedWorldPos);
+            // Same adjustment as UpdateDrag - converted using WorldToGrid with objectSize
+            Vector2Int gridPos = WorldToGrid(worldPosition, _currentDraggedObject.GridSize);
             bool wasAutoSnappedFromInvalid = false;
             
             
