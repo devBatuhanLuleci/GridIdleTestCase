@@ -641,17 +641,22 @@ namespace GridSystemModule.Services
             }
             if (!_gridReady || _currentDraggedObject == null) return;
 
-            // Trash bin check
+            // Trash bin check - only highlight if the item was already on the grid
             var trashBin = ServiceLocator.Instance?.Get<IGridTrashBin>();
             if (trashBin != null)
             {
                 bool isOverTrash = trashBin.IsPointOver(worldPosition);
-                trashBin.SetHighlight(isOverTrash);
-                if (isOverTrash)
+                // Only highlight and skip grid logic if item is discardable (was on grid)
+                if (isOverTrash && _dragStartWasPlaced)
                 {
+                    trashBin.SetHighlight(true);
                     ClearTileHighlight();
                     _lastEvaluatedGridPosition = new Vector2Int(int.MinValue, int.MinValue);
                     return; // Skip grid logic if over trash
+                }
+                else
+                {
+                    trashBin.SetHighlight(false);
                 }
             }
             
@@ -748,13 +753,15 @@ namespace GridSystemModule.Services
                 if (trashBin.IsPointOver(worldPosition))
                 {
                     IPlaceable itemRef = _currentDraggedObject;
-                    string itemId = itemRef.PlaceableId;
-                    Vector3 trashPos = trashBin.Transform != null ? trashBin.Transform.position : worldPosition;
-
+                    
+                    // Only allow discard if the item was already placed on the grid
                     if (_dragStartWasPlaced)
                     {
-                        // Item was on grid, deallocate it
+                        string itemId = itemRef.PlaceableId;
+                        Vector3 trashPos = trashBin.Transform != null ? trashBin.Transform.position : worldPosition;
                         Vector2Int lastPos = _dragStartGridPos;
+                        
+                        // Item was on grid, deallocate it
                         RemoveObject(itemRef);
                         
                         // Publish event via modular EventBus
@@ -762,23 +769,24 @@ namespace GridSystemModule.Services
                         {
                             EventBus.Instance.Publish(new GameModule.Core.GridItemRemovedEvent(itemRef, itemId, lastPos));
                         }
+
+                        // Play the beautiful Bezier discard animation
+                        itemRef.PlayDiscardAnimation(trashPos);
+                        
+                        _currentDraggedObject = null;
+                        ClearTileHighlight();
+                        return;
                     }
                     else
                     {
-                        // Item was from inventory, notify that it was discarded without being placed
-                        if (EventBus.Instance != null)
-                        {
-                            // We can use a special event or reuse GridItemRemovedEvent with a dummy position
-                            EventBus.Instance.Publish(new GameModule.Core.GridItemRemovedEvent(itemRef, itemId, new Vector2Int(-1, -1)));
-                        }
+                        // Item was from inventory, don't allow discard. Revert to start position.
+                        RevertDraggedToStartPosition();
+                        _currentDraggedObject.OnDrop(new Vector2Int(-1, -1), false);
+                        _currentDraggedObject.IsDragging = false;
+                        _currentDraggedObject = null;
+                        ClearTileHighlight();
+                        return;
                     }
-
-                    // Play the beautiful Bezier discard animation
-                    itemRef.PlayDiscardAnimation(trashPos);
-                    
-                    _currentDraggedObject = null;
-                    ClearTileHighlight();
-                    return;
                 }
             }
             
