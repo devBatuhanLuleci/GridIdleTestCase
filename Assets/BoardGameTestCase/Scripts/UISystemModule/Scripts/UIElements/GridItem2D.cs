@@ -100,6 +100,8 @@ namespace UISystemModule.UIElements
         private Tween _glowTween;
         private Tween _widthTween;
         private Tween _reloadTween;
+        private Tween _dragMoveTween;
+        private Sequence _reloadCompleteSequence;
 
         public event System.Action OnReloadComplete;
         
@@ -166,7 +168,7 @@ namespace UISystemModule.UIElements
 
         private void HandleReloadComplete()
         {
-            Debug.Log($"[GridItem2D] Reload Complete for {name}");
+            //ON RELOAD COMPLETE
         }
 
         private void OnDestroy()
@@ -177,6 +179,8 @@ namespace UISystemModule.UIElements
             _glowTween?.Kill();
             _widthTween?.Kill();
             _reloadTween?.Kill();
+            _dragMoveTween?.Kill();
+            _reloadCompleteSequence?.Kill();
             
             OnReloadComplete -= HandleReloadComplete;
             
@@ -468,8 +472,9 @@ namespace UISystemModule.UIElements
                 worldPosition.z = transform.position.z;
                 
                 // Correctly handle the visual position during drag
-                transform.DOKill(false);
-                transform.DOMove(worldPosition, _dragUpdateDuration).SetEase(_dragUpdateEase);
+                // Correctly handle the visual position during drag
+                _dragMoveTween?.Kill();
+                _dragMoveTween = transform.DOMove(worldPosition, _dragUpdateDuration).SetEase(_dragUpdateEase);
                 
                 // Do NOT update _originalPosition here. It must stay at the value set in StartDragging()
                 // so that we can revert to it if placement is invalid.
@@ -1191,23 +1196,20 @@ namespace UISystemModule.UIElements
         {
             if (_instancedMaterial == null) return;
 
-            // If dragging, avoid interfering with drag movement/scale
-            if (_isDragging) return;
-            
             // Similar to placement animation: Scale up slightly and punch
-            transform.DOKill(true); // Complete active tweens first
+            _reloadCompleteSequence?.Kill(); // Use specific sequence kill instead of global DOKill(true)
             
             // Ensure we start from original scale to avoid compounding growth in loops
             transform.localScale = _originalScale;
             
-            Sequence reloadSeq = DOTween.Sequence();
+            _reloadCompleteSequence = DOTween.Sequence();
             
             // 1. Scale Pulse
-            reloadSeq.Append(transform.DOScale(_originalScale * 1.1f, _reloadCompleteScaleDuration).SetEase(_reloadCompleteScaleEase));
-            reloadSeq.Append(transform.DOScale(_originalScale, _reloadCompleteScaleDuration).SetEase(Ease.OutCubic));
+            _reloadCompleteSequence.Append(transform.DOScale(_originalScale * 1.1f, _reloadCompleteScaleDuration).SetEase(_reloadCompleteScaleEase));
+            _reloadCompleteSequence.Append(transform.DOScale(_originalScale, _reloadCompleteScaleDuration).SetEase(Ease.OutCubic));
             
             // 2. Punch Scale (Overlap slightly for juicy feel)
-            reloadSeq.Insert(_reloadCompleteScaleDuration * 0.8f, 
+            _reloadCompleteSequence.Insert(_reloadCompleteScaleDuration * 0.8f, 
                 transform.DOPunchScale(Vector3.one * _reloadCompletePunchScaleStrength, _reloadCompletePunchDuration, 10, 1));
         }
 
