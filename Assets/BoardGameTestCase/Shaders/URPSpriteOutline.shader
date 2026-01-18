@@ -113,7 +113,7 @@ Shader "Custom/URPSuperSprite"
                 float4 positionCS : SV_POSITION;
                 float4 color      : COLOR;
                 float2 uv         : TEXCOORD0;
-                float4 localData  : TEXCOORD1; // xy: normalized OS pos, zw: expansion factor
+                float4 localData  : TEXCOORD1; // xy: original OS pos, zw: unused/misc
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
@@ -188,14 +188,12 @@ Shader "Custom/URPSuperSprite"
                 float4 pos = input.positionOS;
                 pos.xy *= _Flip.xy;
 
-                // Capture original OS position normalized to roughly -0.5 to 0.5
-                // Sprites are usually 1 unit wide in OS if not scaled.
+                // Pass the original untainted object-space position for UV remapping
                 output.localData.xy = input.positionOS.xy;
                 
-                // Expand the mesh
+                // Expand mesh geometry to accommodate Thick Outlines
                 float expand = 1.0 + _MeshExtension;
                 pos.xy *= expand;
-                output.localData.zw = float2(_MeshExtension, expand);
 
                 output.positionCS = TransformObjectToHClip(pos.xyz);
                 output.uv = input.uv;
@@ -204,34 +202,23 @@ Shader "Custom/URPSuperSprite"
                 return output;
             }
 
-            // Helper to get alpha while respecting atlas bounds
-            float GetAlpha(float2 uv, float2 localPos)
-            {
-                // If localPos is outside the original -0.5 to 0.5 range, it's transparent
-                if (abs(localPos.x) > 0.5 || abs(localPos.y) > 0.5) return 0;
-                return SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv).a;
-            }
-
             float4 frag(Varyings input) : SV_Target
             {
                 UNITY_SETUP_INSTANCE_ID(input);
 
-                float2 localPos = input.localData.xy; 
-                float expand = input.localData.w;
+                float2 originalLocalPos = input.localData.xy; 
+                // Normalized local space 0 to 1 based on base quad size (1x1)
+                float2 normalized01 = originalLocalPos + 0.5; 
                 
-                // Map the interpolated OS position back to original sprite UVs
-                // Since pos was multiplied by 'expand', localPos is now in range -(0.5*expand) to +(0.5*expand)
-                float2 originalLocalPos = localPos; // This is the OS pos of the current pixel
-                float2 normalized01 = (originalLocalPos / 1.0) + 0.5; // Back to 0-1 local space
-                
-                float2 uv = TRANSFORM_TEX(normalized01, _MainTex);
+                // Manual UV calculation to avoid macro issues with added padding
+                float2 uv = normalized01 * _MainTex_ST.xy + _MainTex_ST.zw;
 
                 #if _DISTORTION_ON
                     float distort = sin(_Time.y * _DistortSpeed + uv.y * _DistortFreq) * _DistortAmount;
                     uv.x += distort;
                 #endif
 
-                // Get original sprite color and alpha
+                // Alpha masking for the original sprite area
                 bool isOutsideOriginal = abs(originalLocalPos.x) > 0.5 || abs(originalLocalPos.y) > 0.5;
                 float4 mainTexColor = isOutsideOriginal ? float4(0,0,0,0) : SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv);
                 float alpha = mainTexColor.a;
@@ -263,7 +250,8 @@ Shader "Custom/URPSuperSprite"
                     float shine = smoothstep(effectiveLocation - _ShineWidth - _ShineSmoothness, effectiveLocation - _ShineWidth, shinePos) 
                                 - smoothstep(effectiveLocation + _ShineWidth, effectiveLocation + _ShineWidth + _ShineSmoothness, shinePos);
                     
-                    float4 shineTexCol = SAMPLE_TEXTURE2D(_ShineTex, sampler_ShineTex, TRANSFORM_TEX(normalized01, _ShineTex));
+                    float2 sUv = normalized01 * _ShineTex_ST.xy + _ShineTex_ST.zw;
+                    float4 shineTexCol = SAMPLE_TEXTURE2D(_ShineTex, sampler_ShineTex, sUv);
                     float3 shineLayer = _ShineColor.rgb * shine * _ShineColor.a * shineTexCol.rgb * shineMask;
                     spriteLayer.rgb += shineLayer * alpha;
                 #endif
@@ -272,7 +260,6 @@ Shader "Custom/URPSuperSprite"
                 float outlineAlpha = 0;
 
                 #if defined(_OUTLINE_ON) || defined(_OUTLINE_SECONDARY_ON)
-                    float2 offsetUv = uv + _OutlineOffset.xy * _MainTex_TexelSize.xy;
                     const float2 directions[16] = {
                         float2(1, 0), float2(-1, 0), float2(0, 1), float2(0, -1),
                         float2(0.707, 0.707), float2(-0.707, 0.707), float2(0.707, -0.707), float2(-0.707, -0.707),
@@ -281,17 +268,16 @@ Shader "Custom/URPSuperSprite"
                     };
 
                     float edgeSmooth = max(0.01, _OutlineSmoothness);
-                    
-                    // To stay atlas safe while sampling neighbors, we need to know the LOCAL 0-1 of the neighbors too
-                    // Fortunately, ddx/ddy of normalized01 gives us the step size.
-                    float2 localStep1 = _OutlineWidth * 0.01; // Rough estimation based on OS units
+                    float2 baseST_XY = _MainTex_ST.xy;
+                    float2 baseST_ZW = _MainTex_ST.zw;
                     
                     float factorPrimary = 0;
                     #if _OUTLINE_ON
                         float alphaMax1 = 0;
+                        float localStep1 = _OutlineWidth * 0.01;
                         for (int i = 0; i < 16; i++) {
                             float2 neighborLocalPos = originalLocalPos + directions[i] * localStep1;
-                            float2 neighborUV = TRANSFORM_TEX(neighborLocalPos + 0.5, _MainTex);
+                            float2 neighborUV = (neighborLocalPos + 0.5) * baseST_XY + baseST_ZW;
                             float a = (abs(neighborLocalPos.x) > 0.5 || abs(neighborLocalPos.y) > 0.5) ? 0 : SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, neighborUV).a;
                             alphaMax1 = max(alphaMax1, a);
                         }
@@ -300,11 +286,11 @@ Shader "Custom/URPSuperSprite"
 
                     float factorSecondary = 0;
                     #if _OUTLINE_SECONDARY_ON
-                        float2 localStep2 = _OutlineWidthSecondary * 0.01;
                         float alphaMax2 = 0;
+                        float localStep2 = _OutlineWidthSecondary * 0.01;
                         for (int j = 0; j < 16; j++) {
                             float2 neighborLocalPos2 = originalLocalPos + directions[j] * localStep2;
-                            float2 neighborUV2 = TRANSFORM_TEX(neighborLocalPos2 + 0.5, _MainTex);
+                            float2 neighborUV2 = (neighborLocalPos2 + 0.5) * baseST_XY + baseST_ZW;
                             float a2 = (abs(neighborLocalPos2.x) > 0.5 || abs(neighborLocalPos2.y) > 0.5) ? 0 : SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, neighborUV2).a;
                             alphaMax2 = max(alphaMax2, a2);
                         }
@@ -324,18 +310,17 @@ Shader "Custom/URPSuperSprite"
                 #endif
 
                 #if _INNER_OUTLINE_ON
-                    float2 innerLocalStep = _InnerOutlineWidth * 0.01;
+                    float innerLocalStep = _InnerOutlineWidth * 0.01;
                     float innerAlphaMin = 1;
 
-                    // Samples for inner outline using OS-based UV remapping
-                    float2 n1 = originalLocalPos + float2(innerLocalStep.x, 0);
-                    innerAlphaMin = min(innerAlphaMin, (abs(n1.x) > 0.5 || abs(n1.y) > 0.5 ? 0 : SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, TRANSFORM_TEX(n1 + 0.5, _MainTex)).a));
-                    float2 n2 = originalLocalPos + float2(-innerLocalStep.x, 0);
-                    innerAlphaMin = min(innerAlphaMin, (abs(n2.x) > 0.5 || abs(n2.y) > 0.5 ? 0 : SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, TRANSFORM_TEX(n2 + 0.5, _MainTex)).a));
-                    float2 n3 = originalLocalPos + float2(0, innerLocalStep.y);
-                    innerAlphaMin = min(innerAlphaMin, (abs(n3.x) > 0.5 || abs(n3.y) > 0.5 ? 0 : SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, TRANSFORM_TEX(n3 + 0.5, _MainTex)).a));
-                    float2 n4 = originalLocalPos + float2(0, -innerLocalStep.y);
-                    innerAlphaMin = min(innerAlphaMin, (abs(n4.x) > 0.5 || abs(n4.y) > 0.5 ? 0 : SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, TRANSFORM_TEX(n4 + 0.5, _MainTex)).a));
+                    float2 n1 = originalLocalPos + float2(innerLocalStep, 0);
+                    innerAlphaMin = min(innerAlphaMin, (abs(n1.x) > 0.5 || abs(n1.y) > 0.5 ? 0 : SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, (n1 + 0.5) * _MainTex_ST.xy + _MainTex_ST.zw).a));
+                    float2 n2 = originalLocalPos + float2(-innerLocalStep, 0);
+                    innerAlphaMin = min(innerAlphaMin, (abs(n2.x) > 0.5 || abs(n2.y) > 0.5 ? 0 : SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, (n2 + 0.5) * _MainTex_ST.xy + _MainTex_ST.zw).a));
+                    float2 n3 = originalLocalPos + float2(0, innerLocalStep);
+                    innerAlphaMin = min(innerAlphaMin, (abs(n3.x) > 0.5 || abs(n3.y) > 0.5 ? 0 : SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, (n3 + 0.5) * _MainTex_ST.xy + _MainTex_ST.zw).a));
+                    float2 n4 = originalLocalPos + float2(0, -innerLocalStep);
+                    innerAlphaMin = min(innerAlphaMin, (abs(n4.x) > 0.5 || abs(n4.y) > 0.5 ? 0 : SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, (n4 + 0.5) * _MainTex_ST.xy + _MainTex_ST.zw).a));
                     
                     float innerOutlineFactor = smoothstep(0.5 + _OutlineSmoothness, 0.5, innerAlphaMin) * step(0.1, alpha);
                     float4 innerCol = _InnerOutlineColor;
