@@ -1,39 +1,30 @@
-using UnityEditor;
 using UnityEngine;
-using UISystemModule.UIElements;
+using UnityEditor;
 
-namespace UISystemModule.UIElements.Editor
+namespace BoardGameTestCase.UI.Elements.Editor
 {
     [CustomEditor(typeof(GridItem2D))]
     public class GridItem2DEditor : UnityEditor.Editor
     {
         public override void OnInspectorGUI()
         {
-            DrawDefaultInspector();
+            base.OnInspectorGUI();
 
-            GridItem2D item = (GridItem2D)target;
+            var gridItem = (GridItem2D)target;
 
-            EditorGUILayout.Space();
-            EditorGUILayout.LabelField("Animation Testing", EditorStyles.boldLabel);
+            GUILayout.Space(10);
+            GUILayout.Label("Debug Tools", EditorStyles.boldLabel);
 
-            if (GUILayout.Button("Test Drag Start (Punch)"))
+            if (GUILayout.Button("Play Reload Complete Animation"))
             {
-                item.TestDragStart();
-            }
-
-            if (GUILayout.Button("Test Placement Animation"))
-            {
-                item.TestDrop();
-            }
-
-            if (GUILayout.Button("Test Return Animation"))
-            {
-                item.TestReturn();
-            }
-
-            if (GUILayout.Button("Test Fail Animation (Shake/Red)"))
-            {
-                item.TestFailAnimation();
+                if (Application.isPlaying)
+                {
+                    gridItem.PlayReloadCompleteAnimation();
+                }
+                else
+                {
+                    Debug.LogWarning("Animation preview only available in Play Mode.");
+                }
             }
         }
     }

@@ -14,13 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: BoardGameTestCase.Core::BoardGameTestCase.Core.ScriptableObjects.DefenceItemData
   _sprite: {fileID: 21300000, guid: 5fc088dbfab5a4da9a69116c24902cf0, type: 3}
   _displayName: Defence Item 2
-  _damage: 5
-  _range: 2
-  _attackInterval: 4
+  _damage: 4
   _reloadDuration: 4
-  _attackDirection: 0
-  _health: 100
-  _cost: 50
   _gridSize: {x: 1, y: 2}
   _itemId: defence_item_2
   _type: Basic

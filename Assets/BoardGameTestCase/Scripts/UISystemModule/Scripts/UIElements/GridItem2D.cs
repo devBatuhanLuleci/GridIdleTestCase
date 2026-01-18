@@ -79,6 +79,12 @@ namespace UISystemModule.UIElements
         [SerializeField] private bool _enableReloadAnimation = true;
         [SerializeField] private float _reloadDuration = 3f;
         [SerializeField] private bool _loopReload = true;
+        
+        [Header("Reload Complete Animation Settings")]
+        [SerializeField] private float _reloadCompleteScaleDuration = 0.2f;
+        [SerializeField] private Ease _reloadCompleteScaleEase = Ease.OutBack;
+        [SerializeField] private float _reloadCompletePunchScaleStrength = 0.2f;
+        [SerializeField] private float _reloadCompletePunchDuration = 0.3f;
 
         private Material _instancedMaterial;
         private static readonly int UseOutlineProp = Shader.PropertyToID("_UseOutline");
@@ -1114,6 +1120,7 @@ namespace UISystemModule.UIElements
                             _instancedMaterial.SetFloat(FillVerticalProgressProp, 1f);
                             
                         OnReloadComplete?.Invoke();
+                        PlayReloadCompleteAnimation();
                         
                         if (_loopReload && _isPlaced && !_isDragging && !_isBeingDiscarded)
                         {
@@ -1121,6 +1128,28 @@ namespace UISystemModule.UIElements
                         }
                     });
             }
+        }
+        
+        // Editor accessible method
+        public void PlayReloadCompleteAnimation()
+        {
+            if (_instancedMaterial == null) return;
+            
+            // Similar to placement animation: Scale up slightly and punch
+            transform.DOKill(true); // Complete active tweens first
+            
+            // Ensure we start from original scale to avoid compounding growth in loops
+            transform.localScale = _originalScale;
+            
+            Sequence reloadSeq = DOTween.Sequence();
+            
+            // 1. Scale Pulse
+            reloadSeq.Append(transform.DOScale(_originalScale * 1.1f, _reloadCompleteScaleDuration).SetEase(_reloadCompleteScaleEase));
+            reloadSeq.Append(transform.DOScale(_originalScale, _reloadCompleteScaleDuration).SetEase(Ease.OutCubic));
+            
+            // 2. Punch Scale (Overlap slightly for juicy feel)
+            reloadSeq.Insert(_reloadCompleteScaleDuration * 0.8f, 
+                transform.DOPunchScale(Vector3.one * _reloadCompletePunchScaleStrength, _reloadCompletePunchDuration, 10, 1));
         }
 
         public void StopReloadAnimation()
