@@ -160,6 +160,13 @@ namespace UISystemModule.UIElements
             {
                 _gameFlowController = ServiceLocator.Instance?.Get<IGameFlowController>();
             }
+            
+            OnReloadComplete += HandleReloadComplete;
+        }
+
+        private void HandleReloadComplete()
+        {
+            Debug.Log($"[GridItem2D] Reload Complete for {name}");
         }
 
         private void OnDestroy()
@@ -167,7 +174,12 @@ namespace UISystemModule.UIElements
             // Kill any active tweens on this object to prevent errors when destroyed
             _glowTween?.Kill();
             _widthTween?.Kill();
+            _glowTween?.Kill();
+            _widthTween?.Kill();
             _reloadTween?.Kill();
+            
+            OnReloadComplete -= HandleReloadComplete;
+            
             transform.DOKill();
             if (_spriteRenderer != null) _spriteRenderer.DOKill();
 
@@ -1003,7 +1015,13 @@ namespace UISystemModule.UIElements
         public void OnRemoved()
         {
             _isPlaced = false;
-            StopReloadAnimation();
+            
+            // Only stop reload if we are NOT dragging (i.e. truly removed/sold/discarded)
+            // If dragging, we want the reload to persist visually.
+            if (!_isDragging) 
+            {
+                StopReloadAnimation();
+            }
             
             if (_combatComponent != null)
             {
