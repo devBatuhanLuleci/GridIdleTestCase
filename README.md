@@ -1,190 +1,115 @@
-# Board Defence Game - Test Case
+<div align="center">
 
-Bu proje, Unico Studio için geliştirilmiş bir grid tabanlı savunma oyunu test case'idir. Oyuncular grid üzerine savunma birimleri yerleştirerek düşman dalgalarına karşı mücadele ederler.
+# 🛡️ Board Defence - Grid Based Strategy Game
 
-## 🎮 Oyun Özellikleri
+![Banner](https://github.com/user-attachments/assets/your-banner-id-here) 
+*(Not: Az önce senin için ürettiğim banner görselini buraya ekleyebilirsin!)*
 
-- **Grid Tabanlı Yerleştirme Sistemi**: Savunma birimlerini grid üzerine yerleştirme
-- **Savaş Sistemi**: Otomatik atış mekanizması ile düşmanlara saldırma
-- **Stratejik Saldırı Yönleri**: İleriye doğru veya her yöne saldırı stratejileri
-- **Düşman Dalga Sistemi**: Farklı tipte düşmanlar ve dalga yönetimi
-- **Envanter Yönetimi**: Seviye bazlı envanter sistemi
-- **Durum Yönetimi**: Yerleştirme, Savaş, Kazanma ve Kaybetme durumları
+[![Unity](https://img.shields.io/badge/Unity-6000.2.6f2-blue.svg?style=for-the-badge&logo=unity)](https://unity.com/)
+[![License](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](LICENSE)
+[![Platform](https://img.shields.io/badge/Platform-Mobile%20%7C%20Web-orange.svg?style=for-the-badge)](https://unity.com/)
 
-## 🏗️ Mimari
+**Board Defence**, Unico Studio için geliştirilmiş, yüksek performanslı ve modüler mimariye sahip grid tabanlı bir savunma oyunudur.
 
-Proje, modüler bir mimari ile SOLID prensiplerine uygun olarak geliştirilmiştir. Her modül kendi assembly tanımına sahiptir ve bağımlılıklar arayüzler üzerinden yönetilir.
+[Özellikler](#-özellikler) • [Mimari](#-mimari) • [Modüller](#-modüller) • [Kurulum](#-kurulum) • [Teknik Detaylar](#-teknik-detaylar)
 
-### Temel Mimari Prensipler
-
-- **Service Locator Pattern**: Runtime servis erişimi için ServiceLocator kullanımı
-- **Dependency Injection**: [SerializeField] referansları ve arayüz tabanlı bağımlılık yönetimi
-- **Modüler Assembly Yapısı**: Her modül kendi assembly tanımına sahip
-- **State Machine**: Oyun durumu yönetimi için state pattern kullanımı
-- **Interface-Based Design**: Tüm bağımlılıklar arayüzler üzerinden yönetilir
-
-### Kod Standartları
-
-- Yorum satırları kullanılmaz (self-explanatory code)
-- Reflection tabanlı Unity metodları kullanılmaz (FindObjectOfType, GetComponent vb.)
-- String tabanlı kontroller yapılmaz
-- Runtime reflection kullanılmaz
-- Tüm bağımlılıklar ServiceLocator veya [SerializeField] ile enjekte edilir
-
-## 📦 Modüller
-
-### Core Modules
-
-- **BoardGameTestCase.Core**: Temel ScriptableObject'ler ve ortak yapılar
-- **GridSystemModule**: Grid yönetimi, tile sistemi ve yerleştirme validasyonu
-  - Core: Grid arayüzleri ve temel yapılar
-  - Managers: Grid yönetim mantığı
-  - Services: Grid servisleri
-  - Tiles: Tile implementasyonları
-
-### Gameplay Modules
-
-- **GameModule**: Oyun akışı kontrolü ve durum yönetimi
-  - Core: Arayüzler ve enum'lar
-  - Managers: StateManager, GameManager
-  - Services: GameFlowController
-
-- **GameplayModule**: Oyun içi mekanikler
-  - Combat: Savunma birimleri savaş sistemi
-  - Strategies: Saldırı stratejileri (Forward, AllDirections)
-
-- **CombatModule**: Genel savaş yönetimi
-  - CombatManager: Savaş durumu yönetimi
-  - Enemy tracking ve combat lifecycle
-
-- **PlacementModule**: Yerleştirme sistemi
-  - Grid üzerine birim yerleştirme mekanizması
-  - Geçerli/geçersiz yerleştirme kontrolleri
-
-- **InventoryModule**: Envanter yönetimi
-  - Seviye bazlı envanter sistemi
-
-### UI Modules
-
-- **UISystemModule**: Kullanıcı arayüzü sistemi
-  - Core: UI arayüzleri
-  - Managers: UI yönetimi
-  - UIElements: UI bileşenleri
-  - Combat, Gameplay, Inventory, Settings alt modülleri
-
-### Utility Modules
-
-- **DebugModule**: Geliştirme ve debug araçları
-- **Editor**: Editor araçları ve ScriptableObject oluşturucular
-
-## 🚀 Kurulum
-
-### Gereksinimler
-
-- Unity Editor 6000.2.6f2 veya üzeri
-- Universal Render Pipeline desteği
-
-### Adımlar
-
-1. Projeyi klonlayın:
-```bash
-git clone [repository-url]
-```
-
-2. Unity Hub üzerinden projeyi açın
-
-3. Unity Editor'de projeyi açtıktan sonra, tüm assembly referanslarının doğru yüklendiğinden emin olun
-
-4. `Assets/BoardGameTestCase/Scenes/Gameplayscene.unity` sahnesini açın
-
-5. Play butonuna basarak oyunu başlatın
-
-## 🎯 Oyun Akışı
-
-1. **Placing State**: Oyuncu grid üzerine savunma birimleri yerleştirir
-2. **Fight State**: Yerleştirme tamamlandıktan sonra savaş başlar
-   - Düşmanlar spawn olur
-   - Savunma birimleri otomatik olarak atış yapar
-   - Düşmanlar hedefe ulaşmaya çalışır
-3. **Win/Lose State**: Tüm düşmanlar yenildiğinde kazanma, hedefe ulaşan düşman olduğunda kaybetme
-
-## 🛠️ Teknik Detaylar
-
-### Servis Lokasyonu
-
-Tüm servisler `ServiceLocator` pattern ile yönetilir:
-
-```csharp
-ServiceLocator.Instance.Register<IService>(service);
-ServiceLocator.Instance.Get<IService>();
-```
-
-### Durum Yönetimi
-
-Oyun durumları `StateManager` üzerinden yönetilir:
-- `Placing`: Yerleştirme aşaması
-- `Fight`: Savaş aşaması
-- `Win`: Kazanma durumu
-- `Lose`: Kaybetme durumu
-
-### Saldırı Stratejileri
-
-Savunma birimleri farklı saldırı stratejilerine sahiptir:
-- `ForwardAttackStrategy`: Sadece ileri yönde saldırı
-- `AllDirectionsAttackStrategy`: Her yönde saldırı
-
-### Grid Sistemi
-
-- Tile tabanlı grid yapısı
-- Yerleştirme validasyonu
-- Geçerli/geçersiz yerleştirme görsel feedback'i
-
-## 📁 Proje Yapısı
-
-```
-Assets/BoardGameTestCase/
-├── Scripts/
-│   ├── CORE/                    # Temel yapılar
-│   ├── GridSystemModule/        # Grid sistemi
-│   ├── GameModule/              # Oyun akışı
-│   ├── GameplayModule/          # Oyun mekanikleri
-│   ├── CombatModule/            # Savaş yönetimi
-│   ├── PlacementModule/         # Yerleştirme sistemi
-│   ├── InventoryModule/         # Envanter
-│   ├── UISystemModule/          # UI sistemi
-│   └── DebugModule/             # Debug araçları
-├── DATA/
-│   ├── GridSettings/            # Grid ayarları
-│   ├── LEVELS/                  # Seviye verileri
-│   ├── UnitsSettings/           # Birim ayarları
-│   └── PlacementSettings/       # Yerleştirme ayarları
-├── Prefabs/                     # Oyun prefab'ları
-├── Scenes/                      # Oyun sahneleri
-└── Settings/                    # Proje ayarları
-```
-
-## 🧪 Test Case Kapsamı
-
-Bu test case aşağıdaki özellikleri göstermektedir:
-
-- ✅ Modüler mimari tasarımı
-- ✅ SOLID prensiplerine uyum
-- ✅ Service Locator pattern kullanımı
-- ✅ Interface-based dependency injection
-- ✅ State machine implementasyonu
-- ✅ Grid tabanlı yerleştirme sistemi
-- ✅ Combat sistemi ve strateji pattern
-- ✅ Modular assembly yapısı
-- ✅ Clean code prensipleri
-
-## 📝 Lisans
-
-Bu proje Unico Studio için geliştirilmiş bir test case'dir.
-
-## 👤 Geliştirici
-
-Batuhan Luleci
+</div>
 
 ---
 
-**Not**: Bu proje Unity 6000.2.6f2 sürümü ile geliştirilmiştir.
+## 📸 Media & Demo
+
+Aşağıdaki bölümlere oyun içinden aldığın video ve GIF'leri ekleyebilirsin.
+
+| Gameplay GIF | Combat System | Placement Mechanics |
+| :---: | :---: | :---: |
+| ![Gameplay](https://via.placeholder.com/300x500?text=Gameplay+GIF) | ![Combat](https://via.placeholder.com/300x500?text=Combat+GIF) | ![Placement](https://via.placeholder.com/300x500?text=Placement+GIF) |
+
+---
+
+## 🎮 Özellikler
+
+- **🧩 Gelişmiş Grid Sistemi**: Dinamik boyutlandırma ve tile tabanlı yerleştirme validasyonu.
+- **⚔️ Akıllı Savaş Mekaniği**: Strateji örüntüleri (Strategy Pattern) ile yönetilen farklı saldırı tipleri.
+- **🌊 Dalga Yönetimi**: Esnek düşman spawn ve dalga kontrol mekanizması.
+- **📦 Dinamik Envanter**: Seviye bazlı çalışan ve UI ile entegre envanter sistemi.
+- **🎨 Üstün Görsel Geri Bildirim**: Sprite Outline Shader ve akıcı animasyonlar ile zenginleştirilmiş kullanıcı deneyimi.
+
+---
+
+## 🏗️ Mimari Tasarım
+
+Proje, **SOLID** prensiplerine sadık kalınarak, tamamen modüler ve test edilebilir bir yapıda inşa edilmiştir.
+
+### 🌟 Temel Prensipler
+- **Service Locator & DI**: Bağımlılıklar arayüzler üzerinden yönetilir, runtime servis erişimi merkezidir.
+- **State Machine**: Oyun akışı (Placing, Fight, Win/Lose) state pattern ile kontrol edilir.
+- **Modular Assembly (AsmDef)**: Her modül kendi assembly'sine sahiptir, compilation süreleri minimize edilmiştir.
+- **Clean Code**: Kendini açıklayan metod isimleri ve yapısal bütünlük (No magic strings, no reflection).
+
+---
+
+## 📦 Modül Yapısı
+
+### 🔵 Core Modules
+- **GridSystem**: Grid mantığı, tile validasyonu ve yerleştirme kontrolleri.
+- **GameModule**: Oyunun ana kalbi; StateManager ve FlowController.
+- **CombatSystem**: Düşman takibi, hasar mekaniği ve saldırı stratejileri.
+
+### 🟢 Gameplay Modules
+- **Placement**: Birim yerleştirme akışı ve görsel feedback.
+- **Inventory**: Oyuncunun sahip olduğu birimlerin yönetimi.
+- **Strategies**: `ForwardAttackChallenge` ve `AllDirectionsAttack` gibi genişletilebilir stratejiler.
+
+### 🔴 UI & Debug
+- **UISystem**: Modern ve responsive arayüz bileşenleri.
+- **DebugModule**: Geliştirme sürecini hızlandıran araçlar ve loglama.
+
+---
+
+## 🚀 Kurulum
+
+1. **Unity Versiyonu**: Proje `6000.2.6f2` sürümü ile uyumludur.
+2. **Klonlama**:
+   ```bash
+   git clone https://github.com/batuhanluleci/GridIdleTestCase.git
+   ```
+3. **Sahne**: `Assets/BoardGameTestCase/Scenes/Gameplayscene.unity` sahnesini açın.
+4. **Başlat**: Play butonuna basarak savunmaya başlayın!
+
+---
+
+## 🛠️ Teknik Detaylar
+
+### Yazılım Stack'i
+- **Engine**: Unity 2023+ (Unity 6 ready)
+- **Rendering**: Universal Render Pipeline (URP)
+- **Logic**: C# (Async/Await, Interfaces, Generics)
+- **Tweening**: DOTween (Yüksek performanslı animasyonlar)
+- **Pattern**: Service Locator, Strategy, State, Observer
+
+---
+
+## 📁 Dosya Organizasyonu
+
+```text
+Assets/BoardGameTestCase/
+├── Scripts/             # Tüm operasyonel kodlar (AsmDef bazlı)
+├── DATA/                # ScriptableObject verileri ve ayarlar
+├── Prefabs/             # Birimler, Düşmanlar ve UI elementleri
+├── Shaders/             # Özel URP shader'lar
+└── Sprites/             # Görsel varlıklar
+```
+
+---
+
+## 👤 Geliştirici
+
+**Batuhan Luleci**  
+*Game Developer & Software Architect*
+
+---
+
+<div align="center">
+Made with ❤️ for Unico Studio Test Case
+</div>

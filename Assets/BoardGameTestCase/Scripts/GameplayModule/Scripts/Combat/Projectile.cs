@@ -11,6 +11,7 @@ namespace GameplayModule
         [SerializeField] private SpriteRenderer _spriteRenderer;
         [SerializeField] private Collider2D _collider;
         
+        private Material _materialInstance;
         private EnemyItem2D _target;
         private Tween _movementTween;
         private Action<Projectile> _onHit;
@@ -29,11 +30,22 @@ namespace GameplayModule
         public void SetSpriteRenderer(SpriteRenderer spriteRenderer)
         {
             _spriteRenderer = spriteRenderer;
+            SetupMaterialInstance();
         }
         
         private void Awake()
         {
             EnsureCollider2D();
+            SetupMaterialInstance();
+        }
+
+        private void SetupMaterialInstance()
+        {
+            if (_spriteRenderer != null && _spriteRenderer.sharedMaterial != null && _materialInstance == null)
+            {
+                _materialInstance = new Material(_spriteRenderer.sharedMaterial);
+                _spriteRenderer.material = _materialInstance;
+            }
         }
         
         private void EnsureCollider2D()

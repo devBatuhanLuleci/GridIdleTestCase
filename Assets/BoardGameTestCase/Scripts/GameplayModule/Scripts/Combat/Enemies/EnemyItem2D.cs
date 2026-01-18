@@ -23,6 +23,16 @@ namespace GameplayModule
         
         private Material _materialInstance;
         
+        [Header("Hit Effect Settings")]
+        [SerializeField] private Color _hitColor = Color.white;
+        [SerializeField] private float _hitDuration = 0.15f;
+        [SerializeField] private DG.Tweening.Ease _hitEase = DG.Tweening.Ease.OutQuad;
+
+        private static readonly int FlashAmountProp = Shader.PropertyToID("_FlashAmount");
+        private static readonly int FlashColorProp = Shader.PropertyToID("_FlashColor");
+
+        private Tween _hitTween;
+        
         private int _currentHealth;
         private Vector2Int _gridPosition;
         private bool _isDragging = false;
@@ -79,6 +89,11 @@ namespace GameplayModule
                 _healthBarTween.Kill();
             }
             
+            if (_hitTween != null && _hitTween.IsActive())
+            {
+                _hitTween.Kill();
+            }
+
             if (_movementController != null)
             {
                 _movementController.StopMovement();
@@ -147,6 +162,16 @@ namespace GameplayModule
                 _spriteRenderer.color = Color.white;
                 _spriteRenderer.DOKill();
             }
+
+            if (_materialInstance != null)
+            {
+                _materialInstance.SetFloat(FlashAmountProp, 0f);
+            }
+
+            if (_hitTween != null && _hitTween.IsActive())
+            {
+                _hitTween.Kill();
+            }
             
             if (_healthBarFillImage != null)
             {
@@ -203,6 +228,8 @@ namespace GameplayModule
                 Instantiate(_hitParticlePrefab, transform.position, Quaternion.identity);
             }
 
+            PlayHitEffect();
+
             int previousHealth = _currentHealth;
             _currentHealth = Mathf.Max(0, _currentHealth - damage);
             OnHealthChanged?.Invoke(this, _currentHealth);
@@ -214,6 +241,22 @@ namespace GameplayModule
                 OnDeath?.Invoke(this);
                 Recycle();
             }
+        }
+
+        private void PlayHitEffect()
+        {
+            if (_materialInstance == null) return;
+
+            _hitTween?.Kill();
+
+            // Set hit color
+            _materialInstance.SetColor(FlashColorProp, _hitColor);
+            
+            // Animate flash amount from 1 to 0
+            _materialInstance.SetFloat(FlashAmountProp, 1f);
+            _hitTween = DOTween.To(() => _materialInstance.GetFloat(FlashAmountProp), 
+                x => _materialInstance.SetFloat(FlashAmountProp, x), 0f, _hitDuration)
+                .SetEase(_hitEase);
         }
 
         public void Recycle()

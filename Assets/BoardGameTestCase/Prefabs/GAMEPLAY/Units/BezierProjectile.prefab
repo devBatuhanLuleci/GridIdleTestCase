@@ -59,7 +59,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
+  - {fileID: 2100000, guid: ae360f58d912043268c3919559a15565, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -104,4 +104,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: adf74973bda9341caa18a849991d09fb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GameplayModule::GameplayModule.BezierProjectile
-  _spriteRenderer: {fileID: 0}
+  _spriteRenderer: {fileID: 3643880820474478638}

@@ -9,6 +9,7 @@ namespace GameplayModule
     {
         [SerializeField] private SpriteRenderer _spriteRenderer;
         
+        private Material _materialInstance;
         private int _damage;
         private float _duration = 0.5f;
         private float _height = 2f;
@@ -18,6 +19,24 @@ namespace GameplayModule
         private void Awake()
         {
             if (_spriteRenderer == null) _spriteRenderer = GetComponent<SpriteRenderer>();
+            SetupMaterialInstance();
+        }
+
+        private void SetupMaterialInstance()
+        {
+            if (_spriteRenderer != null && _spriteRenderer.sharedMaterial != null && _materialInstance == null)
+            {
+                _materialInstance = new Material(_spriteRenderer.sharedMaterial);
+                _spriteRenderer.material = _materialInstance;
+            }
+        }
+
+        private void OnDestroy()
+        {
+            if (_materialInstance != null)
+            {
+                Destroy(_materialInstance);
+            }
         }
 
         public void Initialize(EnemyItem2D target, int damage, Sprite sprite, float duration, float height, Action<BezierProjectile> onHit)
