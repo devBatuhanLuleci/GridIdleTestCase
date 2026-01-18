@@ -45,7 +45,7 @@ TextureImporter:
   compressionQuality: 50
   spriteMode: 2
   spriteExtrude: 1
-  spriteMeshType: 1
+  spriteMeshType: 0
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
   spritePixelsToUnits: 100
@@ -130,8 +130,8 @@ TextureImporter:
         y: 220
         width: 63
         height: 90
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -650,6 +650,28 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: zombie_tilesheet_24
+      rect:
+        serializedVersion: 2
+        x: 11
+        y: 0
+        width: 709
+        height: 324
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 12a1caff74fab4e10a9d71d42fa5dd54
+      internalID: -250256088
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     customData: 
     physicsShape: []
@@ -683,6 +705,7 @@ TextureImporter:
       zombie_tilesheet_21: 1299425835
       zombie_tilesheet_22: -1655515584
       zombie_tilesheet_23: -1788494866
+      zombie_tilesheet_24: -250256088
       zombie_tilesheet_3: 1765268409
       zombie_tilesheet_4: -1286712542
       zombie_tilesheet_5: 27551271

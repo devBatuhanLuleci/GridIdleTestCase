@@ -19,6 +19,9 @@ namespace GameplayModule
         [SerializeField] private string _placeableId;
         [SerializeField] private Image _healthBarFillImage;
         [SerializeField] private EnemyMovementController _movementController;
+        [SerializeField] private ParticleSystem _hitParticlePrefab;
+        
+        private Material _materialInstance;
         
         private int _currentHealth;
         private Vector2Int _gridPosition;
@@ -40,6 +43,7 @@ namespace GameplayModule
         
         public event Action<EnemyItem2D> OnDeath;
         public event Action<EnemyItem2D, int> OnHealthChanged;
+        public event Action<EnemyItem2D> OnRecycle; // Called when returned to pool
         
         event Action<IEnemy> IEnemy.OnDeath
         {
@@ -79,6 +83,11 @@ namespace GameplayModule
             {
                 _movementController.StopMovement();
             }
+
+            if (_materialInstance != null)
+            {
+                Destroy(_materialInstance);
+            }
         }
         
         private void LoadFromEnemyData()
@@ -111,16 +120,42 @@ namespace GameplayModule
             }
             
             _spriteRenderer.color = Color.white;
-            _spriteRenderer.enabled = true;
-            _spriteRenderer.sortingOrder = 2;
-            
-            Vector3 pos = transform.position;
-            pos.z = 0;
-            transform.position = pos;
-            
+            if (_spriteRenderer != null && _spriteRenderer.sharedMaterial != null && _materialInstance == null)
+            {
+                _materialInstance = new Material(_spriteRenderer.sharedMaterial);
+                _spriteRenderer.material = _materialInstance;
+            }
+
             EnsureCollider2D();
         }
         
+        public void ResetState()
+        {
+            _isBeingDiscarded = false;
+            _isPlaced = false;
+            _isDragging = false;
+            transform.localScale = _originalScale;
+            transform.rotation = Quaternion.identity;
+            
+            if (_enemyData != null)
+            {
+                _currentHealth = _enemyData.Health;
+            }
+            
+            if (_spriteRenderer != null)
+            {
+                _spriteRenderer.color = Color.white;
+                _spriteRenderer.DOKill();
+            }
+            
+            if (_healthBarFillImage != null)
+            {
+                _healthBarFillImage.fillAmount = 1f;
+            }
+            
+            gameObject.SetActive(true);
+        }
+
         private void EnsureCollider2D()
         {
             if (_collider == null && _spriteRenderer != null && _spriteRenderer.sprite != null)
@@ -162,6 +197,12 @@ namespace GameplayModule
         {
             if (!IsAlive) return;
             
+            // Spawn hit particle
+            if (_hitParticlePrefab != null)
+            {
+                Instantiate(_hitParticlePrefab, transform.position, Quaternion.identity);
+            }
+
             int previousHealth = _currentHealth;
             _currentHealth = Mathf.Max(0, _currentHealth - damage);
             OnHealthChanged?.Invoke(this, _currentHealth);
@@ -171,8 +212,14 @@ namespace GameplayModule
             if (_currentHealth <= 0)
             {
                 OnDeath?.Invoke(this);
-                Destroy(gameObject);
+                Recycle();
             }
+        }
+
+        public void Recycle()
+        {
+            OnRecycle?.Invoke(this);
+            gameObject.SetActive(false);
         }
         
         private void UpdateHealthBar(int previousHealth)
@@ -302,8 +349,8 @@ namespace GameplayModule
             DOVirtual.DelayedCall(discardDuration, () =>
             {
                 onComplete?.Invoke();
-                if (this != null && gameObject != null)
-                    Destroy(gameObject);
+                if (this != null)
+                    Recycle();
             });
         }
     }

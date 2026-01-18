@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: BoardGameTestCase.Core::BoardGameTestCase.Core.ScriptableObjects.EnemyData
   _sprite: {fileID: -1788494866, guid: a15948715a347482ab1c45104c293d1a, type: 3}
   _displayName: Enemy 3
-  _health: 5
-  _speed: 0.5
+  _health: 3
+  _speed: 1
   _enemyId: enemy_3
   _type: Basic
   _description: 

@@ -23,6 +23,9 @@ namespace CombatModule
         private ILevelDataProvider _levelDataProvider;
         private IGridPlacementSystem _placementSystem;
         private IGameFlowController _gameFlowController;
+        
+        [SerializeField] private List<Transform> _spawnPoints = new List<Transform>();
+        [SerializeField] private float _respawnDelay = 1.5f;
         private List<EnemyItem2D> _spawnedEnemies = new List<EnemyItem2D>();
         
         public IReadOnlyList<IEnemy> SpawnedEnemies
@@ -67,6 +70,9 @@ namespace CombatModule
             }
             
             _isInitialized = true;
+            
+            // Spawn enemies at game start as requested
+            SpawnAllEnemies();
         }
         
         public void SpawnAllEnemies()
@@ -87,41 +93,38 @@ namespace CombatModule
             }
         }
         
-        public IEnemy SpawnEnemy(EnemyData enemyData)
+        public IEnemy SpawnEnemy(EnemyData enemyData, UnityEngine.Transform manualParent = null)
         {
-            if (enemyData == null || _enemyFactory == null || _placementSystem == null) return null;
+            if (enemyData == null || _enemyFactory == null) return null;
             
-            if (_gameFlowController != null && _gameFlowController.CurrentGameState != GameState.Fight)
+            Transform spawnParent = manualParent;
+            Vector3 spawnWorldPos = manualParent != null ? manualParent.position : Vector3.zero;
+
+            if (manualParent == null)
             {
-                return null;
+                if (_spawnPoints != null && _spawnPoints.Count > 0)
+                {
+                    // Simple distribution: current index % spawn point count
+                    int spawnIndex = _spawnedEnemies.Count % _spawnPoints.Count;
+                    Transform spawnPoint = _spawnPoints[spawnIndex];
+                    spawnWorldPos = spawnPoint.position;
+                    spawnParent = spawnPoint; // Spawn inside the spawn point itself
+                }
+                else if (_placementSystem != null)
+                {
+                    // Fallback to old grid logic if no points assigned
+                    Vector2Int gridDimensions = _placementSystem.GridDimensions;
+                    int randomX = Random.Range(0, gridDimensions.x);
+                    Vector2Int spawnGridPos = FindAvailableSpawnPosition(randomX, gridDimensions);
+                    spawnWorldPos = _placementSystem.GridToWorld(spawnGridPos);
+                }
             }
             
-            Vector2Int gridDimensions = _placementSystem.GridDimensions;
-            int randomX = Random.Range(0, gridDimensions.x);
-            
-            Vector2Int spawnGridPos = FindAvailableSpawnPosition(randomX, gridDimensions);
-            if (spawnGridPos.y < 0)
-            {
-                return null;
-            }
-            
-            Vector3 spawnWorldPos = _placementSystem.GridToWorld(spawnGridPos);
-            
-            EnemyItem2D enemy = _enemyFactory.CreateEnemy(enemyData, spawnWorldPos);
+            EnemyItem2D enemy = _enemyFactory.CreateEnemy(enemyData, spawnWorldPos, spawnParent);
             if (enemy == null) return null;
             
-            Vector2Int baseGridPos = new Vector2Int(spawnGridPos.x, 0);
-            Vector3 baseWorldPos = GetTileCenterPosition(baseGridPos);
-            
-            var movementController = enemy.gameObject.AddComponent<EnemyMovementController>();
-            movementController.Initialize(enemy, baseWorldPos, OnEnemyReachBase);
-            enemy.SetMovementController(movementController);
-            
-            enemy.OnPlaced(spawnGridPos);
             enemy.OnDeath += OnEnemyDeath;
-            
             _spawnedEnemies.Add(enemy);
-            movementController.StartMovement();
             
             return enemy as IEnemy;
         }
@@ -166,7 +169,26 @@ namespace CombatModule
         {
             if (enemy != null && _spawnedEnemies.Contains(enemy))
             {
+                Transform dyingParent = enemy.transform.parent;
                 _spawnedEnemies.Remove(enemy);
+                StartCoroutine(RespawnWithDelay(dyingParent));
+            }
+        }
+
+        private System.Collections.IEnumerator RespawnWithDelay(Transform parent)
+        {
+            yield return new WaitForSeconds(_respawnDelay);
+
+            // Spawn a new one when one dies as requested
+            if (_levelDataProvider != null && _levelDataProvider.CurrentLevel != null)
+            {
+                var enemies = _levelDataProvider.CurrentLevel.Enemies;
+                if (enemies.Count > 0)
+                {
+                    // Spawn a random enemy type from the current level data
+                    int randomIndex = Random.Range(0, enemies.Count);
+                    SpawnEnemy(enemies[randomIndex].EnemyData, parent);
+                }
             }
         }
         
@@ -185,9 +207,9 @@ namespace CombatModule
             
             foreach (var enemy in enemiesToDestroy)
             {
-                if (enemy != null && enemy.gameObject != null)
+                if (enemy != null)
                 {
-                    Destroy(enemy.gameObject);
+                    enemy.Recycle();
                 }
             }
         }

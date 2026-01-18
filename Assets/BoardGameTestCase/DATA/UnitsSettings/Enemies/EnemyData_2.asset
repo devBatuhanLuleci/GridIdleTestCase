@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 458af827a5d504733b30def87d5a9679, type: 3}
   m_Name: EnemyData_2
   m_EditorClassIdentifier: BoardGameTestCase.Core::BoardGameTestCase.Core.ScriptableObjects.EnemyData
-  _sprite: {fileID: -1788494866, guid: a15948715a347482ab1c45104c293d1a, type: 3}
+  _sprite: {fileID: 21300000, guid: db9e4e650a46d4716a8e498614a76c31, type: 3}
   _displayName: Enemy 2
   _health: 10
   _speed: 0.25

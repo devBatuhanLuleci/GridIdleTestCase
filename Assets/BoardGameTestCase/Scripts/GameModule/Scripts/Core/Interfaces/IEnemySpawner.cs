@@ -8,7 +8,7 @@ namespace GameModule.Core.Interfaces
         IReadOnlyList<IEnemy> SpawnedEnemies { get; }
         int ActiveEnemyCount { get; }
         void SpawnAllEnemies();
-        IEnemy SpawnEnemy(EnemyData enemyData);
+        IEnemy SpawnEnemy(EnemyData enemyData, UnityEngine.Transform manualParent = null);
         void ClearAllEnemies();
     }
 }

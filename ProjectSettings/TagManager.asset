@@ -6,6 +6,7 @@ TagManager:
   tags:
   - ship
   - asteroid
+  - FxTemporaire
   layers:
   - Default
   - TransparentFX
@@ -57,6 +58,9 @@ TagManager:
     locked: 0
   - name: DraggedItem
     uniqueID: 2731106115
+    locked: 0
+  - name: HitParticle
+    uniqueID: 1980640621
     locked: 0
   m_RenderingLayers:
   - Default
