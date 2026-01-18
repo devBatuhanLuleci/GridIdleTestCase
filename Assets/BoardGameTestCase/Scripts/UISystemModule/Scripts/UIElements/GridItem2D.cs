@@ -78,7 +78,7 @@ namespace UISystemModule.UIElements
         [Header("Reload Animation Settings")]
         [SerializeField] private bool _enableReloadAnimation = true;
         [SerializeField] private float _reloadDuration = 3f;
-        [SerializeField] private bool _loopReload = true;
+        [SerializeField] private bool _loopReload = false;
         
         [Header("Reload Complete Animation Settings")]
         [SerializeField] private float _reloadCompleteScaleDuration = 0.2f;

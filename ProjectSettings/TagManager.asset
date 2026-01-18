@@ -50,11 +50,14 @@ TagManager:
   - name: TileHighlight
     uniqueID: 2627179943
     locked: 0
-  - name: DraggableItem
-    uniqueID: 1129498767
-    locked: 0
   - name: EnemyItem
     uniqueID: 1338195993
+    locked: 0
+  - name: PlayerItem
+    uniqueID: 1107473001
+    locked: 0
+  - name: DraggableItem
+    uniqueID: 1129498767
     locked: 0
   - name: DraggedItem
     uniqueID: 2731106115
