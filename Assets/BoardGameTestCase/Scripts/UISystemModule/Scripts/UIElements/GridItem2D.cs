@@ -68,6 +68,7 @@ namespace UISystemModule.UIElements
         [SerializeField] private float _dropOutlineFadeDuration = 0.3f;
 
         private Tween _outlineTween;
+        private Material _instancedMaterial;
         private static readonly int UseOutlineProp = Shader.PropertyToID("_UseOutline");
         private static readonly int OutlineWidthProp = Shader.PropertyToID("_OutlineWidth");
         
@@ -108,6 +109,9 @@ namespace UISystemModule.UIElements
             {
                 _spriteRenderer.sortingLayerName = DRAGGABLE_SORTING_LAYER;
                 _originalSortingLayerName = _spriteRenderer.sortingLayerName;
+                
+                // Eagerly create material instance
+                _instancedMaterial = _spriteRenderer.material;
             }
             
             SetupScaleFromGridParent();
@@ -126,8 +130,16 @@ namespace UISystemModule.UIElements
         private void OnDestroy()
         {
             // Kill any active tweens on this object to prevent errors when destroyed
+            _outlineTween?.Kill();
             transform.DOKill();
             if (_spriteRenderer != null) _spriteRenderer.DOKill();
+
+            // Clean up instanced material
+            if (_instancedMaterial != null)
+            {
+                if (Application.isPlaying) Destroy(_instancedMaterial);
+                else DestroyImmediate(_instancedMaterial);
+            }
         }
         
         private bool IsPlacingState()
@@ -643,15 +655,14 @@ namespace UISystemModule.UIElements
 
         private void StartOutlineAnimation()
         {
-            if (_spriteRenderer != null)
+            if (_instancedMaterial != null)
             {
-                var mat = _spriteRenderer.material; // Creates instance material
-                mat.SetFloat(UseOutlineProp, 1f);
-                mat.EnableKeyword("_OUTLINE_ON");
+                _instancedMaterial.SetFloat(UseOutlineProp, 1f);
+                _instancedMaterial.EnableKeyword("_OUTLINE_ON");
 
                 _outlineTween?.Kill();
-                mat.SetFloat(OutlineWidthProp, _dragOutlineStartWidth);
-                _outlineTween = mat.DOFloat(_dragOutlineEndWidth, OutlineWidthProp, _dragOutlineLoopDuration)
+                _instancedMaterial.SetFloat(OutlineWidthProp, _dragOutlineStartWidth);
+                _outlineTween = _instancedMaterial.DOFloat(_dragOutlineEndWidth, OutlineWidthProp, _dragOutlineLoopDuration)
                     .SetLoops(-1, LoopType.Yoyo)
                     .SetEase(Ease.InOutSine);
             }
@@ -659,16 +670,16 @@ namespace UISystemModule.UIElements
 
         private void StopOutlineAnimation()
         {
-            if (_spriteRenderer != null)
+            if (_instancedMaterial != null)
             {
                 _outlineTween?.Kill();
-                _outlineTween = _spriteRenderer.material.DOFloat(0f, OutlineWidthProp, _dropOutlineFadeDuration)
+                _outlineTween = _instancedMaterial.DOFloat(0f, OutlineWidthProp, _dropOutlineFadeDuration)
                     .OnComplete(() =>
                     {
-                        if (_spriteRenderer != null)
+                        if (_instancedMaterial != null)
                         {
-                            _spriteRenderer.material.SetFloat(UseOutlineProp, 0f);
-                            _spriteRenderer.material.DisableKeyword("_OUTLINE_ON");
+                            _instancedMaterial.SetFloat(UseOutlineProp, 0f);
+                            _instancedMaterial.DisableKeyword("_OUTLINE_ON");
                         }
                     });
             }
