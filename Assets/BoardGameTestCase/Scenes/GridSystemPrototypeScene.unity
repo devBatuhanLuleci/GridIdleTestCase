@@ -754,7 +754,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 2657852133369278895, guid: 40158f5c84712480d81b5203c0422b6e, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1435194740}
   m_SourcePrefab: {fileID: 100100000, guid: 40158f5c84712480d81b5203c0422b6e, type: 3}
 --- !u!4 &872742228 stripped
 Transform:
@@ -1007,6 +1010,32 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5bee28a3ee6c4f47a50c02a6d4317ef, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UISystemModule.Managers::UISystemModule.Managers.StateManager
+--- !u!1 &1435194739 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2657852133369278895, guid: 40158f5c84712480d81b5203c0422b6e, type: 3}
+  m_PrefabInstance: {fileID: 804604505}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1435194740
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1435194739}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a479976dd7a794fcf965deed62ecf76f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BoardGameTestCase.Core::BoardGameTestCase.Core.GridScaler
+  _referenceScreenWidth: 1920
+  _referenceScreenHeight: 1080
+  _baseScale: {x: 1, y: 1, z: 1}
+  _scaleMode: 0
+  _matchWidthOrHeight: 0.5
+  _minScale: 0.5
+  _maxScale: 2
+  _autoUpdate: 1
+  _targetCamera: {fileID: 0}
 --- !u!1 &1485128814
 GameObject:
   m_ObjectHideFlags: 0

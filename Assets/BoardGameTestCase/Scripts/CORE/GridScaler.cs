@@ -6,6 +6,7 @@ namespace BoardGameTestCase.Core
     /// Automatically scales the grid tile parent to fit different screen sizes.
     /// Attach this to your TilesParent GameObject.
     /// Works in conjunction with CameraResponsiveScaler.
+    /// Note: GridManager automatically maintains tile local scales, so tiles won't be affected by parent scale changes.
     /// </summary>
     public class GridScaler : MonoBehaviour
     {
@@ -39,6 +40,10 @@ namespace BoardGameTestCase.Core
         
         [Tooltip("Reference camera (null = main camera)")]
         [SerializeField] private Camera _targetCamera;
+        
+        [Header("Debug")]
+        [Tooltip("Show debug logs")]
+        [SerializeField] private bool _showDebugLogs = false;
         
         private Vector2 _lastScreenSize;
         private Vector3 _initialScale;
@@ -91,7 +96,10 @@ namespace BoardGameTestCase.Core
             Vector3 newScale = _baseScale * scaleFactor;
             transform.localScale = newScale;
             
-            Debug.Log($"[GridScaler] Applied scale: {scaleFactor:F2}x (Screen: {Screen.width}x{Screen.height})");
+            if (_showDebugLogs)
+            {
+                Debug.Log($"[GridScaler] Applied scale: {scaleFactor:F2}x (Screen: {Screen.width}x{Screen.height})");
+            }
         }
         
         private float CalculateScaleFactor()
