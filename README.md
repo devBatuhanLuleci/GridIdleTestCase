@@ -1,115 +1,103 @@
 <div align="center">
 
-# 🛡️ Board Defence - Grid Based Strategy Game
-
-![Banner](https://github.com/user-attachments/assets/your-banner-id-here) 
-*(Not: Az önce senin için ürettiğim banner görselini buraya ekleyebilirsin!)*
+# 🛡️ Grid Defence: Senior Case Study
+### Robust Modular Architecture • High Performance • Scalable Design
 
 [![Unity](https://img.shields.io/badge/Unity-6000.2.6f2-blue.svg?style=for-the-badge&logo=unity)](https://unity.com/)
-[![License](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](LICENSE)
-[![Platform](https://img.shields.io/badge/Platform-Mobile%20%7C%20Web-orange.svg?style=for-the-badge)](https://unity.com/)
+[![Render Pipeline](https://img.shields.io/badge/URP-Universal%20Render%20Pipeline-lightgrey.svg?style=for-the-badge)](https://unity.com/render-pipelines/universal-render-pipeline)
+[![Architecture](https://img.shields.io/badge/Architecture-Modular%20ASMDEF-red.svg?style=for-the-badge)](https://docs.unity3d.com/Manual/ScriptCompilationAssemblyDefinitionFiles.html)
 
-**Board Defence**, Unico Studio için geliştirilmiş, yüksek performanslı ve modüler mimariye sahip grid tabanlı bir savunma oyunudur.
+**Grid Defence** is a high-fidelity case study showcasing a modular, scalable, and performance-optimized tower defense framework. Built with a "Service-First" philosophy, it demonstrates advanced Unity engineering patterns suitable for production-scale mobile and desktop titles.
 
-[Özellikler](#-özellikler) • [Mimari](#-mimari) • [Modüller](#-modüller) • [Kurulum](#-kurulum) • [Teknik Detaylar](#-teknik-detaylar)
+[Key Architecture](#-architectural-highlights) • [Technical Deep Dive](#-technical-features) • [Design Patterns](#-implemented-design-patterns) • [Module Breakdown](#-system-modules)
+
+---
+
+## 📸 Media & Visuals
+*Dynamic lighting, custom shaders, and physics-based animations work in tandem to provide a premium feel.*
+
+| Gameplay Loop | Combat UI | Placement Logic |
+| :---: | :---: | :---: |
+| ![Gameplay](https://via.placeholder.com/300x500?text=Core+Game+Loop) | ![Combat](https://via.placeholder.com/300x500?text=Per-Object+Flash+Effect) | ![Placement](https://via.placeholder.com/300x500?text=Bezier+Trash+Animation) |
 
 </div>
 
 ---
 
-## 📸 Media & Demo
+## �️ Architectural Highlights
 
-Aşağıdaki bölümlere oyun içinden aldığın video ve GIF'leri ekleyebilirsin.
+As a Senior Developer, my focus was on creating a **foundation** that allows teams to scale content without increasing technical debt.
 
-| Gameplay GIF | Combat System | Placement Mechanics |
-| :---: | :---: | :---: |
-| ![Gameplay](https://via.placeholder.com/300x500?text=Gameplay+GIF) | ![Combat](https://via.placeholder.com/300x500?text=Combat+GIF) | ![Placement](https://via.placeholder.com/300x500?text=Placement+GIF) |
+### 🧩 True Modularity (Assembly Definitions)
+The project is strictly partitioned using **Assembly Definition Files (AsmDef)**. 
+- **Benefits**: Decoupled compilation (faster iteration), enforced dependency rules (no spaghetti code), and clear boundaries between `GridSystem`, `Combat`, and `UI`.
 
----
+### 💉 Dependency Management & Service Placement
+Utilizes a high-performance **Service Locator** pattern integrated with a **Service Discovery** mechanism.
+- Systems register themselves via interfaces (e.g., `IGridPlacementSystem`, `IEnemySpawner`).
+- Components depend on **Abstractions**, not implementations, facilitating easy mocking for unit testing.
 
-## 🎮 Özellikler
-
-- **🧩 Gelişmiş Grid Sistemi**: Dinamik boyutlandırma ve tile tabanlı yerleştirme validasyonu.
-- **⚔️ Akıllı Savaş Mekaniği**: Strateji örüntüleri (Strategy Pattern) ile yönetilen farklı saldırı tipleri.
-- **🌊 Dalga Yönetimi**: Esnek düşman spawn ve dalga kontrol mekanizması.
-- **📦 Dinamik Envanter**: Seviye bazlı çalışan ve UI ile entegre envanter sistemi.
-- **🎨 Üstün Görsel Geri Bildirim**: Sprite Outline Shader ve akıcı animasyonlar ile zenginleştirilmiş kullanıcı deneyimi.
-
----
-
-## 🏗️ Mimari Tasarım
-
-Proje, **SOLID** prensiplerine sadık kalınarak, tamamen modüler ve test edilebilir bir yapıda inşa edilmiştir.
-
-### 🌟 Temel Prensipler
-- **Service Locator & DI**: Bağımlılıklar arayüzler üzerinden yönetilir, runtime servis erişimi merkezidir.
-- **State Machine**: Oyun akışı (Placing, Fight, Win/Lose) state pattern ile kontrol edilir.
-- **Modular Assembly (AsmDef)**: Her modül kendi assembly'sine sahiptir, compilation süreleri minimize edilmiştir.
-- **Clean Code**: Kendini açıklayan metod isimleri ve yapısal bütünlük (No magic strings, no reflection).
+### 🚌 Event-Driven Communication
+Cross-module interactions are handled through a central **EventBus** and `Action`-based observers.
+- **Example**: The `UI` module updates the health bar by listening to `IEnemy.OnHealthChanged`, never directly querying the internal state of the `EnemyItem2D`.
 
 ---
 
-## 📦 Modül Yapısı
+## � Technical Features
 
-### 🔵 Core Modules
-- **GridSystem**: Grid mantığı, tile validasyonu ve yerleştirme kontrolleri.
-- **GameModule**: Oyunun ana kalbi; StateManager ve FlowController.
-- **CombatSystem**: Düşman takibi, hasar mekaniği ve saldırı stratejileri.
+### ⚔️ Advanced Combat & FX Systems
+- **Material Instancing**: Projectiles and Units use per-renderer material instances. This allows individual hit-flashes (`_FlashAmount`) and outlines without breaking batching for static objects or affecting "atlas-mates."
+- **Bezier Trajectories**: Projectiles use mathematical Bezier curves for organic motion, calculated efficiently with custom utility libraries.
+- **Hit Feedback**: Integrated shader-driven flash effects combined with `DOTween` pulses for high-impact visual feedback.
 
-### 🟢 Gameplay Modules
-- **Placement**: Birim yerleştirme akışı ve görsel feedback.
-- **Inventory**: Oyuncunun sahip olduğu birimlerin yönetimi.
-- **Strategies**: `ForwardAttackChallenge` ve `AllDirectionsAttack` gibi genişletilebilir stratejiler.
+### 🧩 Intelligent Grid System
+- **Spatial Validation**: Supports multi-tile objects with real-time overlap checking and boundary validation.
+- **Scalable Placement**: Logic is abstracted behind `IPlaceable`, allowing anything (Towers, Traps, Obstacles) to be integrated into the grid without code changes.
 
-### 🔴 UI & Debug
-- **UISystem**: Modern ve responsive arayüz bileşenleri.
-- **DebugModule**: Geliştirme sürecini hızlandıran araçlar ve loglama.
+### � Reactive Inventory
+- **Replenishment Logic**: Automated inventory slot management that handles replenishment cycles and visual state synchronization between the backend data and the UI frontend.
 
 ---
 
-## 🚀 Kurulum
+## �️ Implemented Design Patterns
 
-1. **Unity Versiyonu**: Proje `6000.2.6f2` sürümü ile uyumludur.
-2. **Klonlama**:
-   ```bash
-   git clone https://github.com/batuhanluleci/GridIdleTestCase.git
-   ```
-3. **Sahne**: `Assets/BoardGameTestCase/Scenes/Gameplayscene.unity` sahnesini açın.
-4. **Başlat**: Play butonuna basarak savunmaya başlayın!
+- **Strategy Pattern**: Swap combat behaviors (Forward, Circular, Area-of-Effect) at runtime without modifying the unit class.
+- **State Pattern**: Managed game states (`Placing`, `WaveActive`, `Result`) using a centralized `StateManager`.
+- **Factory Pattern**: Centralized spawning logic for Enemies and Projectiles to manage object initialization and pooling hooks.
+- **Observer Pattern**: Extensive use of `System.Action` and custom `EventBus` for loosely coupled systems.
 
 ---
 
-## 🛠️ Teknik Detaylar
+## � System Modules
 
-### Yazılım Stack'i
-- **Engine**: Unity 2023+ (Unity 6 ready)
-- **Rendering**: Universal Render Pipeline (URP)
-- **Logic**: C# (Async/Await, Interfaces, Generics)
-- **Tweening**: DOTween (Yüksek performanslı animasyonlar)
-- **Pattern**: Service Locator, Strategy, State, Observer
+| Module | Responsibility |
+| :--- | :--- |
+| **GridSystemModule** | Core grid math, tile management, and placement validation logic. |
+| **GameplayModule** | Entity logic, combat stats, enemy AI, and unit-specific behaviors. |
+| **UISystemModule** | Base UI frameworks, responsive panels, and drag-and-drop handlers. |
+| **GameModule** | Higher-level managers (LevelManager, StateManager, Bootstrap). |
+| **CORE** | Shared utilities, Service Locator, and Event Bus definitions. |
 
 ---
 
-## 📁 Dosya Organizasyonu
+## 📁 Project Structure
 
 ```text
 Assets/BoardGameTestCase/
-├── Scripts/             # Tüm operasyonel kodlar (AsmDef bazlı)
-├── DATA/                # ScriptableObject verileri ve ayarlar
-├── Prefabs/             # Birimler, Düşmanlar ve UI elementleri
-├── Shaders/             # Özel URP shader'lar
-└── Sprites/             # Görsel varlıklar
+├── Scripts/             # Modularized C# Code (AsmDef restricted)
+├── DATA/                # ScriptableObject-based configurations (Units, Levels, Waves)
+├── Prefabs/             # Atomic prefabs with pre-configured components
+├── Shaders/             # Custom URP Shaders (Outline, Flash, Shine effects)
+└── Sprites/             # Art assets optimized for sprite atlasing
 ```
 
 ---
 
-## 👤 Geliştirici
-
-**Batuhan Luleci**  
-*Game Developer & Software Architect*
+## 👤 Developer Notes
+Developed by **Batuhan Luleci**, Senior Game Developer. This case study reflects a professional approach to Unity development, prioritizing **performance, maintenance, and scalability**—the three pillars of a successful long-term project.
 
 ---
 
 <div align="center">
-Made with ❤️ for Unico Studio Test Case
+Built for professional review.
 </div>
