@@ -207,7 +207,7 @@ namespace BoardGameTestCase.Core.Common
                 // Aggressively destroy ALL ServiceLocator instances when scene is closing
                 try
                 {
-                    var allLocators = FindObjectsOfType<ServiceLocator>(true);
+                    var allLocators = FindObjectsByType<ServiceLocator>(FindObjectsInactive.Include, FindObjectsSortMode.None);
                     foreach (var locator in allLocators)
                     {
                         if (locator != null && locator.gameObject != null)
@@ -241,7 +241,7 @@ namespace BoardGameTestCase.Core.Common
                 // Double-check: find and destroy any remaining ServiceLocator instances
                 try
                 {
-                    var remaining = FindObjectsOfType<ServiceLocator>(true);
+                    var remaining = FindObjectsByType<ServiceLocator>(FindObjectsInactive.Include, FindObjectsSortMode.None);
                     foreach (var locator in remaining)
                     {
                         if (locator != null && locator.gameObject != null)
@@ -266,7 +266,7 @@ namespace BoardGameTestCase.Core.Common
                 // Extra safety: destroy any remaining ServiceLocator instances
                 try
                 {
-                    var allLocators = FindObjectsOfType<ServiceLocator>(true);
+                    var allLocators = FindObjectsByType<ServiceLocator>(FindObjectsInactive.Include, FindObjectsSortMode.None);
                     foreach (var locator in allLocators)
                     {
                         if (locator != null && locator.gameObject != null)
@@ -324,7 +324,7 @@ namespace BoardGameTestCase.Core.Common
             #if UNITY_EDITOR
             try
             {
-                var allLocators = FindObjectsOfType<ServiceLocator>(true);
+                var allLocators = FindObjectsByType<ServiceLocator>(FindObjectsInactive.Include, FindObjectsSortMode.None);
                 foreach (var locator in allLocators)
                 {
                     if (locator != null && locator.gameObject != null && locator.gameObject != _instance?.gameObject)

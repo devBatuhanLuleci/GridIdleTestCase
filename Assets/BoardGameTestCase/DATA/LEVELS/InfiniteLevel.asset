@@ -21,6 +21,22 @@ MonoBehaviour:
     _quantity: 1
   - _defenceItemData: {fileID: 11400000, guid: 944e7fbb61a3f40e59e7446ce61c5f38, type: 2}
     _quantity: 1
+  - _defenceItemData: {fileID: 11400000, guid: a7de35015dfb1465c898b8b650b7dd75, type: 2}
+    _quantity: 1
+  - _defenceItemData: {fileID: 11400000, guid: ef50ec1f074a64aca9eb1f1be1cebcd0, type: 2}
+    _quantity: 1
+  - _defenceItemData: {fileID: 11400000, guid: 206e531286e974f82976f054cf8fef9d, type: 2}
+    _quantity: 1
+  - _defenceItemData: {fileID: 11400000, guid: 835667aaf5dff4f268fdfc0f842b403c, type: 2}
+    _quantity: 1
+  - _defenceItemData: {fileID: 11400000, guid: 9ca3342948a824e45b6d407cb3a00712, type: 2}
+    _quantity: 1
+  - _defenceItemData: {fileID: 11400000, guid: e4b69557f67c5455ead5c39a622a6659, type: 2}
+    _quantity: 1
+  - _defenceItemData: {fileID: 11400000, guid: 7ceb74e20ce5a4d95b2d8874b2dfdfb8, type: 2}
+    _quantity: 1
+  - _defenceItemData: {fileID: 11400000, guid: 6ddfd7aebf815412cb8e7b88faa20476, type: 2}
+    _quantity: 1
   _enemies:
   - _enemyData: {fileID: 11400000, guid: 8189ee150ab3e479588326a29ddcf3e4, type: 2}
     _quantity: 1
@@ -28,3 +44,4 @@ MonoBehaviour:
     _quantity: 1
   - _enemyData: {fileID: 11400000, guid: bd8fcea82cff147f1b4f7e554c784134, type: 2}
     _quantity: 1
+  _useRandomDefenceItems: 1
