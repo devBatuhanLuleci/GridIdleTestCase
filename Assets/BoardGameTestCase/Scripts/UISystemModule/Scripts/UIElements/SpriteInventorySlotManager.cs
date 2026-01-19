@@ -113,12 +113,12 @@ namespace UISystemModule.UIElements
         }
 
         private int _placedItemCount = 0;
-
         private List<SlotData> _slots = new List<SlotData>();
         private GridItem2D _currentlyDraggingItem = null;
         private int _originalSlotIndex = -1;
         private bool _swapHandled = false;
 
+        public event Action<GridItem2D> OnItemRegistered;
         public event Action<GridItem2D, int, int> OnItemSwapped; // item, oldIndex, newIndex
 
         public bool IsItemInSlot(GridItem2D item) => GetSlotIndex(item) != -1;
@@ -135,7 +135,7 @@ namespace UISystemModule.UIElements
             }
         }
 
-        private void AddRandomItemsToInventory(int count)
+        public void AddRandomItemsToInventory(int count)
         {
             var levelProvider = ServiceLocator.Instance?.Get<ILevelDataProvider>();
             if (levelProvider == null || levelProvider.CurrentLevel == null || levelProvider.CurrentLevel.DefenceItems.Count == 0)
@@ -275,6 +275,9 @@ namespace UISystemModule.UIElements
             
             // Subscribe to drag events
             SubscribeToDragEvents(item);
+
+            // Notify listeners that an item was registered
+            OnItemRegistered?.Invoke(item);
         }
         
         /// <summary>

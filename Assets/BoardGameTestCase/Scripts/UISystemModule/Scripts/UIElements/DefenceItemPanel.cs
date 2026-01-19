@@ -82,6 +82,12 @@ namespace UISystemModule.UIElements
                 _autoPlacementButton.OnButtonClicked += OnAutoPlacementButtonClicked;
             }
             
+            if (_slotManager != null)
+            {
+                _slotManager.OnItemRegistered -= OnSlotItemRegistered;
+                _slotManager.OnItemRegistered += OnSlotItemRegistered;
+            }
+
             SubscribeToGameStateEvents();
             UpdateAutoPlacementButtonState();
             
@@ -131,6 +137,11 @@ namespace UISystemModule.UIElements
                 _autoPlacementButton.OnButtonClicked -= OnAutoPlacementButtonClicked;
             }
             
+            if (_slotManager != null)
+            {
+                _slotManager.OnItemRegistered -= OnSlotItemRegistered;
+            }
+
             _disposables?.Dispose();
         }
         
@@ -167,22 +178,48 @@ namespace UISystemModule.UIElements
 
         private void RefreshSpriteItems(bool forceFullReset = false)
         {
-            var currentLevel = _levelDataProvider.CurrentLevel;
-            
-            // Removed redundant unregistration loop that was causing SlotManager to lose track of items.
-            // SyncSpriteItems will handle adding/removing items as needed based on inventory quantity.
-            
-            int spawnCursor = 0;
-            for (int itemIndex = 0; itemIndex < currentLevel.DefenceItems.Count; itemIndex++)
+            if (forceFullReset)
             {
-                var entry = currentLevel.DefenceItems[itemIndex];
-                if (entry == null || entry.DefenceItemData == null) continue;
-                int currentQuantity = _inventoryManager != null ? _inventoryManager.GetAvailableQuantity(entry.DefenceItemData) : entry.Quantity;
-                spawnCursor = SyncSpriteItems(entry.DefenceItemData, currentQuantity, spawnCursor);
+                ClearItems();
             }
-            RemoveStaleSpriteItems(currentLevel);
-            // Finalize positioning after all items are synced
+            
+            // Instead of looping through all level items, we ensure exactly 3 random items
+            if (_allSpriteItems.Count < 3)
+            {
+                int needed = 3 - _allSpriteItems.Count;
+                _slotManager?.AddRandomItemsToInventory(needed);
+            }
+
+            // SyncSpriteItems loop removed because items are managed via OnItemRegistered event
+            // and SlotManager's random generation.
+
             _slotManager?.RefreshAllPositions(false);
+        }
+
+        private void OnSlotItemRegistered(GridItem2D item)
+        {
+            if (item == null) return;
+            
+            if (!_allSpriteItems.Contains(item))
+            {
+                _allSpriteItems.Add(item);
+            }
+
+            var itemData = item.GetDefenceItemData();
+            if (itemData != null)
+            {
+                if (!_spriteItemHandlers.TryGetValue(itemData, out var handlers))
+                {
+                    handlers = new List<SpriteGridItemDragHandler>();
+                    _spriteItemHandlers[itemData] = handlers;
+                }
+                
+                var handler = item.GetComponent<SpriteGridItemDragHandler>();
+                if (handler != null && !handlers.Contains(handler))
+                {
+                    handlers.Add(handler);
+                }
+            }
         }
 
         private void CreateItemUI(DefenceItemData itemData, int initialQuantity)
@@ -250,60 +287,6 @@ namespace UISystemModule.UIElements
             if (placementSystem != null) dragHandler.SetPlacementSystem(placementSystem);
         }
 
-        private int SyncSpriteItems(DefenceItemData itemData, int quantity, int startIndex)
-        {
-            if (itemData == null) return startIndex;
-            if (!_spriteItemHandlers.TryGetValue(itemData, out var handlers))
-            {
-                handlers = new List<SpriteGridItemDragHandler>();
-                _spriteItemHandlers[itemData] = handlers;
-            }
-
-            int targetQuantity = Mathf.Max(0, quantity);
-            if (_maxSpritesPerItem > 0)
-            {
-                targetQuantity = Mathf.Min(targetQuantity, _maxSpritesPerItem);
-            }
-
-            for (int i = handlers.Count - 1; i >= targetQuantity; i--)
-            {
-                if (handlers[i] != null)
-                {
-                    var gridItem = handlers[i].GetComponent<GridItem2D>();
-                    if (gridItem != null)
-                    {
-                        _slotManager?.UnregisterItem(gridItem);
-                        _allSpriteItems.Remove(gridItem);
-                    }
-                    Destroy(handlers[i].gameObject);
-                }
-                handlers.RemoveAt(i);
-            }
-
-            for (int i = handlers.Count; i < targetQuantity; i++)
-            {
-                // Refactored: Use SlotManager to create item
-                if (_slotManager != null)
-                {
-                    int slotIndex = -1; // Let manager find the slot
-                    var gridItem = _slotManager.CreateAndRegisterItem(itemData, slotIndex);
-                    if (gridItem != null)
-                    {
-                        var handler = gridItem.GetComponent<SpriteGridItemDragHandler>();
-                        if (handler != null)
-                        {
-                            handlers.Add(handler);
-                        }
-                        _allSpriteItems.Add(gridItem);
-                    }
-                }
-            }
-            // Handlers are now registered in CreateAndRegisterItem, no need for loop here
-            // But we might want to ensure they are at correct indices if this was a refresh only?
-            // Actually CreateAndRegisterItem handles slot registration.
-            
-            return startIndex + handlers.Count;
-        }
 
         /// <summary>
 
@@ -338,44 +321,6 @@ namespace UISystemModule.UIElements
             }
         }
 
-        private void RemoveStaleSpriteItems(LevelData currentLevel)
-        {
-            var keysToRemove = new List<DefenceItemData>();
-            foreach (var kvp in _spriteItemHandlers)
-            {
-                bool stillExists = false;
-                foreach (var entry in currentLevel.DefenceItems)
-                {
-                    if (entry.DefenceItemData == kvp.Key)
-                    {
-                        stillExists = true;
-                        break;
-                    }
-                }
-                if (!stillExists) keysToRemove.Add(kvp.Key);
-            }
-
-            foreach (var key in keysToRemove)
-            {
-                if (_spriteItemHandlers.TryGetValue(key, out var handlers))
-                {
-                    foreach (var handler in handlers)
-                    {
-                        if (handler != null)
-                        {
-                            var gridItem = handler.GetComponent<GridItem2D>();
-                            if (gridItem != null)
-                            {
-                                _slotManager?.UnregisterItem(gridItem);
-                                _allSpriteItems.Remove(gridItem);
-                            }
-                            Destroy(handler.gameObject);
-                        }
-                    }
-                }
-                _spriteItemHandlers.Remove(key);
-            }
-        }
         
         private void ClearItems()
         {
