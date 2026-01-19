@@ -3,7 +3,7 @@
 # 🛡️ Grid Defence: Senior Case Study
 ### Robust Modular Architecture • High Performance • Scalable Design
 
-[![Unity](https://img.shields.io/badge/Unity-6000.2.6f2-blue.svg?style=for-the-badge&logo=unity)](https://unity.com/)
+[![Unity](https://img.shields.io/badge/Unity-6000.0.60f1-blue.svg?style=for-the-badge&logo=unity)](https://unity.com/)
 [![Render Pipeline](https://img.shields.io/badge/URP-Universal%20Render%20Pipeline-lightgrey.svg?style=for-the-badge)](https://unity.com/render-pipelines/universal-render-pipeline)
 [![Architecture](https://img.shields.io/badge/Architecture-Modular%20ASMDEF-red.svg?style=for-the-badge)](https://docs.unity3d.com/Manual/ScriptCompilationAssemblyDefinitionFiles.html)
 
