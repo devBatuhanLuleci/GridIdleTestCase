@@ -3,6 +3,8 @@
 # 🛡️ Grid Defence: Senior Case Study
 ### Robust Modular Architecture • High Performance • Scalable Design
 
+![Banner](https://github.com/user-attachments/assets/87cb2f6d-d356-40a1-a2ea-f84ed756ca0c)
+
 [![Unity](https://img.shields.io/badge/Unity-6000.0.60f1-blue.svg?style=for-the-badge&logo=unity)](https://unity.com/)
 [![Render Pipeline](https://img.shields.io/badge/URP-Universal%20Render%20Pipeline-lightgrey.svg?style=for-the-badge)](https://unity.com/render-pipelines/universal-render-pipeline)
 [![Architecture](https://img.shields.io/badge/Architecture-Modular%20ASMDEF-red.svg?style=for-the-badge)](https://docs.unity3d.com/Manual/ScriptCompilationAssemblyDefinitionFiles.html)
@@ -16,15 +18,17 @@
 ## 📸 Media & Visuals
 *Dynamic lighting, custom shaders, and physics-based animations work in tandem to provide a premium feel.*
 
-| Gameplay Loop | Combat UI | Placement Logic |
-| :---: | :---: | :---: |
-| ![Gameplay](https://via.placeholder.com/300x500?text=Core+Game+Loop) | ![Combat](https://via.placeholder.com/300x500?text=Per-Object+Flash+Effect) | ![Placement](https://via.placeholder.com/300x500?text=Bezier+Trash+Animation) |
+| Core Gameplay Loop | Combat UI & FX |
+| :---: | :---: |
+| <video src="https://github.com/user-attachments/assets/325b799f-5653-4a4f-8b8b-d1dd6e458771" width="300" /> | <video src="https://github.com/user-attachments/assets/c08e880e-81fd-4b0f-9ea4-ecfe2cab5bbf" width="300" /> |
+| **Grid Placement** | **Dynamic Inventory** |
+| <video src="https://github.com/user-attachments/assets/396df188-a3a7-4c51-9026-1f688ba3c632" width="300" /> | <video src="https://github.com/user-attachments/assets/910483dd-7e50-406e-8b5f-1079e12d49e5" width="300" /> |
 
 </div>
 
 ---
 
-## �️ Architectural Highlights
+## 🏗️ Architectural Highlights
 
 As a Senior Developer, my focus was on creating a **foundation** that allows teams to scale content without increasing technical debt.
 
@@ -43,7 +47,7 @@ Cross-module interactions are handled through a central **EventBus** and `Action
 
 ---
 
-## � Technical Features
+## 🚀 Technical Features
 
 ### ⚔️ Advanced Combat & FX Systems
 - **Material Instancing**: Projectiles and Units use per-renderer material instances. This allows individual hit-flashes (`_FlashAmount`) and outlines without breaking batching for static objects or affecting "atlas-mates."
@@ -54,12 +58,12 @@ Cross-module interactions are handled through a central **EventBus** and `Action
 - **Spatial Validation**: Supports multi-tile objects with real-time overlap checking and boundary validation.
 - **Scalable Placement**: Logic is abstracted behind `IPlaceable`, allowing anything (Towers, Traps, Obstacles) to be integrated into the grid without code changes.
 
-### � Reactive Inventory
+### 📦 Reactive Inventory
 - **Replenishment Logic**: Automated inventory slot management that handles replenishment cycles and visual state synchronization between the backend data and the UI frontend.
 
 ---
 
-## �️ Implemented Design Patterns
+## 🛠️ Implemented Design Patterns
 
 - **Strategy Pattern**: Swap combat behaviors (Forward, Circular, Area-of-Effect) at runtime without modifying the unit class.
 - **State Pattern**: Managed game states (`Placing`, `WaveActive`, `Result`) using a centralized `StateManager`.
@@ -68,7 +72,7 @@ Cross-module interactions are handled through a central **EventBus** and `Action
 
 ---
 
-## � System Modules
+## 📦 System Modules
 
 | Module | Responsibility |
 | :--- | :--- |
