@@ -18,10 +18,10 @@
 ## 📸 Media & Visuals
 *Dynamic lighting, custom shaders, and physics-based animations work in tandem to provide a premium feel.*
 
-| Grid Placement | Combat UI & FX |
+| Core Gameplay Loop | Combat UI & FX |
 | :---: | :---: |
 | <video src="https://github.com/user-attachments/assets/396df188-a3a7-4c51-9026-1f688ba3c632" width="300" /> | <video src="https://github.com/user-attachments/assets/c08e880e-81fd-4b0f-9ea4-ecfe2cab5bbf" width="300" /> |
-| **Core Gameplay Loop** | **Dynamic Inventory** |
+| **Grid Placement** | **Dynamic Inventory** |
 | <video src="https://github.com/user-attachments/assets/325b799f-5653-4a4f-8b8b-d1dd6e458771" width="300" /> | <video src="https://github.com/user-attachments/assets/910483dd-7e50-406e-8b5f-1079e12d49e5" width="300" /> |
 
 </div>
